@@ -1,0 +1,63 @@
+name: Sync Template Docs
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "**"
+  schedule:
+    - cron: "0 18 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-template-docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync-template-docs:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    env:
+      SOURCE_TEMPLATE_REPOSITORY: https://github.com/Horizon-Nova/template-wpf.git
+      SOURCE_TEMPLATE_BRANCH: main
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Clone source template
+        run: |
+          git clone --depth 1 --branch "${SOURCE_TEMPLATE_BRANCH}" "${SOURCE_TEMPLATE_REPOSITORY}" "${RUNNER_TEMP}/template-source"
+
+      - name: Sync docs only
+        run: |
+          mkdir -p docs
+          rsync -av "${RUNNER_TEMP}/template-source/docs/" docs/
+
+      - name: Check for docs changes
+        id: diff
+        run: |
+          if git diff --quiet -- docs; then
+            echo "has_changes=false" >> "${GITHUB_OUTPUT}"
+            echo "[Info] No docs updates found."
+          else
+            echo "has_changes=true" >> "${GITHUB_OUTPUT}"
+            echo "[Info] Docs updates detected."
+          fi
+
+      - name: Commit and push docs updates
+        if: steps.diff.outputs.has_changes == 'true'
+        run: |
+          git add docs
+          git commit -m "[docs sync] Update docs from template"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin HEAD:"${GITHUB_REF_NAME}"

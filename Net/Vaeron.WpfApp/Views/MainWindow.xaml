@@ -1,0 +1,52 @@
+<Window x:Class="Vaeron.WpfApp.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:Vaeron.WpfApp.ViewModels"
+        Title="{Binding WindowTitle}"
+        Width="960"
+        Height="600"
+        WindowStartupLocation="CenterScreen">
+    <Window.DataContext>
+        <vm:MainWindowViewModel />
+    </Window.DataContext>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock FontSize="24"
+                   FontWeight="SemiBold"
+                   Text="{Binding Heading}" />
+
+        <Border Grid.Row="1"
+                Margin="0,16,0,16"
+                Padding="16"
+                BorderBrush="#22000000"
+                BorderThickness="1"
+                CornerRadius="8">
+            <StackPanel>
+                <TextBlock FontSize="14"
+                           TextWrapping="Wrap"
+                           Text="{Binding Message}" />
+
+                <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                    <Button Padding="12,6"
+                            Command="{Binding CopyProjectNameCommand}"
+                            Content="複製專案名稱" />
+                    <Button Padding="12,6"
+                            Margin="12,0,0,0"
+                            Command="{Binding OpenRenameHintCommand}"
+                            Content="如何改名" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <TextBlock Grid.Row="2"
+                   Foreground="#88000000"
+                   Text="{Binding Footer}" />
+    </Grid>
+</Window>
+
