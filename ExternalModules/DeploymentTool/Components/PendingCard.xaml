@@ -1,0 +1,65 @@
+﻿<UserControl x:Class="ExternalModules.DeploymentTool.Components.PendingCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root">
+
+    <Border 
+            Padding="20"
+            Background="#0E1A16"
+            BorderBrush="#1F4D38"
+            BorderThickness="1"
+            CornerRadius="16">
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="&gt;_"
+                           FontSize="20"
+                           Foreground="#EAFBF1"
+                           VerticalAlignment="Center"/>
+
+                <TextBlock Grid.Column="1"
+                           Margin="12,0,0,0"
+                           Text="{Binding Title, ElementName=Root, TargetNullValue=artistic-expression, FallbackValue=artistic-expression}"
+                           Foreground="#F7F4ED"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"/>
+
+                <Border Grid.Column="2"
+                        Padding="10,4"
+                        Background="#2E694D"
+                        CornerRadius="10">
+                    <TextBlock Text="{Binding BadgeText, ElementName=Root, TargetNullValue=New, FallbackValue=New}"
+                               Foreground="#EAFBF1"
+                               FontWeight="SemiBold"/>
+                </Border>
+            </Grid>
+
+            <StackPanel Grid.Row="2"
+                        Margin="0,20,0,0"
+                        Orientation="Horizontal">
+                <Ellipse Width="18"
+                         Height="18"
+                         Fill="#2E694D"
+                         VerticalAlignment="Center"/>
+
+                <TextBlock Margin="10,0,0,0"
+                           Text="{Binding StatusText, ElementName=Root, TargetNullValue=Service will be created, FallbackValue=Service will be created}"
+                           Foreground="#65D39B"
+                           FontSize="13"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

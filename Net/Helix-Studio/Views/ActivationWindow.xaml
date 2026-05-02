@@ -1,0 +1,314 @@
+﻿<Window x:Class="Helix_Studio.Views.ActivationWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="啟用 Helix Studio"
+        Height="580" Width="900"
+        MinHeight="580" MinWidth="900"
+        MaxHeight="580" MaxWidth="900"
+        ResizeMode="CanMinimize"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource SurfaceBase}"
+        FontFamily="Segoe UI, Microsoft JhengHei UI"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        WindowStyle="SingleBorderWindow">
+
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="360"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="26"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Grid.Column="0">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Offset="0"   Color="#0A1628"/>
+                    <GradientStop Offset="0.6" Color="#12243D"/>
+                    <GradientStop Offset="1"   Color="#1E4470"/>
+                </LinearGradientBrush>
+            </Border.Background>
+
+            <Grid>
+                <Path Fill="#FFFFFF" Opacity="0.04"
+                      HorizontalAlignment="Right" VerticalAlignment="Top"
+                      Margin="0,-60,-80,0" Stretch="Uniform" Width="320" Height="320"
+                      Data="M 50,0 L 58,42 L 100,50 L 58,58 L 50,100 L 42,58 L 0,50 L 42,42 Z"/>
+                <Path Fill="#FFFFFF" Opacity="0.06"
+                      HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                      Margin="-40,0,0,80" Stretch="Uniform" Width="140" Height="140"
+                      Data="M 50,0 L 58,42 L 100,50 L 58,58 L 50,100 L 42,58 L 0,50 L 42,42 Z"/>
+                <Canvas>
+                    <Line X1="0" Y1="120" X2="360" Y2="120" Stroke="#FFFFFF" StrokeThickness="1" Opacity="0.04"/>
+                    <Line X1="0" Y1="240" X2="360" Y2="240" Stroke="#FFFFFF" StrokeThickness="1" Opacity="0.04"/>
+                    <Line X1="0" Y1="360" X2="360" Y2="360" Stroke="#FFFFFF" StrokeThickness="1" Opacity="0.04"/>
+                    <Line X1="0" Y1="480" X2="360" Y2="480" Stroke="#FFFFFF" StrokeThickness="1" Opacity="0.04"/>
+                </Canvas>
+
+                <Grid Margin="40,40,40,32">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Top">
+                        <Border Width="24" Height="24" Background="Transparent">
+                            <Image Source="/Assets/image/Horizon Nova Icon.png" Stretch="Uniform"/>
+                        </Border>
+                        <TextBlock Text="HELIX" FontSize="11" FontWeight="Bold"
+                                   Foreground="{StaticResource TextOnDark}"
+                                   VerticalAlignment="Center" Margin="10,0,0,0"/>
+                        <TextBlock Text="STUDIO" FontSize="11" FontWeight="Light"
+                                   Foreground="{StaticResource TextOnDarkMuted}"
+                                   VerticalAlignment="Center" Margin="5,0,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="1" VerticalAlignment="Center">
+                        <Border Width="88" Height="88" HorizontalAlignment="Left">
+                            <Image Source="/Assets/image/Horizon Nova Icon.png" Stretch="Uniform"/>
+                        </Border>
+                        <TextBlock Text="Welcome to" FontSize="14" FontWeight="Light"
+                                   Foreground="{StaticResource TextOnDarkMuted}" Margin="0,28,0,0"/>
+                        <TextBlock Text="Helix" FontSize="28" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextOnDark}" Margin="0,4,0,0"/>
+                        <TextBlock Text="Studio" FontSize="28" FontWeight="Light"
+                                   Foreground="{StaticResource TextOnDark}" Margin="0,-4,0,0"/>
+                        <Border Height="1" Background="#FFFFFF" Opacity="0.15" Margin="0,24,0,20" Width="48" HorizontalAlignment="Left"/>
+                        <TextBlock FontSize="12" Foreground="{StaticResource TextOnDarkMuted}"
+                                   TextWrapping="Wrap" LineHeight="20">
+                            <Run Text="The industrial intelligence platform"/>
+                            <LineBreak/>
+                            <Run Text="trusted by Fortune 500 manufacturers"/>
+                            <LineBreak/>
+                            <Run Text="and top-tier enterprises across APAC."/>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2">
+                        <TextBlock Text="CERTIFIED &amp; COMPLIANT" FontSize="9" FontWeight="Bold"
+                                   Foreground="{StaticResource TextOnDarkMuted}" Margin="0,0,0,10"/>
+                        <WrapPanel>
+                            <Border Background="#1A3A2B" CornerRadius="2" Padding="8,3" Margin="0,0,6,6">
+                                <TextBlock Text="SOC 2 TYPE II" FontSize="9" FontWeight="Bold" Foreground="#6EE7A3"/>
+                            </Border>
+                            <Border Background="#1A3A2B" CornerRadius="2" Padding="8,3" Margin="0,0,6,6">
+                                <TextBlock Text="ISO 27001" FontSize="9" FontWeight="Bold" Foreground="#6EE7A3"/>
+                            </Border>
+                            <Border Background="#1A3A2B" CornerRadius="2" Padding="8,3" Margin="0,0,6,6">
+                                <TextBlock Text="GDPR" FontSize="9" FontWeight="Bold" Foreground="#6EE7A3"/>
+                            </Border>
+                            <Border Background="#1A3A2B" CornerRadius="2" Padding="8,3" Margin="0,0,6,6">
+                                <TextBlock Text="IEC 62443" FontSize="9" FontWeight="Bold" Foreground="#6EE7A3"/>
+                            </Border>
+                        </WrapPanel>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="0" Grid.Column="1" Background="{StaticResource SurfaceRaised}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="40,24,32,0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <TextBlock x:Name="StepText" Text="STEP 1 OF 1" FontSize="10" FontWeight="Bold"
+                               Foreground="{StaticResource TextTertiary}" VerticalAlignment="Center"/>
+                    <Border Background="{StaticResource AccentSoft}" CornerRadius="2" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                        <TextBlock x:Name="StepBadgeText" Text="ACTIVATION REQUIRED" FontSize="9" FontWeight="Bold"
+                                   Foreground="{StaticResource AccentPrimary}"/>
+                    </Border>
+                </StackPanel>
+                <Border HorizontalAlignment="Right"
+                        BorderThickness="1"
+                        CornerRadius="3"
+                        Padding="8,2">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0"
+                                   Text="&#xE775;"
+                                   FontFamily="Segoe MDL2 Assets"
+                                   FontSize="12"
+                                   Margin="0,0,6,0"
+                                   Foreground="{StaticResource TextSecondary}"
+                                   VerticalAlignment="Center"/>
+                        <ComboBox x:Name="LanguageSelector"
+                                  Grid.Column="1"
+                                  Width="92"
+                                  Height="24"
+                                  SelectedIndex="{Binding LanguageIndex, Mode=TwoWay}"
+                                  FontSize="11"
+                                  FontWeight="Normal"
+                                  BorderThickness="0"
+                                  Foreground="{StaticResource TextSecondary}"
+                                  ToolTip="Language" BorderBrush="{x:Null}" Background="{x:Null}">
+                            <ComboBoxItem Content="English"/>
+                            <ComboBoxItem Content="繁體中文"/>
+                        </ComboBox>
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <StackPanel Grid.Row="1" Margin="40,28,40,0" VerticalAlignment="Top">
+                <TextBlock x:Name="ActivationTitleText" Text="{Binding ActivationTitleText}" FontSize="22" FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimary}"/>
+                <TextBlock FontSize="13" Foreground="{StaticResource TextSecondary}"
+                           Margin="0,6,0,0" LineHeight="20" TextWrapping="Wrap">
+                    <Run x:Name="ActivationDescriptionText" Text="{Binding ActivationDescriptionText}"/>
+                </TextBlock>
+
+                <StackPanel Margin="0,28,0,0">
+                    <Grid Margin="0,0,0,8">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <TextBlock x:Name="LicenseKeyLabelText" Text="{Binding LicenseKeyLabelText}" FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{StaticResource TextPrimary}"/>
+                            <TextBlock x:Name="LicenseKeyLabelZhText" Text="授權金鑰" FontSize="11" Foreground="{StaticResource TextTertiary}"
+                                       Margin="6,0,0,0" VerticalAlignment="Center"
+                                       Visibility="{Binding ShowLicenseKeyLabelZh, Converter={StaticResource BoolToVisibility}}"/>
+                        </StackPanel>
+                    </Grid>
+                    <TextBox x:Name="LicenseKeyBox"
+                             Style="{StaticResource LicenseKeyInput}" Padding="4,0,0,0"
+                             Text="{Binding LicenseKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <TextBlock FontSize="11" Foreground="{StaticResource TextTertiary}" Margin="0,8,0,0">
+                        <Run x:Name="LicenseFormatPrefixText" Text="{Binding LicenseFormatPrefixText}"/>
+                        <Run Text="  ·  "/>
+                        <Run x:Name="LicenseFormatHintText" Text="{Binding LicenseFormatHintText}"/>
+                    </TextBlock>
+                </StackPanel>
+
+                <Border Background="{StaticResource SurfaceBase}" BorderBrush="{StaticResource BorderLight}" BorderThickness="1"
+                        CornerRadius="3" Padding="16,12" Margin="0,24,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="32" Height="32" Background="{StaticResource AccentSoft}" CornerRadius="3"
+                                VerticalAlignment="Center">
+                            <TextBlock Text="&#xE730;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                       Foreground="{StaticResource AccentPrimary}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock x:Name="DeviceBindingPrefixText" Text="{Binding DeviceBindingPrefixText}" FontSize="12"
+                                           Foreground="{StaticResource TextSecondary}"/>
+                                <TextBlock x:Name="BoundDeviceText" Text="{Binding BoundDeviceName}" FontSize="12" FontWeight="SemiBold"
+                                           FontFamily="Consolas, Cascadia Mono"
+                                           Foreground="{StaticResource TextPrimary}" Margin="5,0,0,0"/>
+                            </StackPanel>
+                            <TextBlock FontSize="11" Foreground="{StaticResource TextTertiary}" Margin="0,2,0,0">
+                                <Run x:Name="FingerprintPrefixText" Text="{Binding FingerprintPrefixText}"/>
+                                <Run x:Name="FingerprintText" Text="{Binding FingerprintText}" FontFamily="Consolas, Cascadia Mono"/>
+                                <Run Text="  ·  "/>
+                                <Run x:Name="RebindingHintText" Text="{Binding RebindingHintText}"/>
+                            </TextBlock>
+                        </StackPanel>
+                        <TextBlock x:Name="CopyDeviceInfoText" Grid.Column="2" Text="{Binding CopyDeviceInfoText}" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{StaticResource AccentPrimary}" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonUp="CopyDeviceInfoText_MouseLeftButtonUp"/>
+                    </Grid>
+                </Border>
+
+                <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+                    <CheckBox x:Name="AgreeCheck" VerticalAlignment="Top" Margin="0,2,0,0"
+                              IsChecked="{Binding AgreeToTerms, Mode=TwoWay}"/>
+                    <TextBlock TextWrapping="Wrap" FontSize="12"
+                               Foreground="{StaticResource TextSecondary}" Margin="10,0,0,0" LineHeight="18">
+                        <Run x:Name="AgreementPrefixText" Text="{Binding AgreementPrefixText}"/>
+                        <Hyperlink Foreground="{StaticResource AccentPrimary}" TextDecorations="None" Click="EnterpriseAgreement_Click">
+                            <Run x:Name="EnterpriseAgreementText" Text="{Binding EnterpriseAgreementText}"/>
+                        </Hyperlink>
+                        <Run x:Name="AgreementAndText" Text="{Binding AgreementAndText}"/>
+                        <Hyperlink Foreground="{StaticResource AccentPrimary}" TextDecorations="None" Click="DataProcessingTerms_Click">
+                            <Run x:Name="DataProcessingTermsText" Text="{Binding DataProcessingTermsText}"/>
+                        </Hyperlink>
+                        <Run Text="."/>
+                    </TextBlock>
+                </StackPanel>
+            </StackPanel>
+
+            <Border Grid.Row="2" BorderBrush="{StaticResource BorderLight}" BorderThickness="0,1,0,0" Padding="40,20">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Orientation="Horizontal">
+                        <TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                                   Foreground="{StaticResource TextTertiary}" VerticalAlignment="Center"/>
+                        <TextBlock FontSize="11" Foreground="{StaticResource TextSecondary}"
+                                   Margin="6,0,0,0" VerticalAlignment="Center">
+                            <Run x:Name="NeedHelpText" Text="{Binding NeedHelpText}"/>
+                            <Hyperlink Foreground="{StaticResource AccentPrimary}" TextDecorations="None" Click="ContactAdministrator_Click">
+                                <Run x:Name="ContactAdministratorText" Text="{Binding ContactAdministratorText}"/>
+                            </Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button x:Name="CancelButton"   Style="{StaticResource GhostButton}"
+                                Content="{Binding CancelButtonText}" Margin="0,0,10,0"
+                                Command="{Binding CancelCommand}"/>
+                        <Button x:Name="ActivateButton" Style="{StaticResource PrimaryButton}"
+                                Command="{Binding ActivateCommand}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock x:Name="ActivateButtonText" Text="{Binding ActivateButtonText}" VerticalAlignment="Center"/>
+                                <TextBlock Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                                           Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <StackPanel x:Name="ToastHostPanel"
+                    Grid.Row="0"
+                    Grid.Column="1"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,20,20"
+                    Panel.ZIndex="20"/>
+
+        <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Background="{StaticResource SurfaceStatusBar}">
+            <Grid Margin="12,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
+                        <Ellipse Width="7" Height="7" Fill="#4ADE80" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="StatusModeText" Text="{Binding StatusModeText}" FontSize="11"
+                                   Foreground="White" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Border Background="#1A5A95" Width="1" Height="14" Margin="0,0,16,0"/>
+                    <TextBlock x:Name="StatusSecurityText" Text="{Binding StatusSecurityText}" FontSize="11"
+                               Foreground="White" Opacity="0.85" VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock x:Name="StatusDeviceText" Text="{Binding StatusDeviceText}" FontSize="11"
+                               Foreground="White" Opacity="0.85" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                    <Border Background="#1A5A95" Width="1" Height="14" Margin="0,0,16,0"/>
+                    <TextBlock x:Name="StatusBuildText" Text="{Binding StatusBuildText}" FontSize="11"
+                               Foreground="White" Opacity="0.85" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
+

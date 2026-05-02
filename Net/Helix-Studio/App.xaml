@@ -1,0 +1,25 @@
+﻿<Application x:Class="Helix_Studio.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Helix_Studio"
+             xmlns:util="clr-namespace:Helix_Studio.Infrastructure.Utilities">
+    <Application.Resources>
+        <ResourceDictionary>
+            <util:BoolToVisibilityConverter x:Key="BoolToVisibility" />
+            <util:NullToCollapsedConverter x:Key="NullToCollapsed" />
+            <util:NullToVisibleConverter x:Key="NullToVisible" />
+            <util:PngBytesToImageSourceConverter x:Key="PngBytesToImageSource" />
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/Themes/ShellColors.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/Themes/ShellTypography.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/Themes/ShellChromeStyles.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/Themes/ShellScrollStyles.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/Themes/ShellSettingsStyles.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/Themes/ShellMarkdownStyles.xaml" />
+
+                <ResourceDictionary Source="pack://application:,,,/Themes/Locale/Strings.zh-Hant.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
+

@@ -1,0 +1,35 @@
+{
+  "Id": "calculator",
+  "DisplayName": "計算機",
+  "Version": "1.0.0",
+  "Description": "基礎四則運算計算機，用於驗證外部模組的畫布大小與設定契約。",
+  "IconFile": "icon.svg",
+  "EntryAssemblyFile": "bin/CalculatorModule.dll",
+  "EntryType": "ExternalModules.CalculatorModule.CalculatorModule",
+  "ReadmeFile": "README.md",
+  "MinHostVersion": "",
+  "View": {
+    "PreferredWidth": 380,
+    "PreferredHeight": 540,
+    "MinWidth": 320,
+    "MinHeight": 480
+  },
+  "Settings": [
+    {
+      "Key": "decimalPlaces",
+      "DisplayName": "小數位數",
+      "Description": "運算結果顯示的最大小數位數。",
+      "ValueType": "Integer",
+      "DefaultValue": 8,
+      "MinValue": 0,
+      "MaxValue": 15
+    },
+    {
+      "Key": "showHistory",
+      "DisplayName": "顯示運算紀錄",
+      "Description": "是否在計算機右側顯示運算紀錄區塊。",
+      "ValueType": "Boolean",
+      "DefaultValue": true
+    }
+  ]
+}

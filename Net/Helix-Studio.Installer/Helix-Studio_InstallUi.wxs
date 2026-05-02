@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ??????WiX Toolset v6.0.2 ??WixUI_InstallDir?雓?icrosoft Reciprocal License?雓????  ?????擃???嚗?????????????????鞈??????????鞊????Ⅹ???????拆????豲???????????渡??謋???  ?????????鞊??????頩???????皝??????????鞈?????????雓??????????????雓??⊿??雓????豯?????????鞊啣????拆謑??-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+
+  <Fragment>
+    <UI>
+      <Dialog Id="LangSelectDlg" Width="370" Height="270" Title="!(loc.LicenseAgreementDlg_Title)">
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="!(loc.LicenseAgreementDlgBannerBitmap)" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="373" Height="0" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="373" Height="0" />
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="320" Height="15" Transparent="yes" NoPrefix="yes" Text="選擇授權語言" />
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="330" Height="28" Transparent="yes" NoPrefix="yes" Text="請選擇安裝程式要顯示的授權條款語言。" />
+        <Control Id="EulaLangRadios" Type="RadioButtonGroup" X="20" Y="54" Width="330" Height="44" Property="EULA_LANG">
+          <RadioButtonGroup>
+            <RadioButton Value="ZH" Text="Traditional Chinese" X="0" Y="0" Width="320" Height="18" />
+            <RadioButton Value="EN" Text="English" X="0" Y="20" Width="320" Height="18" />
+          </RadioButtonGroup>
+      <Publish Property="HELIXSTUDIO_EULA_ACCEPT_ZH" Order="1" />
+      <Publish Property="HELIXSTUDIO_EULA_ACCEPT_EN" Order="2" />
+          <Publish Event="NewDialog" Value="LicenseAgreementZhDlg" Order="3" Condition="EULA_LANG = &quot;ZH&quot;" />
+          <Publish Event="NewDialog" Value="LicenseAgreementEnDlg" Order="4" Condition="EULA_LANG = &quot;EN&quot;" />
+        </Control>
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)">
+          <Publish Event="NewDialog" Value="WelcomeDlg" />
+        </Control>
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)">
+      <Publish Property="HELIXSTUDIO_EULA_ACCEPT_ZH" Order="1" />
+      <Publish Property="HELIXSTUDIO_EULA_ACCEPT_EN" Order="2" />
+          <Publish Event="NewDialog" Value="LicenseAgreementZhDlg" Order="3" Condition="EULA_LANG = &quot;ZH&quot;" />
+          <Publish Event="NewDialog" Value="LicenseAgreementEnDlg" Order="4" Condition="EULA_LANG = &quot;EN&quot;" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+          <Publish Event="SpawnDialog" Value="CancelDlg" />
+        </Control>
+      </Dialog>
+    </UI>
+  </Fragment>
+
+  <Fragment>
+    <UI>
+      <Dialog Id="LicenseAgreementZhDlg" Width="370" Height="270" Title="!(loc.LicenseAgreementDlg_Title)">
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="!(loc.LicenseAgreementDlgBannerBitmap)" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="373" Height="0" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="373" Height="0" />
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="340" Height="15" Transparent="yes" NoPrefix="yes" Text="!(loc.LicenseAgreementDlgDescription)" />
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="!(loc.LicenseAgreementDlgTitle)" />
+      <Control Id="EulaAcceptZhCheck" Type="CheckBox" X="20" Y="207" Width="330" Height="18" CheckBoxValue="1" Property="HELIXSTUDIO_EULA_ACCEPT_ZH" Text="!(loc.LicenseAgreementDlgLicenseAcceptedCheckBox)" />
+        <Control Id="Print" Type="PushButton" X="112" Y="243" Width="56" Height="17" Text="!(loc.WixUIPrint)">
+          <Publish Event="MsiPrint" Value="1" />
+        </Control>
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)">
+          <Publish Event="NewDialog" Value="LangSelectDlg" />
+        </Control>
+      <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)" DisableCondition="NOT HELIXSTUDIO_EULA_ACCEPT_ZH" EnableCondition="HELIXSTUDIO_EULA_ACCEPT_ZH">
+          <Publish Event="SpawnWaitDialog" Value="WaitForCostingDlg" Condition="!(wix.WixUICostingPopupOptOut) OR CostingComplete = 1" />
+        <Publish Event="NewDialog" Value="InstallDirDlg" Condition="HELIXSTUDIO_EULA_ACCEPT_ZH" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+          <Publish Event="SpawnDialog" Value="CancelDlg" />
+        </Control>
+        <Control Id="LicenseText" Type="ScrollableText" X="20" Y="60" Width="330" Height="140" Sunken="yes" TabSkip="no">
+          <Text SourceFile="Assets\License.zh-TW.rtf" />
+        </Control>
+      </Dialog>
+    </UI>
+  </Fragment>
+
+  <Fragment>
+    <UI>
+      <Dialog Id="LicenseAgreementEnDlg" Width="370" Height="270" Title="!(loc.LicenseAgreementDlg_Title)">
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="!(loc.LicenseAgreementDlgBannerBitmap)" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="373" Height="0" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="373" Height="0" />
+      <Control Id="Description" Type="Text" X="25" Y="23" Width="340" Height="28" Transparent="yes" NoPrefix="yes" Text="安裝 Helix Studio 前，請先閱讀以下英文授權條款。" />
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="320" Height="15" Transparent="yes" NoPrefix="yes" Text="授權合約" />
+      <Control Id="EulaAcceptEnCheck" Type="CheckBox" X="20" Y="207" Width="330" Height="18" CheckBoxValue="1" Property="HELIXSTUDIO_EULA_ACCEPT_EN" Text="本人已閱讀並同意上述英文授權條款" />
+        <Control Id="Print" Type="PushButton" X="112" Y="243" Width="56" Height="17" Text="!(loc.WixUIPrint)">
+          <Publish Event="MsiPrint" Value="1" />
+        </Control>
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)">
+          <Publish Event="NewDialog" Value="LangSelectDlg" />
+        </Control>
+      <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)" DisableCondition="NOT HELIXSTUDIO_EULA_ACCEPT_EN" EnableCondition="HELIXSTUDIO_EULA_ACCEPT_EN">
+          <Publish Event="SpawnWaitDialog" Value="WaitForCostingDlg" Condition="!(wix.WixUICostingPopupOptOut) OR CostingComplete = 1" />
+        <Publish Event="NewDialog" Value="InstallDirDlg" Condition="HELIXSTUDIO_EULA_ACCEPT_EN" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+          <Publish Event="SpawnDialog" Value="CancelDlg" />
+        </Control>
+        <Control Id="LicenseText" Type="ScrollableText" X="20" Y="60" Width="330" Height="140" Sunken="yes" TabSkip="no">
+          <Text SourceFile="Assets\License.en-US.rtf" />
+        </Control>
+      </Dialog>
+    </UI>
+  </Fragment>
+
+  <Fragment>
+    <UI>
+      <Dialog Id="ShortcutOptionsDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="!(loc.LicenseAgreementDlgBannerBitmap)" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="373" Height="0" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="373" Height="0" />
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="220" Height="15" Transparent="yes" NoPrefix="yes" Text="捷徑選項" />
+      <Control Id="Description" Type="Text" X="25" Y="23" Width="330" Height="28" Transparent="yes" NoPrefix="yes" Text="請選擇是否建立 Helix Studio 的標準捷徑。" />
+      <Control Id="StartMenuShortcutCheck" Type="CheckBox" X="20" Y="75" Width="320" Height="18" CheckBoxValue="1" Property="HELIXSTUDIO_CREATE_STARTMENU_SHORTCUT" Text="建立開始功能表捷徑" />
+      <Control Id="DesktopShortcutCheck" Type="CheckBox" X="20" Y="100" Width="320" Height="18" CheckBoxValue="1" Property="HELIXSTUDIO_CREATE_DESKTOP_SHORTCUT" Text="建立桌面捷徑" />
+        <Control Id="HintText" Type="Text" X="20" Y="135" Width="330" Height="45" Transparent="yes" NoPrefix="yes" Text="建議保留開始功能表捷徑。桌面捷徑為選用項目，預設不建立。" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)">
+          <Publish Event="NewDialog" Value="InstallDirDlg" />
+        </Control>
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)">
+          <Publish Event="NewDialog" Value="VerifyReadyDlg" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+          <Publish Event="SpawnDialog" Value="CancelDlg" />
+        </Control>
+      </Dialog>
+    </UI>
+  </Fragment>
+
+  <Fragment>
+  <UI Id="HelixStudio_InstallDir_X64">
+      <Publish Dialog="BrowseDlg" Control="OK" Event="CheckTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1" />
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="CheckTargetPath" Value="[WIXUI_INSTALLDIR]" Order="1" />
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="ShortcutOptionsDlg" Order="4" />
+    </UI>
+    <UIRef Id="HelixStudio_InstallDir" />
+  </Fragment>
+
+  <Fragment>
+  <UI Id="HelixStudio_InstallDir">
+      <TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
+      <TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="12" />
+      <TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
+
+      <Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+
+      <DialogRef Id="BrowseDlg" />
+      <DialogRef Id="DiskCostDlg" />
+      <DialogRef Id="ErrorDlg" />
+      <DialogRef Id="FatalError" />
+      <DialogRef Id="FilesInUse" />
+      <DialogRef Id="MsiRMFilesInUse" />
+      <DialogRef Id="PrepareDlg" />
+      <DialogRef Id="ProgressDlg" />
+      <DialogRef Id="ResumeDlg" />
+      <DialogRef Id="ShortcutOptionsDlg" />
+      <DialogRef Id="UserExit" />
+
+      <Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999" />
+
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="LangSelectDlg" Condition="NOT Installed" />
+      <Publish Dialog="WelcomeDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Condition="Installed AND PATCH" />
+
+      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementZhDlg" Order="1" Condition="EULA_LANG = &quot;ZH&quot;" />
+      <Publish Dialog="InstallDirDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementEnDlg" Order="2" Condition="EULA_LANG = &quot;EN&quot;" />
+
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="SetTargetPath" Value="[WIXUI_INSTALLDIR]" Order="3" />
+      <Publish Dialog="InstallDirDlg" Control="ChangeFolder" Property="_BrowseProperty" Value="[WIXUI_INSTALLDIR]" Order="1" />
+      <Publish Dialog="InstallDirDlg" Control="ChangeFolder" Event="SpawnDialog" Value="BrowseDlg" Order="2" />
+
+      <Publish Dialog="BrowseDlg" Control="OK" Event="SetTargetPath" Value="[_BrowseProperty]" Order="3" />
+      <Publish Dialog="BrowseDlg" Control="OK" Event="EndDialog" Value="Return" Order="4" />
+
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="ShortcutOptionsDlg" Order="1" Condition="NOT Installed" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2" Condition="Installed AND NOT PATCH" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" Order="2" Condition="Installed AND PATCH" />
+
+      <Publish Dialog="MaintenanceWelcomeDlg" Control="Next" Event="NewDialog" Value="MaintenanceTypeDlg" />
+
+      <Publish Dialog="MaintenanceTypeDlg" Control="RepairButton" Event="NewDialog" Value="VerifyReadyDlg" />
+      <Publish Dialog="MaintenanceTypeDlg" Control="RemoveButton" Event="NewDialog" Value="VerifyReadyDlg" />
+      <Publish Dialog="MaintenanceTypeDlg" Control="Back" Event="NewDialog" Value="MaintenanceWelcomeDlg" />
+
+      <Property Id="ARPNOMODIFY" Value="1" />
+    </UI>
+
+    <UIRef Id="WixUI_Common" />
+  </Fragment>
+</Wix>

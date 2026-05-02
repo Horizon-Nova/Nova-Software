@@ -1,0 +1,100 @@
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B2C3D4E5-F6A7-4B5C-9D0E-1F2A3B4C5D6E}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>NetToolTestArea</RootNamespace>
+    <AssemblyName>NetToolTestArea</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <LangVersion>8.0</LangVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Core\ServiceContainer.cs" />
+    <Compile Include="Core\WmCommandCore.cs" />
+    <Compile Include="Core\WindowApiCore.cs" />
+    <Compile Include="Core\DllCore.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\ClickModeService.cs" />
+    <Compile Include="Services\ClickWindowService.cs" />
+    <Compile Include="Services\CaptureSingleService.cs" />
+    <Compile Include="Services\CaptureWindowService.cs" />
+    <Compile Include="Services\MemoryInjectionService.cs" />
+    <Compile Include="Services\FunctionAnalysisService.cs" />
+    <Compile Include="Services\IsolatedStorageService.cs" />
+    <Compile Include="Services\KeyToolService.cs" />
+    <Compile Include="Services\WindowApiService.cs" />
+    <Compile Include="Utility\ClickModeUtility.cs" />
+    <Compile Include="Utility\CaptureSingleUtility.cs" />
+    <Compile Include="Utility\MemoryInjectionUtility.cs" />
+    <Compile Include="Utility\FunctionAnalysisUtility.cs" />
+    <Compile Include="Utility\KeyToolUtility.cs" />
+    <Compile Include="Utility\WindowApiUtility.cs" />
+    <Compile Include="Model\ControlInfo.cs" />
+    <Compile Include="Model\KeyToolSnapshot.cs" />
+    <Compile Include="Model\MenuItemInfo.cs" />
+    <Compile Include="Model\ToolbarButtonInfo.cs" />
+    <Compile Include="Views\KeyToolView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\ClickModeView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\ClickWindowView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\CaptureSingleView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\CaptureWindowView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\FunctionAnalysisView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\IsolatedStorageView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.manifest" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

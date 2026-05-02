@@ -1,0 +1,72 @@
+HN Studio End User License Agreement
+
+Version: v1.0
+Effective date: when the licensee clicks Agree, installs, activates, or first uses HN Studio
+
+Important notice:
+By clicking "I Agree", installing, activating, signing in to, launching, or otherwise using HN Studio, the licensee confirms that it has read, understood, and agreed to be bound by this agreement and the applicable license certificate. If you do not agree, do not install, activate, or use the software.
+
+1. Parties and governing documents
+Licensor: Horizon Nova Technology.
+Licensee: the company, legal entity, business, sole proprietorship, or other legally recognized organization that obtains and uses HN Studio.
+License certificate: the applicable order, quote, purchase document, attachment, activation notice, or other document that defines scope, quantity, term, payment, maintenance, or functional limits.
+If the license certificate conflicts with this agreement, the license certificate prevails unless stated otherwise.
+
+2. Definitions
+Software means HN Studio and its executable files, installers, modules, configuration files, resource files, documents, license files, updates, patches, and related materials.
+License data means keys, certificates, activation codes, signatures, device binding data, server responses, or other materials used to determine license status.
+Technical protection measures means activation, encryption, obfuscation, digital signatures, anti-tamper, integrity checks, binding, environment validation, anti-copying, and similar controls.
+
+3. Electronic acceptance
+Use of the software constitutes acceptance of this agreement in electronic form and agreement that electronic records may serve as evidence of assent.
+
+4. License grant and scope
+The software is licensed, not sold.
+The license is limited, non-exclusive, non-transferable, and non-sublicensable, and may only be used within the version, quantity, device, term, location, and feature scope defined by the license certificate.
+Unless otherwise agreed, the license does not include source code delivery, custom development, free updates, upgrades, support, training, or on-site service.
+
+5. Activation and license management
+The licensor may apply per-device, per-account, per-environment, or other reasonable license controls.
+The licensee may be required to provide device information or activation data necessary for validation and binding.
+The licensee must not disclose, share, transfer, resell, or distribute license data without authorization.
+
+6. No cracking, decryption, reverse engineering, or circumvention
+The licensee must not, and must not permit any third party to, crack, decrypt, unpack, de-obfuscate, decompile, disassemble, reverse engineer, derive source code from, analyze non-public interfaces of, or otherwise attempt to access the software's protected technical content.
+The licensee must not bypass, disable, interfere with, remove, modify, or undermine any technical protection measure, including activation, licensing, signatures, integrity validation, binding, anti-tamper, or execution restrictions.
+The licensee must not create, use, distribute, provide, sell, rent, or teach others to use any tool, script, patch, loader, key generator, crack, emulator, injected component, or other method intended to bypass licensing or protection controls.
+The licensee must not use debugging, hooking, DLL injection, memory modification, packet interception, environment spoofing, virtualized fingerprints, or similar techniques to operate the software outside its licensed scope.
+
+7. Other prohibited acts
+The licensee must not rent, lease, sublicense, transfer, split, resell, copy, distribute, publicly transmit, publicly display, modify, or create derivative works from the software except as expressly authorized.
+The licensee must not assist others in violating this agreement.
+
+8. Intellectual property
+All copyrights, trade secrets, trademarks, patents, interfaces, algorithms, architecture, documents, and other intellectual property rights in the software belong to the licensor or its licensors.
+This agreement grants usage rights only and transfers no ownership.
+
+9. Confidentiality
+The licensee must protect non-public software details, license data, technical details, pricing, designs, testing information, and other confidential information provided by the licensor.
+
+10. Maintenance, updates, and warranty
+Unless expressly agreed otherwise, the licensor is not obligated to provide free updates, upgrades, maintenance, support, training, conversion, customization, or on-site services.
+The software is provided on an "as is" basis except to the extent any limited warranty is expressly stated in the applicable license certificate.
+
+11. Audit, enforcement, and suspension
+The licensor may reasonably request compliance-related information.
+If the licensor reasonably determines that unauthorized use, cracking, circumvention, abuse of license data, or other material breach has occurred, it may immediately suspend, revoke, terminate, or otherwise disable the license and seek legal remedies.
+
+12. Limitation of liability
+To the maximum extent permitted by law, the licensor is not liable for indirect, incidental, special, punitive, or consequential damages, including lost profits, lost data, business interruption, or third-party claims.
+
+13. Term and termination
+This agreement takes effect upon acceptance or use and remains effective until terminated or the license ends.
+Upon termination, the licensee must immediately stop using the software and delete or destroy all copies and related unauthorized materials.
+
+14. Governing law and jurisdiction
+This agreement is governed by the laws of Taiwan (R.O.C.).
+The Taipei District Court in Taiwan shall be the court of first instance for disputes arising from or related to this agreement.
+
+15. Miscellaneous
+If any provision is held invalid, the remaining provisions remain in effect.
+Failure to enforce a right is not a waiver.
+This agreement and the license certificate form the complete agreement between the parties.

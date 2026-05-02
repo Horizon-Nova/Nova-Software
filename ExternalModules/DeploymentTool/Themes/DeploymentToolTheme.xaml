@@ -1,0 +1,40 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="DeploymentCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource ShellSecondaryBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource ShellLineBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="{DynamicResource ShellRadiusCard}"/>
+        <Setter Property="Padding" Value="18"/>
+    </Style>
+
+    <Style x:Key="DeploymentSectionTitleStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource ShellFontSize400}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{DynamicResource ShellForegroundBrush}"/>
+    </Style>
+
+    <Style x:Key="DeploymentMutedTextStyle" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{DynamicResource ShellMutedForegroundBrush}"/>
+        <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+
+    <Style x:Key="DeploymentActionButtonStyle"
+           TargetType="Button"
+           BasedOn="{StaticResource ShellSettingsActionButtonStyle}">
+        <Setter Property="MinWidth" Value="92"/>
+    </Style>
+
+    <Style x:Key="DeploymentTagButtonStyle"
+           TargetType="Button"
+           BasedOn="{StaticResource ShellSettingsActionButtonStyle}">
+        <Setter Property="Padding" Value="12,6"/>
+        <Setter Property="Margin" Value="0,0,8,0"/>
+    </Style>
+
+    <Style x:Key="DeploymentStatValueStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="{DynamicResource ShellFontSize500}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{DynamicResource ShellForegroundBrush}"/>
+    </Style>
+</ResourceDictionary>

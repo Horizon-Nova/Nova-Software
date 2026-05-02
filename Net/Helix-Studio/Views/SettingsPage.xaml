@@ -1,0 +1,1065 @@
+<UserControl x:Class="Helix_Studio.Views.SettingsPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="720" d:DesignWidth="1000"
+             FontFamily="Segoe UI, Microsoft JhengHei UI"
+             TextOptions.TextFormattingMode="Display"
+             TextOptions.TextRenderingMode="ClearType"
+             UseLayoutRounding="True"
+             SnapsToDevicePixels="True"
+             >
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="{DynamicResource SurfaceSubtle}"
+                BorderBrush="{DynamicResource BorderLight}" BorderThickness="0,0,0,1">
+            <Grid Margin="24,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Border x:Name="SettingsSearchBorder"
+                        Background="{DynamicResource SurfaceRaised}" BorderBrush="{DynamicResource BorderMedium}" BorderThickness="1"
+                        CornerRadius="3" Padding="10,0" Height="32" Width="300" HorizontalAlignment="Left">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                                   Foreground="{DynamicResource TextTertiary}" VerticalAlignment="Center"/>
+                        <TextBox x:Name="SettingsSearchBox"
+                                 Grid.Column="1"
+                                 Background="Transparent" BorderThickness="0"
+                                 FontSize="12" VerticalAlignment="Center"
+                                 Margin="8,0,0,0"
+                                 KeyDown="SettingsSearchBox_KeyDown">
+                            <TextBox.Text>
+                                <Binding Path="SearchQuery" Mode="TwoWay" UpdateSourceTrigger="PropertyChanged"/>
+                            </TextBox.Text>
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Style.Resources>
+                                        <VisualBrush x:Key="Hint" Stretch="None"
+                                                     AlignmentX="Left" AlignmentY="Center">
+                                            <VisualBrush.Visual>
+                                                <TextBlock Text="{DynamicResource Loc_Settings_SearchPlaceholder}"
+                                                           FontSize="12"
+                                                           Foreground="{DynamicResource TextTertiary}"/>
+                                            </VisualBrush.Visual>
+                                        </VisualBrush>
+                                    </Style.Resources>
+                                    <Setter Property="Foreground"      Value="{DynamicResource TextPrimary}"/>
+                                    <Setter Property="Background"      Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="Text" Value="">
+                                            <Setter Property="Background" Value="{DynamicResource Hint}"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+                    </Grid>
+                </Border>
+
+                <Popup x:Name="SettingsSearchPopup"
+                       PlacementTarget="{Binding ElementName=SettingsSearchBorder}"
+                       Placement="Bottom"
+                       StaysOpen="False"
+                       AllowsTransparency="True"
+                       PopupAnimation="Fade"
+                       VerticalOffset="4"
+                       IsOpen="{Binding IsSearchPopupOpen, Mode=TwoWay}">
+                    <Border Background="{DynamicResource SurfaceRaised}"
+                            BorderBrush="{DynamicResource BorderMedium}"
+                            BorderThickness="1"
+                            CornerRadius="4">
+                        <ListBox x:Name="SettingsSearchSuggestList"
+                                 MinWidth="{Binding ElementName=SettingsSearchBorder, Path=ActualWidth}"
+                                 MaxHeight="240"
+                                 BorderThickness="0"
+                                 Background="{DynamicResource SurfaceRaised}"
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 ItemsSource="{Binding SearchSuggestions}"
+                                 SelectedItem="{Binding SelectedSearchSuggestion, Mode=TwoWay}"
+                                 PreviewMouseLeftButtonUp="SettingsSearchSuggestList_MouseUp">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Padding="12,9">
+                                        <TextBlock Text="{Binding Display}"
+                                                   FontSize="12"
+                                                   Foreground="{DynamicResource TextPrimary}"/>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Border>
+                </Popup>
+
+                <Button Grid.Column="1" Style="{DynamicResource PrimaryButton}" Command="{Binding SaveCommand}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="12" VerticalAlignment="Center"/>
+                        <TextBlock Text="{DynamicResource Loc_Settings_ActionSaveChanges}" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
+        </Border>
+
+        <Border x:Name="UnsavedBanner"
+                Grid.Row="1" Background="{DynamicResource StatusWarningSoft}" BorderBrush="{DynamicResource BorderLight}" BorderThickness="0,0,0,1"
+                Visibility="{Binding IsDirty, Converter={StaticResource BoolToVisibility}}">
+            <Grid Margin="24,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="&#xE7BA;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                           Foreground="{DynamicResource StatusWarning}" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center"
+                           FontSize="12" Foreground="{DynamicResource TextPrimary}">
+                    <Run Text="{DynamicResource Loc_Settings_UnsavedTitle}" FontWeight="SemiBold"/>
+                    <Run Text="{DynamicResource Loc_Settings_UnsavedBody}"/>
+                </TextBlock>
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Style="{DynamicResource GhostButton}" Margin="0,0,8,0"
+                            Content="{DynamicResource Loc_Settings_ActionDiscard}" Command="{Binding DiscardCommand}"/>
+                    <Button Style="{DynamicResource PrimaryButton}"
+                            Content="{DynamicResource Loc_Settings_ActionSaveChanges}" Command="{Binding SaveCommand}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="{DynamicResource SurfaceSidebarNested}"
+                    BorderBrush="{DynamicResource BorderLight}" BorderThickness="0,0,1,0">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,8,0,16">
+
+                        <TextBlock Text="GENERAL" Style="{DynamicResource SettingsNavGroupHeader}"/>
+
+                        <RadioButton Style="{DynamicResource SettingsNavItem}" GroupName="SettingsNav"
+                                     IsChecked="True" Tag="General" Checked="SettingsNav_Checked">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="13"
+                                           VerticalAlignment="Center" Width="18"/>
+                                <TextBlock Text="General" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                <TextBlock Text="一般" FontSize="11" Opacity="0.6"
+                                           VerticalAlignment="Center" Margin="6,0,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton Style="{DynamicResource SettingsNavItem}" GroupName="SettingsNav"
+                                     Tag="Display" Checked="SettingsNav_Checked">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE7F4;" FontFamily="Segoe MDL2 Assets" FontSize="13"
+                                           VerticalAlignment="Center" Width="18"/>
+                                <TextBlock Text="Display" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                <TextBlock Text="顯示" FontSize="11" Opacity="0.6"
+                                           VerticalAlignment="Center" Margin="6,0,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton Style="{DynamicResource SettingsNavItem}" GroupName="SettingsNav"
+                                     Tag="Workspaces" Checked="SettingsNav_Checked">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE81E;" FontFamily="Segoe MDL2 Assets" FontSize="13"
+                                           VerticalAlignment="Center" Width="18"/>
+                                <TextBlock Text="Workspaces" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                <TextBlock Text="工作區" FontSize="11" Opacity="0.6"
+                                           VerticalAlignment="Center" Margin="6,0,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <TextBlock Text="MODULES" Style="{DynamicResource SettingsNavGroupHeader}"/>
+
+                        <ItemsControl ItemsSource="{Binding ModuleSettingsCards}"
+                                      Visibility="{Binding ShowModulesEmptyState, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <RadioButton Style="{DynamicResource SettingsNavItem}" GroupName="SettingsNav"
+                                                 Tag="Modules" Checked="SettingsNav_Checked">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xECAA;" FontFamily="Segoe MDL2 Assets" FontSize="13"
+                                                       VerticalAlignment="Center" Width="18"/>
+                                            <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" Margin="8,0,0,0"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+                                    </RadioButton>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="尚無模組" FontSize="11" Opacity="0.6" Margin="22,0,0,6"
+                                   Foreground="{DynamicResource TextOnDarkMuted}"
+                                   Visibility="{Binding ShowModulesEmptyState, Converter={StaticResource BoolToVisibility}}"/>
+
+                        <TextBlock Text="SYSTEM" Style="{DynamicResource SettingsNavGroupHeader}"/>
+
+                        <RadioButton Style="{DynamicResource SettingsNavItem}" GroupName="SettingsNav"
+                                     Tag="Log" Checked="SettingsNav_Checked">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE9F9;" FontFamily="Segoe MDL2 Assets" FontSize="13"
+                                           VerticalAlignment="Center" Width="18"/>
+                                <TextBlock Text="Log" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                <TextBlock Text="日誌" FontSize="11" Opacity="0.6"
+                                           VerticalAlignment="Center" Margin="6,0,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton Style="{DynamicResource SettingsNavItem}" GroupName="SettingsNav"
+                                     Tag="About" Checked="SettingsNav_Checked">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE946;" FontFamily="Segoe MDL2 Assets" FontSize="13"
+                                           VerticalAlignment="Center" Width="18"/>
+                                <TextBlock Text="About" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                                <TextBlock Text="關於" FontSize="11" Opacity="0.6"
+                                           VerticalAlignment="Center" Margin="6,0,0,0"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+
+            <ScrollViewer x:Name="ContentScroller"
+                          Grid.Column="1" VerticalScrollBarVisibility="Auto"
+                          Background="{DynamicResource SurfaceBase}">
+                <StackPanel Margin="32,24" MaxWidth="780">
+
+                    <StackPanel x:Name="SectionGeneral">
+                        <StackPanel Margin="0,0,0,8">
+                            <TextBlock Text="{DynamicResource Loc_Settings_SectionGeneral}" FontSize="20" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimary}"/>
+                            <TextBlock Text="{DynamicResource Loc_Settings_SectionGeneralBody}"
+                                       FontSize="12" Foreground="{DynamicResource TextSecondary}" Margin="0,4,0,0"/>
+                        </StackPanel>
+
+                        <Border Style="{DynamicResource Card}" Margin="0,12,0,40">
+                            <StackPanel>
+
+                                <Border Style="{DynamicResource SettingsRowContainer}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                                            <TextBlock Text="{DynamicResource Loc_Settings_InterfaceLanguageLabel}"
+                                                       Style="{DynamicResource SettingsLabel}"/>
+                                            <TextBlock Text="{DynamicResource Loc_Settings_InterfaceLanguageDesc}"
+                                                       Style="{DynamicResource SettingsDescription}"/>
+                                        </StackPanel>
+                                        <ComboBox x:Name="CbLanguage" Grid.Column="1" Width="200"
+                                                  VerticalAlignment="Center"
+                                                  SelectedIndex="{Binding LanguageIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                            <ComboBoxItem Content="{DynamicResource Loc_Lang_ZhHant}"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Lang_En}"/>
+                                        </ComboBox>
+                                    </Grid>
+                                </Border>
+
+                                <Border Style="{DynamicResource SettingsRowContainer}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                                            <TextBlock Text="{DynamicResource Loc_Settings_StartPageLabel}"
+                                                       Style="{DynamicResource SettingsLabel}"/>
+                                            <TextBlock Text="{DynamicResource Loc_Settings_StartPageDesc}"
+                                                       Style="{DynamicResource SettingsDescription}"/>
+                                        </StackPanel>
+                                        <ComboBox x:Name="CbStartPage" Grid.Column="1" Width="200"
+                                                  VerticalAlignment="Center"
+                                                  SelectedIndex="{Binding StartPageIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                            <ComboBoxItem Content="Home"/>
+                                            <ComboBoxItem Content="Last visited page"/>
+                                        </ComboBox>
+                                    </Grid>
+                                </Border>
+
+                                <Border Padding="22,18">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                                            <TextBlock Text="{DynamicResource Loc_Settings_InactivityLockLabel}"
+                                                       Style="{DynamicResource SettingsLabel}"/>
+                                            <TextBlock Text="{DynamicResource Loc_Settings_InactivityLockDesc}"
+                                                       Style="{DynamicResource SettingsDescription}"/>
+                                        </StackPanel>
+                                        <ComboBox x:Name="CbInactivity" Grid.Column="1" Width="160"
+                                                  VerticalAlignment="Center"
+                                                  SelectedIndex="{Binding InactivityIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                            <ComboBoxItem Content="{DynamicResource Loc_Settings_InactivityNever}"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Settings_Inactivity5Minutes}"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Settings_Inactivity15Minutes}"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Settings_Inactivity30Minutes}"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Settings_Inactivity1Hour}"/>
+                                        </ComboBox>
+                                    </Grid>
+                                </Border>
+
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel x:Name="SectionDisplay">
+                        <StackPanel Margin="0,0,0,8">
+                            <TextBlock Text="{DynamicResource Loc_Settings_SectionDisplay}" FontSize="20" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimary}"/>
+                            <TextBlock Text="{DynamicResource Loc_Settings_SectionDisplayBody}"
+                                       FontSize="12" Foreground="{DynamicResource TextSecondary}" Margin="0,4,0,0"/>
+                        </StackPanel>
+
+                        <Border Style="{DynamicResource Card}" Margin="0,12,0,40">
+                            <StackPanel>
+
+                                <Border Style="{DynamicResource SettingsRowContainer}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                                            <TextBlock Text="{DynamicResource Loc_Settings_InterfaceThemeLabel}"
+                                                       Style="{DynamicResource SettingsLabel}"/>
+                                            <TextBlock Text="{DynamicResource Loc_Settings_InterfaceThemeDesc}"
+                                                       Style="{DynamicResource SettingsDescription}"/>
+                                        </StackPanel>
+                                        <ComboBox x:Name="CbTheme" Grid.Column="1" Width="200"
+                                                  VerticalAlignment="Center"
+                                                  SelectedIndex="{Binding ThemeIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                            <ComboBoxItem Content="{DynamicResource Loc_Theme_Light}"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Theme_Dark}"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Theme_System}"/>
+                                        </ComboBox>
+                                    </Grid>
+                                </Border>
+
+                                <Border Style="{DynamicResource SettingsRowContainer}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                                            <TextBlock Text="{DynamicResource Loc_Settings_FontScalingLabel}"
+                                                       Style="{DynamicResource SettingsLabel}"/>
+                                            <TextBlock Text="{DynamicResource Loc_Settings_FontScalingDesc}"
+                                                       Style="{DynamicResource SettingsDescription}"/>
+                                        </StackPanel>
+                                        <ComboBox x:Name="CbFontScale" Grid.Column="1" Width="140"
+                                                  VerticalAlignment="Center"
+                                                  SelectedIndex="{Binding FontScaleIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                            <ComboBoxItem Content="{DynamicResource Loc_Settings_FontScale90}"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Settings_FontScale100Default}"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Settings_FontScale110}"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Settings_FontScale125}"/>
+                                        </ComboBox>
+                                    </Grid>
+                                </Border>
+
+                                <Border Padding="22,18">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                                            <TextBlock Text="{DynamicResource Loc_Settings_DataDensityLabel}"
+                                                       Style="{DynamicResource SettingsLabel}"/>
+                                            <TextBlock Text="{DynamicResource Loc_Settings_DataDensityDesc}"
+                                                       Style="{DynamicResource SettingsDescription}"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="1" BorderBrush="{DynamicResource BorderMedium}"
+                                                BorderThickness="1" CornerRadius="3" VerticalAlignment="Center">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border Tag="0"
+                                                        CornerRadius="2,0,0,2" Padding="14,6"
+                                                        Cursor="Hand" MouseLeftButtonUp="DataDensity_Click">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Background" Value="{DynamicResource SurfaceSubtle}"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DataDensityIndex}" Value="0">
+                                                                    <Setter Property="Background" Value="{DynamicResource AccentPrimary}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <TextBlock Text="{DynamicResource Loc_Settings_DataDensityComfortable}" FontSize="12" FontWeight="SemiBold">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding DataDensityIndex}" Value="0">
+                                                                        <Setter Property="Foreground" Value="{DynamicResource TextOnDark}"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Border>
+                                                <Border Tag="1"
+                                                        Padding="14,6"
+                                                        BorderBrush="{DynamicResource BorderMedium}" BorderThickness="1,0,0,0"
+                                                        Cursor="Hand" MouseLeftButtonUp="DataDensity_Click">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Background" Value="{DynamicResource SurfaceSubtle}"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding DataDensityIndex}" Value="1">
+                                                                    <Setter Property="Background" Value="{DynamicResource AccentPrimary}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <TextBlock Text="{DynamicResource Loc_Settings_DataDensityCompact}" FontSize="12">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding DataDensityIndex}" Value="1">
+                                                                        <Setter Property="Foreground" Value="{DynamicResource TextOnDark}"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Border>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel x:Name="SectionWorkspaces">
+                        <StackPanel Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Workspaces" FontSize="20" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimary}"/>
+                                <TextBlock Text="工作區管理" FontSize="13" Foreground="{DynamicResource TextTertiary}"
+                                           Margin="10,0,0,0" VerticalAlignment="Bottom" Padding="0,0,0,3"/>
+                            </StackPanel>
+                            <TextBlock Text="每個工作區可指派不同的模組組合。切換工作區時，Shell 會載入對應的模組。"
+                                       FontSize="12" Foreground="{DynamicResource TextSecondary}" Margin="0,4,0,0"/>
+                        </StackPanel>
+
+                        <Grid Margin="0,12,0,10">
+                            <Button Style="{DynamicResource PrimaryButton}" HorizontalAlignment="Right"
+                                    Click="NewWorkspace_Click">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="&#xE710;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                                               VerticalAlignment="Center"/>
+                                    <TextBlock Text="New Workspace" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding Workspaces}" Margin="0,0,0,8">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{DynamicResource Card}" Margin="0,0,0,12">
+                                        <Grid Margin="18,14">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource TextPrimary}"/>
+                                                    <Border Background="{DynamicResource StatusSuccessSoft}"
+                                                            CornerRadius="3" Padding="6,1" Margin="8,0,0,0"
+                                                            VerticalAlignment="Center">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <TextBlock Text="ACTIVE" FontSize="10" FontWeight="Bold"
+                                                                   Foreground="{DynamicResource StatusSuccess}"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock Text="{Binding Description}" FontSize="11"
+                                                           Foreground="{DynamicResource TextTertiary}"
+                                                           TextWrapping="Wrap" Margin="0,6,0,0"/>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Button Margin="0,0,8,0"
+                                                        Command="{Binding DataContext.ActivateWorkspaceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding Id}">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource GhostButton}">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="&#xE8FB;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Activate" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Button>
+
+                                                <Button Style="{DynamicResource GhostButton}" Margin="0,0,8,0"
+                                                        Click="EditWorkspace_Click" Tag="{Binding}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="&#xE70F;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Edit" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Button>
+
+                                                <Button Style="{DynamicResource DangerButton}"
+                                                        Click="DeleteWorkspace_Click" Tag="{Binding}">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                                                                   VerticalAlignment="Center"/>
+                                                        <TextBlock Text="Delete" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Button>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Border x:Name="WorkspaceEmptyState"
+                                Style="{DynamicResource Card}" Margin="0,0,0,40"
+                                Visibility="{Binding ShowWorkspacesEmptyState, Converter={StaticResource BoolToVisibility}}">
+                            <StackPanel Margin="24,32" HorizontalAlignment="Center">
+                                <TextBlock Text="&#xE81E;" FontFamily="Segoe MDL2 Assets" FontSize="36"
+                                           Foreground="{DynamicResource TextTertiary}"
+                                           HorizontalAlignment="Center"/>
+                                <TextBlock Text="No workspaces yet" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextSecondary}"
+                                           HorizontalAlignment="Center" Margin="0,12,0,4"/>
+                                <TextBlock Text="Click New Workspace to create your first workspace and assign modules."
+                                           FontSize="12" Foreground="{DynamicResource TextTertiary}"
+                                           HorizontalAlignment="Center" TextAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel x:Name="SectionModules">
+                        <StackPanel Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Modules" FontSize="20" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimary}"/>
+                                <TextBlock Text="模組設定" FontSize="13" Foreground="{DynamicResource TextTertiary}"
+                                           Margin="10,0,0,0" VerticalAlignment="Bottom" Padding="0,0,0,3"/>
+                            </StackPanel>
+                            <TextBlock Text="各模組的個別設定。開啟模組後可在此調整對應的設定項目。"
+                                       FontSize="12" Foreground="{DynamicResource TextSecondary}" Margin="0,4,0,0"/>
+                        </StackPanel>
+
+                        <!-- 每張卡片預設收合，點擊標題列才展開設定內容 -->
+                        <ItemsControl ItemsSource="{Binding ModuleSettingsCards}" Margin="0,12,0,8">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{DynamicResource Card}" Margin="0,0,0,12">
+                                        <StackPanel>
+
+                                            <!-- 可點擊的標題列：展開 / 收合切換 -->
+                                            <ToggleButton x:Name="ModuleExpandToggle"
+                                                          HorizontalContentAlignment="Stretch"
+                                                          Padding="0" IsChecked="False">
+                                                <ToggleButton.Style>
+                                                    <Style TargetType="ToggleButton">
+                                                        <Setter Property="Background" Value="Transparent"/>
+                                                        <Setter Property="BorderThickness" Value="0"/>
+                                                        <Setter Property="Cursor" Value="Hand"/>
+                                                        <Setter Property="Template">
+                                                            <Setter.Value>
+                                                                <ControlTemplate TargetType="ToggleButton">
+                                                                    <Border Background="{TemplateBinding Background}"
+                                                                            BorderThickness="0">
+                                                                        <ContentPresenter/>
+                                                                    </Border>
+                                                                </ControlTemplate>
+                                                            </Setter.Value>
+                                                        </Setter>
+                                                        <Style.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Background" Value="{DynamicResource SurfaceSubtle}"/>
+                                                            </Trigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </ToggleButton.Style>
+
+                                                <Grid Margin="18,14">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Border Width="36" Height="36" CornerRadius="6"
+                                                            VerticalAlignment="Center"
+                                                            Background="{DynamicResource AccentSoft}">
+                                                        <Grid>
+                                                            <Image Width="22" Height="22"
+                                                                   VerticalAlignment="Center" HorizontalAlignment="Center"
+                                                                   RenderOptions.BitmapScalingMode="HighQuality"
+                                                                   Source="{Binding Icon, Converter={StaticResource PngBytesToImageSource}}">
+                                                                <Image.Style>
+                                                                    <Style TargetType="Image">
+                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding HasIcon}" Value="False">
+                                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </Image.Style>
+                                                            </Image>
+                                                            <TextBlock Text="&#xECAA;" FontFamily="Segoe MDL2 Assets" FontSize="16"
+                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                       Foreground="{DynamicResource AccentPrimary}">
+                                                                <TextBlock.Style>
+                                                                    <Style TargetType="TextBlock">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        <Style.Triggers>
+                                                                            <DataTrigger Binding="{Binding HasIcon}" Value="False">
+                                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                            </DataTrigger>
+                                                                        </Style.Triggers>
+                                                                    </Style>
+                                                                </TextBlock.Style>
+                                                            </TextBlock>
+                                                        </Grid>
+                                                    </Border>
+
+                                                    <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="{Binding DisplayName}" FontSize="13" FontWeight="SemiBold"
+                                                                       Foreground="{DynamicResource TextPrimary}"/>
+                                                            <Border Background="{DynamicResource AccentSoft}"
+                                                                    CornerRadius="3" Padding="6,1" Margin="8,0,0,0"
+                                                                    VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding Version}" FontSize="10"
+                                                                           FontFamily="Consolas, Cascadia Mono"
+                                                                           FontWeight="Bold"
+                                                                           Foreground="{DynamicResource AccentPrimary}"/>
+                                                            </Border>
+                                                        </StackPanel>
+                                                        <TextBlock Text="{Binding Description}" FontSize="11"
+                                                                   TextWrapping="Wrap" Margin="0,3,0,0"
+                                                                   Foreground="{DynamicResource TextTertiary}">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Description}" Value="">
+                                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </StackPanel>
+
+                                                    <!-- 展開指示箭頭 -->
+                                                    <TextBlock Grid.Column="2"
+                                                               Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                                                               VerticalAlignment="Center" Margin="12,0,0,0"
+                                                               Foreground="{DynamicResource TextTertiary}"
+                                                               RenderTransformOrigin="0.5,0.5">
+                                                        <TextBlock.RenderTransform>
+                                                            <RotateTransform/>
+                                                        </TextBlock.RenderTransform>
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsChecked, ElementName=ModuleExpandToggle}" Value="True">
+                                                                        <Setter Property="RenderTransform">
+                                                                            <Setter.Value>
+                                                                                <RotateTransform Angle="180"/>
+                                                                            </Setter.Value>
+                                                                        </Setter>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Grid>
+                                            </ToggleButton>
+
+                                            <!-- 分隔線：展開時才顯示 -->
+                                            <Border BorderBrush="{DynamicResource BorderLight}" BorderThickness="0,1,0,0"
+                                                    Margin="18,0,18,0">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsChecked, ElementName=ModuleExpandToggle}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                            </Border>
+
+                                            <!-- 設定內容：展開時才顯示 -->
+                                            <Border Padding="18,14,18,18">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsChecked, ElementName=ModuleExpandToggle}" Value="True">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <StackPanel>
+                                                    <ContentPresenter Content="{Binding SettingsContent}">
+                                                        <ContentPresenter.Style>
+                                                            <Style TargetType="ContentPresenter">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding HasSettingsContent}" Value="False">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </ContentPresenter.Style>
+                                                    </ContentPresenter>
+                                                    <TextBlock Text="請先至「模組」頁面開啟此模組以載入設定"
+                                                               FontSize="12" FontStyle="Italic"
+                                                               Foreground="{DynamicResource TextTertiary}">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding HasSettingsContent}" Value="False">
+                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                            </Border>
+
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Border Style="{DynamicResource Card}" Margin="0,0,0,40"
+                                Visibility="{Binding ShowModulesEmptyState, Converter={StaticResource BoolToVisibility}}">
+                            <StackPanel Margin="24,32" HorizontalAlignment="Center">
+                                <TextBlock Text="&#xECAA;" FontFamily="Segoe MDL2 Assets" FontSize="36"
+                                           Foreground="{DynamicResource TextTertiary}"
+                                           HorizontalAlignment="Center"/>
+                                <TextBlock Text="尚未安裝任何模組" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextSecondary}"
+                                           HorizontalAlignment="Center" Margin="0,12,0,4"/>
+                                <TextBlock Text="前往「模組」頁面安裝模組後，設定項目將顯示於此。"
+                                           FontSize="12" Foreground="{DynamicResource TextTertiary}"
+                                           HorizontalAlignment="Center" TextAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel x:Name="SectionLog">
+                        <StackPanel Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Log" FontSize="20" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimary}"/>
+                                <TextBlock Text="日誌設定" FontSize="13" Foreground="{DynamicResource TextTertiary}"
+                                           Margin="10,0,0,0" VerticalAlignment="Bottom" Padding="0,0,0,3"/>
+                            </StackPanel>
+                            <TextBlock Text="設定系統日誌的記錄等級、保留期限，以及提供下載功能供回報問題使用。"
+                                       FontSize="12" Foreground="{DynamicResource TextSecondary}" Margin="0,4,0,0"/>
+                        </StackPanel>
+
+                        <Border Style="{DynamicResource Card}" Margin="0,12,0,40">
+                            <StackPanel>
+
+                                <Border Style="{DynamicResource SettingsRowContainer}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Log level" Style="{DynamicResource SettingsLabel}"/>
+                                                <TextBlock Text="記錄等級" Style="{DynamicResource SettingsLabelZh}"/>
+                                            </StackPanel>
+                                            <TextBlock Text="Higher verbosity helps diagnose issues but increases file size."
+                                                       Style="{DynamicResource SettingsDescription}"/>
+                                        </StackPanel>
+                                        <ComboBox x:Name="CbLogLevel" Grid.Column="1" Width="160"
+                                                  VerticalAlignment="Center"
+                                                  SelectedIndex="{Binding LogLevelIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                            <ComboBoxItem Content="Information"/>
+                                            <ComboBoxItem Content="Warning"/>
+                                            <ComboBoxItem Content="Error"/>
+                                            <ComboBoxItem Content="Debug"/>
+                                        </ComboBox>
+                                    </Grid>
+                                </Border>
+
+                                <Border Style="{DynamicResource SettingsRowContainer}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Log retention" Style="{DynamicResource SettingsLabel}"/>
+                                                <TextBlock Text="保留天數" Style="{DynamicResource SettingsLabelZh}"/>
+                                            </StackPanel>
+                                            <TextBlock Text="Log files older than this period will be deleted automatically."
+                                                       Style="{DynamicResource SettingsDescription}"/>
+                                        </StackPanel>
+                                        <ComboBox x:Name="CbLogRetention" Grid.Column="1" Width="160"
+                                                  VerticalAlignment="Center"
+                                                  SelectedIndex="{Binding LogRetentionIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                            <ComboBoxItem Content="7 days"/>
+                                            <ComboBoxItem Content="30 days"/>
+                                            <ComboBoxItem Content="90 days"/>
+                                            <ComboBoxItem Content="180 days"/>
+                                        </ComboBox>
+                                    </Grid>
+                                </Border>
+
+                                <Border Style="{DynamicResource SettingsRowContainer}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Log export folder" Style="{DynamicResource SettingsLabel}"/>
+                                                <TextBlock Text="匯出資料夾" Style="{DynamicResource SettingsLabelZh}"/>
+                                            </StackPanel>
+                                            <TextBlock Text="Default folder used when exporting or downloading logs."
+                                                       Style="{DynamicResource SettingsDescription}"/>
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBox x:Name="TbLogFolder" Width="260" IsReadOnly="True"
+                                                     VerticalContentAlignment="Center" Padding="8,0"
+                                                     Text="{Binding LogExportFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                            <Button Style="{DynamicResource GhostButton}" Margin="8,0,0,0"
+                                                    Click="BrowseLogFolder_Click">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="&#xE838;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                                                               VerticalAlignment="Center"/>
+                                                    <TextBlock Text="Browse" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+
+                                <Border Padding="22,18">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Download logs" Style="{DynamicResource SettingsLabel}"/>
+                                                <TextBlock Text="下載日誌" Style="{DynamicResource SettingsLabelZh}"/>
+                                            </StackPanel>
+                                            <TextBlock Text="Package all current log files into a .zip for sharing with the development team."
+                                                       Style="{DynamicResource SettingsDescription}"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Style="{DynamicResource GhostButton}"
+                                                VerticalAlignment="Center"
+                                                Command="{Binding ExportLogsCommand}"
+                                                CommandParameter="{Binding LogExportFolder}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="&#xE896;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                                                           VerticalAlignment="Center"/>
+                                                <TextBlock Text="Download .zip" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <StackPanel x:Name="SectionAbout">
+                        <StackPanel Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="About" FontSize="20" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimary}"/>
+                                <TextBlock Text="關於" FontSize="13" Foreground="{DynamicResource TextTertiary}"
+                                           Margin="10,0,0,0" VerticalAlignment="Bottom" Padding="0,0,0,3"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Border Style="{DynamicResource Card}" Margin="0,12,0,16">
+                            <Grid Margin="22,18">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="VERSION" FontSize="10" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextTertiary}"/>
+                                    <TextBlock x:Name="AboutVersion" Text="{Binding AboutVersionText}"
+                                               FontSize="14" FontWeight="SemiBold"
+                                               FontFamily="Consolas, Cascadia Mono"
+                                               Foreground="{DynamicResource TextPrimary}" Margin="0,4,0,0"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Text="BUILD DATE" FontSize="10" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextTertiary}"/>
+                                    <TextBlock x:Name="AboutBuildDate" Text="{Binding AboutBuildDateText}"
+                                               FontSize="13"
+                                               FontFamily="Consolas, Cascadia Mono"
+                                               Foreground="{DynamicResource TextPrimary}" Margin="0,4,0,0"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="PLATFORM" FontSize="10" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextTertiary}"/>
+                                    <TextBlock Text=".NET 8 · WPF" FontSize="13"
+                                               Foreground="{DynamicResource TextPrimary}" Margin="0,4,0,0"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="3">
+                                    <TextBlock Text="LICENSE" FontSize="10" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextTertiary}"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <Ellipse Width="7" Height="7" Fill="{DynamicResource StatusSuccess}"
+                                                 VerticalAlignment="Center"/>
+                                        <TextBlock Text="Active" FontSize="13"
+                                                   Foreground="{DynamicResource StatusSuccess}" Margin="6,0,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <Border Style="{DynamicResource Card}" Margin="0,0,0,16">
+                            <StackPanel>
+                                <Border Padding="22,16,22,14"
+                                        BorderBrush="{DynamicResource BorderLight}" BorderThickness="0,0,0,1">
+                                    <TextBlock Text="License Information" Style="{DynamicResource SectionTitle}"/>
+                                </Border>
+                                <Border Style="{DynamicResource SettingsRowContainer}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="License type" Style="{DynamicResource SettingsLabel}"/>
+                                                <TextBlock Text="授權類型" Style="{DynamicResource SettingsLabelZh}"/>
+                                            </StackPanel>
+                                            <TextBlock Text="Bundled with this software package. Contact Nova Software for renewals."
+                                                       Style="{DynamicResource SettingsDescription}"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="1" Background="{DynamicResource StatusSuccessSoft}"
+                                                CornerRadius="3" Padding="10,5" VerticalAlignment="Center">
+                                            <TextBlock Text="ENTERPRISE · ACTIVE" FontSize="11" FontWeight="Bold"
+                                                       Foreground="{DynamicResource StatusSuccess}"/>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                                <Border Padding="22,18">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Expiry date" Style="{DynamicResource SettingsLabel}"/>
+                                                <TextBlock Text="到期日" Style="{DynamicResource SettingsLabelZh}"/>
+                                            </StackPanel>
+                                            <TextBlock Text="License is automatically validated at startup."
+                                                       Style="{DynamicResource SettingsDescription}"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="1" Background="{DynamicResource SurfaceSubtle}"
+                                                BorderBrush="{DynamicResource BorderLight}" BorderThickness="1"
+                                                CornerRadius="3" Padding="12,6" VerticalAlignment="Center">
+                                            <TextBlock x:Name="AboutLicenseExpiry" Text="{Binding AboutLicenseExpiryText}"
+                                                       FontSize="13"
+                                                       FontFamily="Consolas, Cascadia Mono"
+                                                       Foreground="{DynamicResource TextSecondary}"/>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Style="{DynamicResource Card}" Margin="0,0,0,32">
+                            <Border Padding="22,18">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="Legal notices" Style="{DynamicResource SettingsLabel}"/>
+                                        <TextBlock Text="Third-party licenses and terms of use."
+                                                   Style="{DynamicResource SettingsDescription}"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Style="{DynamicResource GhostButton}"
+                                            VerticalAlignment="Center"
+                                            Command="{Binding OpenLegalNoticesCommand}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                                                       VerticalAlignment="Center"/>
+                                            <TextBlock Text="Open" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+                            </Border>
+                        </Border>
+
+                    </StackPanel>
+
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

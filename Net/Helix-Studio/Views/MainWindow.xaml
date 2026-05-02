@@ -1,0 +1,663 @@
+﻿<Window x:Class="Helix_Studio.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shellMain="clr-namespace:Helix_Studio.Views.MainWindowShell"
+        xmlns:notify="clr-namespace:Helix_Studio.Model.Notifications"
+        Title="Helix Studio"
+        Height="820" Width="1440"
+        MinHeight="720" MinWidth="1280"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource SurfaceBase}"
+        FontFamily="Segoe UI, Microsoft JhengHei UI"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        KeyDown="Window_KeyDown">
+
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition x:Name="SidebarColumn" Width="220" MinWidth="160" MaxWidth="420"/>
+            <ColumnDefinition x:Name="SplitterColumn" Width="5"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="26"/>
+        </Grid.RowDefinitions>
+
+        <Border x:Name="SidebarBorder" Grid.Row="0" Grid.Column="0" Background="{DynamicResource SurfaceSidebar}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Background="{DynamicResource SurfaceSidebarDeep}" Padding="16,18">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="32" Height="32" Background="{DynamicResource AccentPrimary}" CornerRadius="4">
+                            <TextBlock Text="H" Foreground="{DynamicResource TextOnDark}" FontSize="13" FontWeight="Bold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="HELIX" FontSize="13" FontWeight="Bold"
+                                       Foreground="{DynamicResource TextOnDark}"/>
+                            <TextBlock Text="STUDIO  ·  v2.4.1" FontSize="10"
+                                       Foreground="{DynamicResource TextOnDarkMuted}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1" Padding="12,10,12,6">
+                    <Grid>
+                        <Button x:Name="WorkspaceSwitchButton"
+                                Background="Transparent" BorderThickness="0"
+                                Cursor="Hand" Click="WorkspaceSwitchButton_Click">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="Bd" Background="{DynamicResource BrandAccent}" CornerRadius="4"
+                                            Padding="10,8" BorderThickness="1" BorderBrush="{DynamicResource BorderMedium}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <Border Grid.Column="0" Width="22" Height="22"
+                                                    Background="{DynamicResource AccentPrimary}" CornerRadius="3">
+                                                <TextBlock Text="&#xE81E;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                                                           Foreground="{DynamicResource TextOnDark}"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                            <StackPanel Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                <TextBlock Text="WORKSPACE" FontSize="9" FontWeight="Bold"
+                                                           Foreground="{DynamicResource TextOnDarkMuted}"/>
+                                                <TextBlock x:Name="WorkspaceNameText"
+                                                           Text="{Binding ActiveWorkspaceName}"
+                                                           FontSize="11" FontWeight="SemiBold"
+                                                           Foreground="{DynamicResource TextOnDark}"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="2" Text="&#xE70D;"
+                                                       FontFamily="Segoe MDL2 Assets" FontSize="10"
+                                                       Foreground="{DynamicResource TextOnDarkMuted}"
+                                                       VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentHover}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <Popup x:Name="WorkspacePopup"
+                               PlacementTarget="{Binding ElementName=WorkspaceSwitchButton}"
+                               Placement="Bottom" StaysOpen="False"
+                               HorizontalOffset="0" VerticalOffset="4" Width="196">
+                            <Border Background="{DynamicResource SurfaceRaised}" BorderBrush="{DynamicResource BorderMedium}"
+                                    BorderThickness="1" CornerRadius="4">
+                                <StackPanel Margin="0,6,0,6">
+                                    <TextBlock Text="SWITCH WORKSPACE" FontSize="9" FontWeight="Bold"
+                                               Foreground="{DynamicResource TextTertiary}"
+                                               Margin="14,4,14,6"/>
+                                    <ItemsControl x:Name="WorkspaceListItems" ItemsSource="{Binding Workspaces}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Background="Transparent" BorderThickness="0"
+                                                        Padding="14,6" Cursor="Hand"
+                                                        HorizontalContentAlignment="Stretch"
+                                                        Command="{Binding DataContext.ActivateWorkspaceCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                        CommandParameter="{Binding Id}">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                                                <StackPanel>
+                                                                    <StackPanel Orientation="Horizontal">
+                                                                        <TextBlock Text="{Binding Name}"
+                                                                                   FontSize="12" FontWeight="SemiBold"
+                                                                                   Foreground="{DynamicResource TextPrimary}"/>
+                                                                        <Border Visibility="{Binding IsActive, Converter={StaticResource BoolToVisibility}}"
+                                                                                Background="{DynamicResource AccentSoft}"
+                                                                                CornerRadius="2" Padding="4,0" Margin="6,0,0,0"
+                                                                                VerticalAlignment="Center">
+                                                                            <TextBlock Text="●" FontSize="8"
+                                                                                       Foreground="{DynamicResource AccentPrimary}"/>
+                                                                        </Border>
+                                                                    </StackPanel>
+                                                                    <TextBlock x:Name="WorkspaceDescText"
+                                                                               Text="{Binding Description}"
+                                                                               FontSize="10"
+                                                                               Margin="0,2,0,0"
+                                                                               Foreground="{DynamicResource TextTertiary}"/>
+                                                                 </StackPanel>
+                                                             </Border>
+                                                             <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentSoft}"/>
+                                                                </Trigger>
+                                                                <DataTrigger Binding="{Binding Description}" Value="{x:Null}">
+                                                                    <Setter TargetName="WorkspaceDescText" Property="Visibility" Value="Collapsed"/>
+                                                                    <Setter TargetName="WorkspaceDescText" Property="Margin" Value="0"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Description}" Value="">
+                                                                    <Setter TargetName="WorkspaceDescText" Property="Visibility" Value="Collapsed"/>
+                                                                    <Setter TargetName="WorkspaceDescText" Property="Margin" Value="0"/>
+                                                                </DataTrigger>
+                                                             </ControlTemplate.Triggers>
+                                                         </ControlTemplate>
+                                                     </Button.Template>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Border BorderBrush="{DynamicResource BorderLight}"
+                                            BorderThickness="0,1,0,0" Margin="0,4,0,0">
+                                        <Button Background="Transparent" BorderThickness="0"
+                                                Padding="14,8" Cursor="Hand"
+                                                Click="ManageWorkspacesButton_Click">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource AccentPrimary}"
+                                                           VerticalAlignment="Center"/>
+                                                <TextBlock Text="Manage Workspaces" FontSize="11"
+                                                           Foreground="{DynamicResource AccentPrimary}"
+                                                           Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </Border>
+                                </StackPanel>
+                            </Border>
+                        </Popup>
+                    </Grid>
+                </Border>
+
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="0,4,0,0">
+                        <TextBlock Text="WORKSPACE" FontSize="10" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextOnDarkMuted}" Margin="22,10,22,6"/>
+
+                        <RadioButton x:Name="NavHome" Style="{DynamicResource NavButton}"
+                                     GroupName="Nav" IsChecked="True" Tag="Home" Checked="Nav_Checked">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE80F;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                           VerticalAlignment="Center" Width="16" TextAlignment="Center"/>
+                                <TextBlock Text="Home" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="首頁" Margin="6,0,0,0" VerticalAlignment="Center"
+                                           FontSize="11" Opacity="0.55"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <Border x:Name="ModuleNavSeparator"
+                                Visibility="{Binding HasModuleNavItems, Converter={StaticResource BoolToVisibility}}"
+                                Margin="22,16,22,2"
+                                BorderBrush="{DynamicResource BorderLight}" BorderThickness="0,1,0,0">
+                            <TextBlock Text="MODULES" FontSize="10" FontWeight="Bold"
+                                       Foreground="{DynamicResource TextOnDarkMuted}" Margin="0,8,0,4"/>
+                        </Border>
+                        <ItemsControl x:Name="ModuleNavItems" ItemsSource="{Binding ModuleNavItems}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <RadioButton GroupName="Nav"
+                                                 Tag="{Binding Tag}"
+                                                 Style="{DynamicResource NavButton}"
+                                                 Checked="Nav_Checked">
+                                        <StackPanel Orientation="Horizontal">
+                                            <Grid Width="16" Height="16" VerticalAlignment="Center">
+                                                <Image Source="{Binding Icon, Converter={StaticResource PngBytesToImageSource}}"
+                                                       Width="14" Height="14"
+                                                       RenderOptions.BitmapScalingMode="HighQuality"
+                                                       Visibility="{Binding Icon,
+                                                            Converter={StaticResource NullToCollapsed}}"/>
+                                                <TextBlock Text="&#xECAA;"
+                                                           FontFamily="Segoe MDL2 Assets"
+                                                           FontSize="13" TextAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           Visibility="{Binding Icon,
+                                                               Converter={StaticResource NullToVisible}}"/>
+                                            </Grid>
+                                            <TextBlock Text="{Binding DisplayName}"
+                                                       Margin="14,0,0,0" VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis" MaxWidth="120"/>
+                                        </StackPanel>
+                                    </RadioButton>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Text="SYSTEM" FontSize="10" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextOnDarkMuted}" Margin="22,20,22,6"/>
+
+                        <RadioButton x:Name="NavEventLog" Style="{DynamicResource NavButton}" GroupName="Nav" Tag="EventLog" Checked="Nav_Checked">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE9F9;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                           VerticalAlignment="Center" Width="16" TextAlignment="Center"/>
+                                <TextBlock Text="Event Log" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="日誌" Margin="6,0,0,0" VerticalAlignment="Center"
+                                           FontSize="11" Opacity="0.55"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton x:Name="NavModules" Style="{DynamicResource NavButton}" GroupName="Nav" Tag="Modules" Checked="Nav_Checked">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xECAA;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                           VerticalAlignment="Center" Width="16" TextAlignment="Center"/>
+                                <TextBlock Text="Modules" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="模組" Margin="6,0,0,0" VerticalAlignment="Center"
+                                           FontSize="11" Opacity="0.55"/>
+                            </StackPanel>
+                        </RadioButton>
+
+                        <RadioButton x:Name="NavSettings" Style="{DynamicResource NavButton}" GroupName="Nav" Tag="Settings" Checked="Nav_Checked">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                           VerticalAlignment="Center" Width="16" TextAlignment="Center"/>
+                                <TextBlock Text="Settings" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="設定" Margin="6,0,0,0" VerticalAlignment="Center"
+                                           FontSize="11" Opacity="0.55"/>
+                            </StackPanel>
+                        </RadioButton>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <Border Grid.Row="3" Margin="12" Background="{DynamicResource SurfaceSidebarDeep}" CornerRadius="4" Padding="10,8">
+                    <StackPanel>
+                        <TextBlock Text="HELIX STUDIO" FontSize="9" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextOnDarkMuted}" Margin="0,0,0,4"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock x:Name="SidebarVersion" Text="{Binding StatusBuildText}"
+                                       FontSize="11" FontFamily="Consolas, Cascadia Mono"
+                                       Foreground="{DynamicResource TextOnDark}"/>
+                            <TextBlock Text=" · " FontSize="11"
+                                       Foreground="{DynamicResource TextOnDarkMuted}"/>
+                            <TextBlock x:Name="SidebarDevice" Text="{Binding StatusDeviceText}"
+                                       FontSize="11"
+                                       Foreground="{DynamicResource TextOnDarkMuted}"
+                                       TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <GridSplitter x:Name="SidebarSplitter"
+                      Grid.Row="0" Grid.Column="1"
+                      Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                      Background="{DynamicResource BorderLight}"
+                      Cursor="SizeWE"
+                      ResizeDirection="Columns"
+                      ResizeBehavior="PreviousAndNext"
+                      Panel.ZIndex="10"/>
+
+        <Grid Grid.Row="0" Grid.Column="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="56"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Background="{DynamicResource SurfaceRaised}"
+                    BorderBrush="{DynamicResource BorderLight}" BorderThickness="0,0,0,1">
+                <Grid Margin="24,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                            <TextBlock x:Name="WorkspaceBreadcrumb" Text="—"
+                                       FontSize="11" Foreground="{DynamicResource TextTertiary}"/>
+                            <TextBlock Text="  /  " FontSize="11" Foreground="{DynamicResource TextTertiary}"/>
+                            <TextBlock x:Name="BreadcrumbText" Text="Home"
+                                       FontSize="11" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextSecondary}"/>
+                        </StackPanel>
+                        <TextBlock x:Name="PageTitle" Text="Home"
+                                   FontSize="18" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimary}"/>
+                    </StackPanel>
+
+                    <Border x:Name="SearchBorder"
+                            Grid.Column="1" Background="{DynamicResource SurfaceRaised}" CornerRadius="3"
+                            BorderBrush="{DynamicResource BorderMedium}" BorderThickness="1"
+                            Height="32" Width="340" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="&#xE721;" FontFamily="Segoe MDL2 Assets"
+                                       FontSize="13" Margin="12,0,8,0"
+                                       Foreground="{DynamicResource TextTertiary}" VerticalAlignment="Center"/>
+
+                            <TextBox x:Name="GlobalSearchBox"
+                                     Grid.Column="1"
+                                     Background="Transparent" BorderThickness="0"
+                                     FontSize="12" VerticalAlignment="Center"
+                                     KeyDown="GlobalSearchBox_KeyDown"
+                                     TextChanged="GlobalSearchBox_TextChanged">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox">
+                                        <Style.Resources>
+                                            <VisualBrush x:Key="Hint" Stretch="None"
+                                                         AlignmentX="Left" AlignmentY="Center">
+                                                <VisualBrush.Visual>
+                                                    <TextBlock Text="{DynamicResource Loc_GlobalSearch_Hint}"
+                                                               FontSize="12"
+                                                               Foreground="{DynamicResource TextTertiary}"/>
+                                                 </VisualBrush.Visual>
+                                             </VisualBrush>
+                                        </Style.Resources>
+                                        <Setter Property="Foreground"      Value="{DynamicResource TextPrimary}"/>
+                                        <Setter Property="Background"      Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Style.Triggers>
+                                            <Trigger Property="Text" Value="">
+                                                <Setter Property="Background" Value="{DynamicResource Hint}"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+
+                            <Border x:Name="SearchResultBadge"
+                                    Grid.Column="2"
+                                    Background="{DynamicResource AccentSoft}"
+                                    CornerRadius="2" Padding="5,1"
+                                    Margin="0,0,8,0" VerticalAlignment="Center"
+                                    Visibility="Collapsed">
+                                <TextBlock x:Name="SearchResultCount"
+                                           Text="0" FontSize="10" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource AccentPrimary}"/>
+                            </Border>
+                        </Grid>
+                            </Border>
+
+                    <Popup x:Name="GlobalSearchPopup"
+                           PlacementTarget="{Binding ElementName=SearchBorder}"
+                           Placement="Bottom"
+                           StaysOpen="False"
+                           AllowsTransparency="True"
+                           PopupAnimation="Fade"
+                           VerticalOffset="4">
+                        <Border Background="{DynamicResource SurfaceRaised}"
+                                BorderBrush="{DynamicResource BorderMedium}"
+                                BorderThickness="1"
+                                CornerRadius="4">
+                            <ListBox x:Name="GlobalSearchSuggestList"
+                                     MinWidth="{Binding ElementName=SearchBorder, Path=ActualWidth}"
+                                     MaxHeight="260"
+                                     BorderThickness="0"
+                                     Background="{DynamicResource SurfaceRaised}"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                     PreviewMouseLeftButtonUp="GlobalSearchSuggestList_MouseUp">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Padding="12,9">
+                                            <TextBlock Text="{Binding Display}"
+                                                       FontSize="12"
+                                                       Foreground="{DynamicResource TextPrimary}"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Border>
+                    </Popup>
+
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+
+                        <Button x:Name="ModuleSettingsButton"
+                                Width="32" Height="32" Background="Transparent" BorderThickness="0"
+                                Margin="0,0,2,0" Cursor="Hand" ToolTip="模組設定  Module Settings"
+                                Visibility="Collapsed"
+                                Click="ModuleSettingsButton_Click">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="3">
+                                        <TextBlock x:Name="Icon"
+                                                   Text="&#xE713;"
+                                                   FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextSecondary}"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="b" Property="Background" Value="{DynamicResource SurfaceSubtle}"/>
+                                        </Trigger>
+                                        <DataTrigger Binding="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" Value="Active">
+                                            <Setter TargetName="Icon" Property="Foreground" Value="{DynamicResource AccentPrimary}"/>
+                                        </DataTrigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+
+                        <Grid>
+                            <Button x:Name="NotificationButton"
+                                    Width="32" Height="32" Background="Transparent" BorderThickness="0"
+                                    Cursor="Hand" ToolTip="通知"
+                                    Click="NotificationButton_Click">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="3">
+                                            <Grid>
+                                                <TextBlock Text="&#xE7E7;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                           Foreground="{DynamicResource TextSecondary}"/>
+                                                <Border x:Name="NotificationBadge"
+                                                         Width="14" Height="14"
+                                                         Background="{DynamicResource StatusDanger}"
+                                                         CornerRadius="7"
+                                                         HorizontalAlignment="Right" VerticalAlignment="Top"
+                                                         Margin="0,4,2,0"
+                                                         Visibility="{Binding ShowNotificationBadge, Converter={StaticResource BoolToVisibility}}">
+                                                    <TextBlock x:Name="NotificationCount"
+                                                               Text="{Binding UnreadCount}" Foreground="{DynamicResource TextOnDark}"
+                                                                FontSize="9" FontWeight="Bold"
+                                                                HorizontalAlignment="Center"
+                                                                VerticalAlignment="Center"/>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="b" Property="Background" Value="{DynamicResource SurfaceSubtle}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+
+                            <Popup x:Name="NotificationPopup"
+                                   PlacementTarget="{Binding ElementName=NotificationButton}"
+                                   Placement="Bottom" StaysOpen="False"
+                                   HorizontalOffset="-288" VerticalOffset="4"
+                                   AllowsTransparency="True" PopupAnimation="Fade"
+                                   MinWidth="320" MaxWidth="360">
+                                <Border Background="{DynamicResource SurfaceRaised}"
+                                        BorderBrush="{DynamicResource BorderMedium}"
+                                        BorderThickness="1" CornerRadius="4" MaxHeight="400">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Grid.Row="0" Text="通知" FontSize="9" FontWeight="Bold"
+                                                   Foreground="{DynamicResource TextTertiary}" Margin="12,10,12,4"/>
+                                        <Grid Grid.Row="1" MinHeight="80">
+                                            <TextBlock x:Name="InboxEmptyState"
+                                                       Text="{Binding InboxEmptyText}" FontSize="12"
+                                                       Foreground="{DynamicResource TextTertiary}"
+                                                       Padding="20,32" TextAlignment="Center" VerticalAlignment="Center"
+                                                       Visibility="{Binding ShowInboxEmptyState, Converter={StaticResource BoolToVisibility}}"/>
+                                            <ScrollViewer x:Name="InboxItemsScroll" MaxHeight="320" VerticalScrollBarVisibility="Auto"
+                                                          Visibility="{Binding HasInboxItems, Converter={StaticResource BoolToVisibility}}">
+                                                <ItemsControl x:Name="NotificationInboxList" ItemsSource="{Binding InboxItems}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate DataType="{x:Type notify:ShellInboxItem}">
+                                                        <Border Padding="0,0,0,1" BorderBrush="{DynamicResource BorderLight}" BorderThickness="0,0,0,1">
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="4"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Border Grid.Column="0" VerticalAlignment="Stretch">
+                                                                    <Border.Style>
+                                                                        <Style TargetType="Border">
+                                                                            <Setter Property="Background" Value="{DynamicResource AccentPrimary}"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding Level}" Value="{x:Static notify:ShellNotificationLevel.Error}">
+                                                                                    <Setter Property="Background" Value="{DynamicResource StatusDanger}"/>
+                                                                                </DataTrigger>
+                                                                                <DataTrigger Binding="{Binding Level}" Value="{x:Static notify:ShellNotificationLevel.Warning}">
+                                                                                    <Setter Property="Background" Value="{DynamicResource StatusWarning}"/>
+                                                                                </DataTrigger>
+                                                                                <DataTrigger Binding="{Binding Level}" Value="{x:Static notify:ShellNotificationLevel.Success}">
+                                                                                    <Setter Property="Background" Value="{DynamicResource StatusSuccess}"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </Border.Style>
+                                                                </Border>
+                                                                <StackPanel Grid.Column="1" Margin="10,8,10,8">
+                                                                    <TextBlock Text="{Binding TitleText}" FontSize="12" FontWeight="SemiBold"
+                                                                               Foreground="{DynamicResource TextPrimary}">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding TitleText}" Value="">
+                                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                    <TextBlock Text="{Binding MessageText}" TextWrapping="Wrap"
+                                                                               FontSize="12" Foreground="{DynamicResource TextSecondary}"/>
+                                                                    <TextBlock Text="{Binding FormattedTimeLocal}"
+                                                                               FontSize="10" Margin="0,4,0,0"
+                                                                               Foreground="{DynamicResource TextTertiary}"/>
+                                                                </StackPanel>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                        </Grid>
+                                        <Border Grid.Row="2" BorderBrush="{DynamicResource BorderLight}" BorderThickness="0,1,0,0" Padding="8,4">
+                                            <Button x:Name="InboxClearButton" Content="清除全部" HorizontalAlignment="Right"
+                                                    Background="Transparent" BorderThickness="0" Cursor="Hand"
+                                                    Padding="8,6" FontSize="11"
+                                                    Foreground="{DynamicResource AccentPrimary}"
+                                                    Command="{Binding ClearInboxCommand}"
+                                                    Visibility="{Binding HasInboxItems, Converter={StaticResource BoolToVisibility}}"/>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </Popup>
+                        </Grid>
+
+                        <Button x:Name="HelpButton"
+                                Width="32" Height="32" Background="Transparent" BorderThickness="0"
+                                Margin="2,0,0,0" Cursor="Hand" ToolTip="說明"
+                                Click="HelpButton_Click">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="3">
+                                        <TextBlock Text="&#xE897;" FontFamily="Segoe MDL2 Assets" FontSize="14"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   Foreground="{DynamicResource TextSecondary}"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="b" Property="Background" Value="{DynamicResource SurfaceSubtle}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <ContentControl x:Name="MainContent" Grid.Row="1"/>
+
+            <StackPanel x:Name="ToastHostPanel" Grid.Row="0" Grid.Column="0" Grid.RowSpan="2"
+                        HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,20,20"
+                        Panel.ZIndex="100" Orientation="Vertical"/>
+        </Grid>
+
+        <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                Background="{DynamicResource SurfaceStatusBar}">
+            <Grid Margin="12,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+
+                    <TextBlock Text="&#xE81E;" FontFamily="Segoe MDL2 Assets" FontSize="11"
+                               Foreground="{DynamicResource TextOnDarkMuted}" Opacity="0.65" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="StatusWorkspace"
+                               Text="{Binding StatusWorkspaceText}"
+                               FontSize="11" Foreground="{DynamicResource TextOnDark}" FontWeight="SemiBold"
+                               Margin="5,0,0,0" VerticalAlignment="Center"/>
+
+                    <Border Background="{DynamicResource TextOnDarkMuted}" Opacity="0.35" Width="1" Height="14" Margin="14,0"/>
+
+                    <Ellipse x:Name="StatusLight" Width="7" Height="7" VerticalAlignment="Center">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Fill" Value="{DynamicResource StatusSuccess}"/>
+                                <Setter Property="ToolTip" Value="{Binding CurrentModuleHealthMessage}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CurrentModuleHealth}" Value="Warning">
+                                        <Setter Property="Fill" Value="{DynamicResource StatusWarning}"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding CurrentModuleHealth}" Value="Faulted">
+                                        <Setter Property="Fill" Value="{DynamicResource StatusDanger}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <TextBlock x:Name="StatusModules"
+                               Text="{Binding StatusModulesText}"
+                               FontSize="11" Foreground="{DynamicResource TextOnDark}" Opacity="0.85"
+                               Margin="6,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock x:Name="StatusDevice"
+                               Text="{Binding StatusDeviceText}"
+                               FontSize="11" Foreground="{DynamicResource TextOnDarkMuted}" Opacity="0.75"
+                               VerticalAlignment="Center" Margin="0,0,14,0"/>
+                    <Border Background="{DynamicResource TextOnDarkMuted}" Opacity="0.35" Width="1" Height="14" Margin="0,0,14,0"/>
+                    <TextBlock x:Name="StatusBuild"
+                               Text="{Binding StatusBuildText}"
+                               FontSize="11" Foreground="{DynamicResource TextOnDarkMuted}" Opacity="0.75"
+                               FontFamily="Consolas, Cascadia Mono"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <shellMain:ModalDialog x:Name="RootModalDialog"
+                                 Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2"
+                                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                 Panel.ZIndex="300" />
+    </Grid>
+</Window>
+

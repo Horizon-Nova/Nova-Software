@@ -1,0 +1,308 @@
+<UserControl x:Class="ExternalModules.InSpecTool.Views.InSpecToolSettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:core="clr-namespace:ExternalModules.InSpecTool.Core"
+             x:Name="Root"
+             PreviewMouseWheel="Root_OnPreviewMouseWheel">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/InSpecTool;component/Themes/InSpecToolTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <StackPanel Margin="0,0,0,8">
+            <TextBlock Text="InSpecTool 設定"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimary}"/>
+            <TextBlock Margin="0,6,0,0"
+                       Text="模組自行提供設定內容，但版面骨架與控制項尺寸對齊宿主設定頁。"
+                       TextWrapping="Wrap"
+                       Foreground="{DynamicResource TextTertiary}"/>
+
+            <Grid Margin="0,18,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid.Resources>
+                    <Style x:Key="ModuleSettingsLabelGridStyle" TargetType="Grid">
+                        <Setter Property="Margin" Value="0,0,0,14"/>
+                    </Style>
+                </Grid.Resources>
+
+                <Grid Grid.Row="0" Style="{StaticResource ModuleSettingsLabelGridStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" MinWidth="160" MaxWidth="320"/>
+                        <ColumnDefinition Width="3*" MinWidth="200"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,18,0">
+                        <TextBlock Text="條碼輸入延遲"
+                                   Style="{StaticResource InSpecFieldLabelStyle}"/>
+                    </StackPanel>
+                    <ComboBox Grid.Column="1"
+                              x:Name="ScanIntervalCombo"
+                              MinWidth="200"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Center"
+                              SelectionChanged="ScanIntervalCombo_OnSelectionChanged"/>
+                </Grid>
+
+                <Grid Grid.Row="1" Style="{StaticResource ModuleSettingsLabelGridStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" MinWidth="160" MaxWidth="320"/>
+                        <ColumnDefinition Width="3*" MinWidth="200"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,18,0">
+                        <TextBlock Text="自動監控"
+                                   Style="{StaticResource InSpecFieldLabelStyle}"/>
+                    </StackPanel>
+                    <CheckBox Grid.Column="1"
+                              x:Name="EnableAutoMonitoringCheckBox"
+                              Content="啟用自動監控"
+                              VerticalAlignment="Center"
+                              Foreground="{DynamicResource TextPrimary}"
+                              Checked="EnableAutoMonitoringCheckBox_OnChanged"
+                              Unchecked="EnableAutoMonitoringCheckBox_OnChanged"/>
+                </Grid>
+
+                <Grid Grid.Row="2" Style="{StaticResource ModuleSettingsLabelGridStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" MinWidth="160" MaxWidth="320"/>
+                        <ColumnDefinition Width="3*" MinWidth="200"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,18,0">
+                        <TextBlock Text="監控輪詢間隔"
+                                   Style="{StaticResource InSpecFieldLabelStyle}"/>
+                    </StackPanel>
+                    <ComboBox Grid.Column="1"
+                              x:Name="MonitorIntervalCombo"
+                              MinWidth="200"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Center"
+                              SelectionChanged="MonitorIntervalCombo_OnSelectionChanged"/>
+                </Grid>
+
+                <Grid Grid.Row="3" Style="{StaticResource ModuleSettingsLabelGridStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" MinWidth="160" MaxWidth="320"/>
+                        <ColumnDefinition Width="3*" MinWidth="200"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,18,0">
+                        <TextBlock Text="自動執行"
+                                   Style="{StaticResource InSpecFieldLabelStyle}"/>
+                    </StackPanel>
+                    <CheckBox Grid.Column="1"
+                              x:Name="EnableAutoRunCheckBox"
+                              Content="開啟 iwp 後自動執行 Run"
+                              VerticalAlignment="Center"
+                              Foreground="{DynamicResource TextPrimary}"
+                              Checked="EnableAutoRunCheckBox_OnChanged"
+                              Unchecked="EnableAutoRunCheckBox_OnChanged"/>
+                </Grid>
+
+                <Grid Grid.Row="4" Style="{StaticResource ModuleSettingsLabelGridStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" MinWidth="160" MaxWidth="320"/>
+                        <ColumnDefinition Width="3*" MinWidth="200"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,18,0">
+                        <TextBlock Text="搜尋目錄"
+                                   Style="{StaticResource InSpecFieldLabelStyle}"/>
+                    </StackPanel>
+                    <Grid Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="SearchDirectoryTextBox"
+                                 MinWidth="200"
+                                 HorizontalAlignment="Stretch"
+                                 Style="{StaticResource InSpecBaseTextFieldStyle}"
+                                 LostKeyboardFocus="SearchDirectoryTextBox_OnLostKeyboardFocus"
+                                 KeyDown="DirectoryTextBox_OnKeyDown"/>
+                        <Button Grid.Column="1"
+                                Margin="8,0,0,0"
+                                MinWidth="72"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource InSpecJavaButtonStyle}"
+                                Content="瀏覽"
+                                Click="SearchDirectoryBrowseButton_OnClick"/>
+                    </Grid>
+                </Grid>
+
+                <Grid Grid.Row="5" Style="{StaticResource ModuleSettingsLabelGridStyle}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" MinWidth="160" MaxWidth="320"/>
+                        <ColumnDefinition Width="3*" MinWidth="200"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,18,0">
+                        <TextBlock Text="系統記錄目錄"
+                                   Style="{StaticResource InSpecFieldLabelStyle}"/>
+                    </StackPanel>
+                    <Grid Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="SystemLogDirectoryTextBox"
+                                 MinWidth="200"
+                                 HorizontalAlignment="Stretch"
+                                 Style="{StaticResource InSpecBaseTextFieldStyle}"
+                                 LostKeyboardFocus="SystemLogDirectoryTextBox_OnLostKeyboardFocus"
+                                 KeyDown="DirectoryTextBox_OnKeyDown"/>
+                        <Button Grid.Column="1"
+                                Margin="8,0,0,0"
+                                MinWidth="72"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource InSpecJavaButtonStyle}"
+                                Content="瀏覽"
+                                Click="SystemLogDirectoryBrowseButton_OnClick"/>
+                    </Grid>
+                </Grid>
+
+                <Grid Grid.Row="6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" MinWidth="160" MaxWidth="320"/>
+                        <ColumnDefinition Width="3*" MinWidth="200"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,18,0">
+                        <TextBlock Text="備援儲存目錄"
+                                   Style="{StaticResource InSpecFieldLabelStyle}"/>
+                    </StackPanel>
+                    <Grid Grid.Column="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="BackupSavePathTextBox"
+                                 MinWidth="200"
+                                 HorizontalAlignment="Stretch"
+                                 Style="{StaticResource InSpecBaseTextFieldStyle}"
+                                 LostKeyboardFocus="BackupSavePathTextBox_OnLostKeyboardFocus"
+                                 KeyDown="DirectoryTextBox_OnKeyDown"/>
+                        <Button Grid.Column="1"
+                                Margin="8,0,0,0"
+                                MinWidth="72"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource InSpecJavaButtonStyle}"
+                                Content="瀏覽"
+                                Click="BackupSavePathBrowseButton_OnClick"/>
+                    </Grid>
+                </Grid>
+            </Grid>
+
+            <Border Margin="0,22,0,0"
+                    Padding="14"
+                    Background="{DynamicResource SurfaceSubtle}"
+                    BorderBrush="{DynamicResource BorderLight}"
+                    BorderThickness="1"
+                    CornerRadius="6">
+                <StackPanel>
+                    <DockPanel LastChildFill="False">
+                        <TextBlock Text="欄位結構"
+                                   FontSize="14"
+                                   FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimary}"
+                                   DockPanel.Dock="Left"/>
+                        <StackPanel DockPanel.Dock="Right"
+                                    Orientation="Horizontal">
+                            <Button Content="新增欄位"
+                                    Margin="0,0,8,0"
+                                    MinWidth="88"
+                                    Style="{StaticResource InSpecJavaButtonStyle}"
+                                    Click="AddFieldButton_OnClick"/>
+                            <Button Content="儲存欄位結構"
+                                    MinWidth="112"
+                                    Style="{StaticResource InSpecJavaButtonStyle}"
+                                    Click="SaveFieldSchemaButton_OnClick"/>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <TextBlock Margin="0,6,0,0"
+                               Text="這裡對應原版 inputType 的 name / keyword / target / editable。"
+                               TextWrapping="Wrap"
+                               Foreground="{DynamicResource TextTertiary}"/>
+
+                    <Grid Margin="0,14,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.1*"/>
+                            <ColumnDefinition Width="0.9*"/>
+                            <ColumnDefinition Width="0.7*"/>
+                            <ColumnDefinition Width="0.45*"/>
+                            <ColumnDefinition Width="72"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="欄位名稱"
+                                   Foreground="{DynamicResource TextTertiary}"/>
+                        <TextBlock Grid.Column="1"
+                                   Text="關鍵字"
+                                   Foreground="{DynamicResource TextTertiary}"/>
+                        <TextBlock Grid.Column="2"
+                                   Text="目標模式"
+                                   Foreground="{DynamicResource TextTertiary}"/>
+                        <TextBlock Grid.Column="3"
+                                   Text="可編輯"
+                                   Foreground="{DynamicResource TextTertiary}"/>
+                    </Grid>
+
+                    <ItemsControl x:Name="FieldRowsItemsControl">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type core:InSpecSettingsFieldRow}">
+                                <Grid Margin="0,0,0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1.1*"/>
+                                        <ColumnDefinition Width="0.9*"/>
+                                        <ColumnDefinition Width="0.7*"/>
+                                        <ColumnDefinition Width="0.45*"/>
+                                        <ColumnDefinition Width="72"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBox Grid.Column="0"
+                                             Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource InSpecBaseTextFieldStyle}"/>
+                                    <TextBox Grid.Column="1"
+                                             Margin="8,0,0,0"
+                                             Text="{Binding Keyword, UpdateSourceTrigger=PropertyChanged}"
+                                             Style="{StaticResource InSpecBaseTextFieldStyle}"/>
+                                    <ComboBox Grid.Column="2"
+                                              Margin="8,0,0,0"
+                                              MinWidth="120"
+                                              ItemsSource="{Binding ElementName=Root, Path=TargetModeOptions}"
+                                              SelectedItem="{Binding TargetMode, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <ComboBox Grid.Column="3"
+                                              Margin="8,0,0,0"
+                                              MinWidth="96"
+                                              SelectedValue="{Binding IsEditable, UpdateSourceTrigger=PropertyChanged}"
+                                              SelectedValuePath="Tag">
+                                        <ComboBoxItem Content="可編輯" Tag="True"/>
+                                        <ComboBoxItem Content="不可編輯" Tag="False"/>
+                                    </ComboBox>
+                                    <Button Grid.Column="4"
+                                            Margin="8,0,0,0"
+                                            MinWidth="56"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource InSpecJavaButtonStyle}"
+                                            Content="刪除"
+                                            Tag="{Binding}"
+                                            Click="DeleteFieldButton_OnClick"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            <TextBlock x:Name="StatusTextBlock"
+                       Margin="0,14,0,0"
+                       TextWrapping="Wrap"
+                       Foreground="{DynamicResource TextTertiary}"/>
+    </StackPanel>
+</UserControl>

@@ -1,0 +1,61 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <RootNamespace>ExternalModules.InSpecTool</RootNamespace>
+    <AssemblyName>InSpecTool</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <!-- Output folder: shell drops this entire folder into Modules/ -->
+    <ModulePackageDirectory>$(MSBuildProjectDirectory)\PackageOutput\InSpecTool</ModulePackageDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Net\Helix-Studio.ModuleSdk\Helix-Studio.ModuleSdk.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- README shipped alongside the DLL; icon embedded via ModuleIconResource attribute -->
+    <None Include="Package\README.md" CopyToOutputDirectory="Never" />
+    <EmbeddedResource Include="Package\icon.png" Condition="Exists('Package\icon.png')" />
+  </ItemGroup>
+
+  <!--
+    BuildModulePackage — produces a self-contained module folder in PackageOutput/.
+    New format (Helix-Studio SDK): flat folder, DLL only, no module.json.
+    The shell reads module identity from assembly attributes via MetadataLoadContext.
+
+    Do NOT copy Helix-Studio.ModuleSdk.dll — the shell owns that DLL and
+    ModuleLoadContext routes SDK type resolution to the default (shell) context.
+  -->
+  <Target Name="BuildModulePackage" AfterTargets="Build">
+    <MakeDir Directories="$(ModulePackageDirectory)" />
+
+    <!-- Main module DLL -->
+    <Copy SourceFiles="$(TargetPath)"
+          DestinationFiles="$(ModulePackageDirectory)\$(TargetFileName)" />
+
+    <!-- deps.json for AssemblyDependencyResolver (same folder as the main DLL) -->
+    <Copy SourceFiles="$(TargetDir)$(TargetName).deps.json"
+          DestinationFiles="$(ModulePackageDirectory)\$(TargetName).deps.json"
+          Condition="Exists('$(TargetDir)$(TargetName).deps.json')"
+          SkipUnchangedFiles="true" />
+
+    <!-- Any dependency DLLs produced alongside (not the SDK itself) -->
+    <ItemGroup>
+      <_ModuleDeps Include="$(TargetDir)*.dll"
+                   Exclude="$(TargetDir)Helix-Studio.ModuleSdk.dll;$(TargetPath)" />
+    </ItemGroup>
+    <Copy SourceFiles="@(_ModuleDeps)"
+          DestinationFolder="$(ModulePackageDirectory)"
+          SkipUnchangedFiles="true" />
+
+    <!-- README.md — shown in the shell's module detail panel -->
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\Package\README.md"
+          DestinationFiles="$(ModulePackageDirectory)\README.md"
+          Condition="Exists('$(MSBuildProjectDirectory)\Package\README.md')"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

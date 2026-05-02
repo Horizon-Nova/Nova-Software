@@ -1,0 +1,38 @@
+<Project Sdk="WixToolset.Sdk/6.0.2">
+  <PropertyGroup>
+    <OutputName>Helix-Studio-Setup</OutputName>
+    <Platforms>x64</Platforms>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <ProductVersion>1.0.1</ProductVersion>
+    <!-- 安裝精靈介面語系（WixUI 內建字串） -->
+    <Cultures>zh-TW</Cultures>
+    <!-- 自包含 publish 輸出目錄（由 PublishSelfContainedForMsi 目標產生） -->
+    <AppBuildOutputDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)obj\$(Platform)\$(Configuration)\sc-msi-publish'))</AppBuildOutputDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="6.0.2" />
+    <BindPath Include="$(AppBuildOutputDir)" BindName="AppBuild" />
+    <ProjectReference Include="..\Helix-Studio\Helix-Studio.csproj">
+      <Private>false</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+
+  <!-- 授權頁 RTF：由主程式 Legal 繁中條款自動產生，與安裝後檔案一致。 -->
+  <Target Name="GenerateLicenseRtf" BeforeTargets="BeforeBuild">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)Scripts\Generate-LicenseRtf.ps1&quot; -All -InstallerDir &quot;$(MSBuildProjectDirectory)&quot;" />
+  </Target>
+
+  <!-- WiX 內建 Publish 參考輸出路徑與自包含內容不完整，改為明確 Publish 至此目錄再採集。 -->
+  <Target Name="PublishSelfContainedForMsi" BeforeTargets="BeforeBuild" DependsOnTargets="GenerateLicenseRtf">
+    <PropertyGroup>
+      <_ScPublishDir>$(AppBuildOutputDir)</_ScPublishDir>
+    </PropertyGroup>
+    <RemoveDir Directories="$(_ScPublishDir)" />
+    <MakeDir Directories="$(_ScPublishDir)" />
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\Helix-Studio\Helix-Studio.csproj"
+             Targets="Publish"
+             Properties="Configuration=$(Configuration);Platform=x64;RuntimeIdentifier=win-x64;SelfContained=true;PublishSingleFile=false;UseAppHost=true;PublishDir=$(_ScPublishDir);IncludeNativeLibrariesForSelfExtract=false" />
+  </Target>
+</Project>

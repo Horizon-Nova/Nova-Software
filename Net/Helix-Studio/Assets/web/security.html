@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>資安與治理 · Horizon Nova Studio</title>
+  <link rel="stylesheet" href="help.css" />
+  <script src="help.js" defer></script>
+</head>
+<body class="app">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="app-body">
+    <aside class="sidebar" aria-label="Help navigation">
+      <div class="sidebar-brand">
+        <p class="sidebar-brand-title">Help</p>
+        <div class="sidebar-brand-line">
+          <div class="sidebar-logo" aria-hidden="true">HN</div>
+          <div>
+            <p class="sidebar-product-en">HORIZON NOVA</p>
+            <p class="sidebar-product-zh" lang="zh-Hant">內建說明</p>
+          </div>
+        </div>
+      </div>
+      <div class="sidebar-search" role="search" aria-label="Help search">
+        <label for="navSearch">Search / 搜尋</label>
+        <input id="navSearch" type="search" placeholder="Search / 搜尋" autocomplete="off" />
+      </div>
+      <div data-nav-group>
+        <p class="sidebar-group-label">Basics</p>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="index.html">
+              <span class="nav-item-en">Using the shell</span>
+              <span class="nav-item-zh" lang="zh-Hant">主視窗與導覽</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="docs.html">
+              <span class="nav-item-en">Shortcuts &amp; search</span>
+              <span class="nav-item-zh" lang="zh-Hant">快捷鍵與搜尋</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="settings.html">
+              <span class="nav-item-en">Settings</span>
+              <span class="nav-item-zh" lang="zh-Hant">設定項目</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="nav-group-sep" aria-hidden="true"></div>
+      <div data-nav-group>
+        <p class="sidebar-group-label">Operations</p>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="modules.html">
+              <span class="nav-item-en">Modules</span>
+              <span class="nav-item-zh" lang="zh-Hant">模組與擴充</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="troubleshooting.html">
+              <span class="nav-item-en">Troubleshooting</span>
+              <span class="nav-item-zh" lang="zh-Hant">疑難排解</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="nav-group-sep" aria-hidden="true"></div>
+      <div data-nav-group>
+        <p class="sidebar-group-label">Governance</p>
+        <ul class="nav-list">
+          <li class="nav-item is-active">
+            <a href="security.html" aria-current="page">
+              <span class="nav-item-en">Security &amp; governance</span>
+              <span class="nav-item-zh" lang="zh-Hant">資安與治理</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="faq.html">
+              <span class="nav-item-en">FAQ &amp; support</span>
+              <span class="nav-item-zh" lang="zh-Hant">常見問題與支援</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="sidebar-footer">
+        <p class="sidebar-footer-title">Note</p>
+        <div class="badge-row">
+          <span class="badge badge--neutral">OFFLINE</span>
+          <span class="badge badge--neutral">LOCAL FILE</span>
+          <span class="badge">READ-ONLY</span>
+        </div>
+        <dl class="dl-kv footer-kv">
+          <dt>Update</dt><dd>2026-04-25</dd>
+          <dt lang="zh-Hant">更新</dt><dd lang="zh-Hant">2026-04-25</dd>
+        </dl>
+      </div>
+    </aside>
+
+    <div class="main-column" id="main">
+      <header class="topbar">
+        <div>
+          <p class="breadcrumb">Help</p>
+          <h1>資安與治理</h1>
+        </div>
+      </header>
+
+      <div class="content-scroll">
+        <article class="content">
+
+          <p>本頁為安全部署的運維建議參考；實際規範仍以貴司政策及合約要求為準。</p>
+
+          <!-- ── 角色與權限 ── -->
+          <h2 class="section-title" id="roles">角色與權限</h2>
+
+          <p>建議將<strong>操作員使用</strong>與<strong>管理性動作</strong>明確區分。以下動作宜要求較高權限或核准流程：</p>
+          <ul>
+            <li>工作區建立、修改與刪除</li>
+            <li>模組安裝與移除</li>
+            <li>事件日誌匯出</li>
+            <li>設定變更（尤其是影響所有使用者的系統設定）</li>
+          </ul>
+
+          <!-- ── 資料處理 ── -->
+          <h2 class="section-title" id="data">資料處理</h2>
+
+          <p>事件日誌與截圖可能包含操作記錄、識別資訊或業務數據，應視為潛在敏感資料。</p>
+          <ul>
+            <li>日誌匯出檔案請存放於 IT 核准的位置，並套用適當的存取控制與保留政策。</li>
+            <li>依貴司政策決定保留天數與是否允許使用者自行匯出。</li>
+          </ul>
+
+          <div class="callout callout--danger">
+            <p class="callout-title">截圖外洩風險</p>
+            <p>在工單或訊息中附加截圖時，請使用<strong>指定視窗截圖</strong>而非全螢幕，並依規範遮蔽敏感欄位（如識別碼、資料值）後再發送。</p>
+          </div>
+
+          <!-- ── 離線說明 ── -->
+          <h2 class="section-title" id="offline">離線說明內容</h2>
+
+          <p>本說明隨程式一同安裝，以本機 HTML 檔案形式提供，<strong>不需要網路連線</strong>，適合不允許連外網的封閉環境部署。說明內容為靜態唯讀，無法在此頁面傳輸任何資料。</p>
+
+          <!-- ── 合規證據 ── -->
+          <h2 class="section-title" id="compliance">合規證據</h2>
+
+          <p>若採購或稽核流程需要資安或合規文件（例如滲透測試報告、SOC 認證或系統文件），請透過供應商支援管道提出申請，並將取得的文件存放於貴司治理系統中集中管理。</p>
+
+          <div class="callout">
+            <p class="callout-title">版本對應</p>
+            <p>申請合規文件時，請一併提供主程式版本號（<strong>設定 → 關於</strong>），以確保供應商提供的文件與實際部署版本一致。</p>
+          </div>
+
+        </article>
+      </div>
+
+      <footer class="statusbar" role="contentinfo">
+        <div class="statusbar-left">
+          <span><span class="status-dot" aria-hidden="true"></span> User guide</span>
+          <span class="status-sep" aria-hidden="true"></span>
+          <span>Horizon Nova Studio</span>
+        </div>
+        <div class="statusbar-right">
+          <span>Help</span>
+        </div>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>
