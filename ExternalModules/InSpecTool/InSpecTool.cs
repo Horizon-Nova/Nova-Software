@@ -1,4 +1,6 @@
 using System.Windows;
+using ExternalModules.InSpecTool.Services;
+using ExternalModules.InSpecTool.ViewModels;
 using ExternalModules.InSpecTool.Views;
 using HorizonNova.HelixStudio.ModuleSdk;
 
@@ -17,60 +19,96 @@ public sealed class InSpecTool : IModuleWithSettings
     /// </summary>
     private const string LicenseKeySettingsKey = "_license_key";
 
-    private InSpecToolView?         _view;
-    private InSpecToolSettingsView? _settingsView;
+    private readonly InSpecToolServices _services = new();
+    private readonly InSpecToolPageViewModel _pageViewModel;
+    private readonly InSpecToolSettingsPageViewModel _settingsPageViewModel;
+    private InSpecToolPage? _page;
+    private InSpecToolSettingsPage? _settingsPage;
+
+    /// <summary>
+    /// 建立 InSpecTool 模組實例。
+    /// </summary>
+    public InSpecTool()
+    {
+        _pageViewModel = new InSpecToolPageViewModel(_services);
+        _settingsPageViewModel = new InSpecToolSettingsPageViewModel(_services);
+    }
 
     // ── IModule ────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// 建立主頁 View。
+    /// </summary>
+    /// <param name="context">宿主上下文。</param>
+    /// <returns>主頁 WPF 元件。</returns>
     public FrameworkElement CreateView(IShellContext context)
     {
-        _view = new InSpecToolView();
-        _view.ApplyHostContext(context);
-        return _view;
+        _services.ApplyShellContext(context);
+        _page ??= new InSpecToolPage(_pageViewModel);
+        _pageViewModel.ApplyShellContext();
+        return _page;
     }
 
+    /// <summary>
+    /// 當模組被啟用時更新授權狀態與 ViewModel 上下文。
+    /// </summary>
+    /// <param name="context">宿主上下文。</param>
     public void OnActivated(IShellContext context)
     {
-        // Verify the stored license key and report health so the status-bar
-        // light reflects the current license state on every navigation.
         var storedKey = context.Settings.QueryString(LicenseKeySettingsKey);
-        var result    = context.VerifyModuleLicense(storedKey);
+        var result = context.VerifyModuleLicense(storedKey);
 
         if (result.IsValid)
+        {
             context.ReportHealth(ModuleHealth.Healthy);
+        }
         else
+        {
             context.ReportHealth(ModuleHealth.Faulted,
                 string.IsNullOrWhiteSpace(result.ErrorMessage)
                     ? "授權金鑰無效"
                     : result.ErrorMessage);
+        }
 
-        _view?.ApplyHostContext(context);
+        _services.ApplyShellContext(context);
+        _pageViewModel.ApplyShellContext();
+        _settingsPageViewModel.LoadSettings();
     }
 
+    /// <summary>
+    /// 當模組被停用時清除目前上下文。
+    /// </summary>
     public void OnDeactivated()
     {
-        _view?.ClearHostContext();
+        _pageViewModel.ClearShellContext();
+        _services.ApplyShellContext(null);
     }
 
     // ── IModuleWithSettings ────────────────────────────────────────────────
 
+    /// <summary>
+    /// 建立設定頁 View。
+    /// </summary>
+    /// <param name="context">宿主上下文。</param>
+    /// <returns>設定頁 WPF 元件。</returns>
     public FrameworkElement CreateSettingsView(IShellContext context)
     {
-        if (_settingsView is null)
-        {
-            _settingsView = new InSpecToolSettingsView();
-            _settingsView.ApplyHostContext(context);
-        }
-        return _settingsView;
+        _services.ApplyShellContext(context);
+        _settingsPage ??= new InSpecToolSettingsPage(_settingsPageViewModel);
+        _settingsPageViewModel.LoadSettings();
+        return _settingsPage;
     }
 
     // ── IDisposable ────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// 釋放模組資源。
+    /// </summary>
     public void Dispose()
     {
-        _view?.ClearHostContext();
-        _settingsView?.ClearHostContext();
-        _view         = null;
-        _settingsView = null;
+        _pageViewModel.Dispose();
+        _services.Dispose();
+        _page = null;
+        _settingsPage = null;
     }
 }

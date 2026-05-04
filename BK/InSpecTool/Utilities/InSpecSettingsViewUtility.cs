@@ -1,6 +1,6 @@
 using System.Text.Json;
 using ExternalModules.InSpecTool.Core;
-using HorizonNova.HelixStudio.ModuleSdk;
+using HN_Studio.ModuleSdk;
 
 namespace ExternalModules.InSpecTool.Utilities;
 
@@ -31,16 +31,16 @@ public static class InSpecSettingsViewUtility
         InSpecFieldDefinition.PromptConfirmationTargetMode
     ];
 
-    public static string QuerySavedValue(IModuleSettings settings, string key, string fallback = "")
+    public static string QuerySavedValue(IHnModuleSettings settings, string key, string fallback = "")
     {
         var value = settings.QueryString(key, fallback);
         return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
     }
 
-    public static bool QuerySavedBoolean(IModuleSettings settings, string key, bool fallback) =>
+    public static bool QuerySavedBoolean(IHnModuleSettings settings, string key, bool fallback) =>
         settings.QueryBoolean(key, fallback);
 
-    public static IReadOnlyList<InSpecSettingsFieldRow> QueryFieldRows(IModuleSettings settings)
+    public static IReadOnlyList<InSpecSettingsFieldRow> QueryFieldRows(IHnModuleSettings settings)
     {
         var definitions = InSpecFieldSchemaUtility.QueryDefinitions(settings.QueryString("fieldSchema", string.Empty));
         return definitions
@@ -70,9 +70,9 @@ public static class InSpecSettingsViewUtility
         return JsonSerializer.Serialize(payload);
     }
 
-    public static ModuleSettingSaveResult SaveString(IModuleSettings settings, string key, string? value) =>
-        settings.SaveString(key, value);
+    public static HnModuleSettingSaveResult SaveString(IHnModuleSettings settings, string key, string? value) =>
+        settings.SaveValue(key, value);
 
-    public static ModuleSettingSaveResult SaveBoolean(IModuleSettings settings, string key, bool value) =>
-        settings.SaveBoolean(key, value);
+    public static HnModuleSettingSaveResult SaveBoolean(IHnModuleSettings settings, string key, bool value) =>
+        settings.SaveValue(key, value ? bool.TrueString : bool.FalseString);
 }

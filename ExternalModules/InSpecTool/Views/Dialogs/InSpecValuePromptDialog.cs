@@ -1,13 +1,16 @@
 using System.Windows;
 using System.Windows.Controls;
 
-namespace ExternalModules.InSpecTool.Views;
+namespace ExternalModules.InSpecTool.Views.Dialogs;
 
-public sealed class InSpecValuePromptWindow : Window
+/// <summary>
+/// 顯示需要使用者確認欄位值時使用的輸入對話框。
+/// </summary>
+public sealed class InSpecValuePromptDialog : Window
 {
     private readonly TextBox _valueTextBox;
 
-    private InSpecValuePromptWindow(string inputTypeName, string defaultValue)
+    private InSpecValuePromptDialog(string inputTypeName, string defaultValue)
     {
         Title = "輸入欄位值";
         Width = 480;
@@ -19,14 +22,14 @@ public sealed class InSpecValuePromptWindow : Window
         Topmost = true;
         SetResourceReference(BackgroundProperty, "SurfaceRaised");
 
-        var root = new Grid
+        var rootGrid = new Grid
         {
             Margin = new Thickness(20)
         };
-        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-        root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        rootGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        rootGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
         var titleBlock = new TextBlock
         {
@@ -36,7 +39,7 @@ public sealed class InSpecValuePromptWindow : Window
         };
         titleBlock.SetResourceReference(TextBlock.ForegroundProperty, "TextPrimary");
         Grid.SetRow(titleBlock, 0);
-        root.Children.Add(titleBlock);
+        rootGrid.Children.Add(titleBlock);
 
         var descriptionBlock = new TextBlock
         {
@@ -46,19 +49,19 @@ public sealed class InSpecValuePromptWindow : Window
         };
         descriptionBlock.SetResourceReference(TextBlock.ForegroundProperty, "TextTertiary");
         Grid.SetRow(descriptionBlock, 1);
-        root.Children.Add(descriptionBlock);
+        rootGrid.Children.Add(descriptionBlock);
 
         _valueTextBox = new TextBox
         {
-            Margin       = new Thickness(0, 14, 0, 0),
-            Padding      = new Thickness(8, 6, 8, 6),
-            FontSize     = 13,
+            Margin = new Thickness(0, 14, 0, 0),
+            Padding = new Thickness(8, 6, 8, 6),
+            FontSize = 13,
             VerticalAlignment = VerticalAlignment.Top,
-            Text         = defaultValue ?? string.Empty
+            Text = defaultValue ?? string.Empty
         };
         _valueTextBox.SetResourceReference(TextBox.BorderBrushProperty, "BorderMedium");
         Grid.SetRow(_valueTextBox, 2);
-        root.Children.Add(_valueTextBox);
+        rootGrid.Children.Add(_valueTextBox);
 
         var buttonPanel = new StackPanel
         {
@@ -69,10 +72,10 @@ public sealed class InSpecValuePromptWindow : Window
 
         var cancelButton = new Button
         {
-            Content  = "取消",
+            Content = "取消",
             MinWidth = 82,
-            Padding  = new Thickness(14, 7, 14, 7),
-            Margin   = new Thickness(0, 0, 8, 0)
+            Padding = new Thickness(14, 7, 14, 7),
+            Margin = new Thickness(0, 0, 8, 0)
         };
         cancelButton.SetResourceReference(StyleProperty, "GhostButton");
         cancelButton.Click += (_, _) =>
@@ -83,9 +86,9 @@ public sealed class InSpecValuePromptWindow : Window
 
         var confirmButton = new Button
         {
-            Content   = "確認",
-            MinWidth  = 82,
-            Padding   = new Thickness(14, 7, 14, 7),
+            Content = "確認",
+            MinWidth = 82,
+            Padding = new Thickness(14, 7, 14, 7),
             IsDefault = true
         };
         confirmButton.SetResourceReference(StyleProperty, "PrimaryButton");
@@ -98,9 +101,9 @@ public sealed class InSpecValuePromptWindow : Window
         buttonPanel.Children.Add(cancelButton);
         buttonPanel.Children.Add(confirmButton);
         Grid.SetRow(buttonPanel, 3);
-        root.Children.Add(buttonPanel);
+        rootGrid.Children.Add(buttonPanel);
 
-        Content = root;
+        Content = rootGrid;
         Loaded += (_, _) =>
         {
             _valueTextBox.Focus();
@@ -108,16 +111,22 @@ public sealed class InSpecValuePromptWindow : Window
         };
     }
 
+    /// <summary>
+    /// 顯示提示輸入對話框。
+    /// </summary>
+    /// <param name="owner">擁有者視窗。</param>
+    /// <param name="inputTypeName">欄位名稱。</param>
+    /// <param name="defaultValue">預設值。</param>
+    /// <returns>使用者確認後的輸入值，若取消則回傳 <c>null</c>。</returns>
     public static string? Show(Window? owner, string inputTypeName, string defaultValue)
     {
-        var window = new InSpecValuePromptWindow(inputTypeName, defaultValue);
+        var dialog = new InSpecValuePromptDialog(inputTypeName, defaultValue);
         if (owner is not null)
         {
-            window.Owner = owner;
+            dialog.Owner = owner;
         }
 
-        return window.ShowDialog() == true
-            ? window._valueTextBox.Text.Trim()
-            : null;
+        return dialog.ShowDialog() == true ? dialog._valueTextBox.Text.Trim() : null;
     }
 }
+

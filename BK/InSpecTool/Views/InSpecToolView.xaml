@@ -16,7 +16,7 @@
                 <Setter Property="Padding" Value="4,4"/>
                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                 <Setter Property="VerticalContentAlignment" Value="Center"/>
-                <Setter Property="Background" Value="{DynamicResource SurfaceBase}"/>
+                <Setter Property="Background" Value="{DynamicResource ShellPrimaryBrush}"/>
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="Template">
                     <Setter.Value>
@@ -28,13 +28,13 @@
                             </Border>
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="ItemBd" Property="Background" Value="{DynamicResource AccentSoft}"/>
+                                    <Setter TargetName="ItemBd" Property="Background" Value="{DynamicResource ShellInteractiveBrush}"/>
                                 </Trigger>
                                 <Trigger Property="IsSelected" Value="True">
-                                    <Setter TargetName="ItemBd" Property="Background" Value="{DynamicResource AccentSoft}"/>
+                                    <Setter TargetName="ItemBd" Property="Background" Value="{DynamicResource ShellInteractiveBrush}"/>
                                 </Trigger>
                                 <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                                    <Setter TargetName="ItemBd" Property="Background" Value="{DynamicResource AccentSoft}"/>
+                                    <Setter TargetName="ItemBd" Property="Background" Value="{DynamicResource ShellInteractiveBrush}"/>
                                 </Trigger>
                                 <DataTrigger Value="True">
                                     <DataTrigger.Binding>
@@ -43,7 +43,7 @@
                                             <Binding ElementName="Root" Path="LastClickedFilePath"/>
                                         </MultiBinding>
                                     </DataTrigger.Binding>
-                                    <Setter TargetName="ItemBd" Property="Background" Value="{DynamicResource AccentSoft}"/>
+                                    <Setter TargetName="ItemBd" Property="Background" Value="{DynamicResource ShellInteractiveBrush}"/>
                                 </DataTrigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -53,7 +53,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid Background="{DynamicResource SurfaceBase}">
+    <Grid Background="{DynamicResource ShellPrimaryBrush}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0.42*"/>
             <ColumnDefinition Width="2"/>
@@ -72,7 +72,7 @@
                            Style="{StaticResource InSpecPageTitleStyle}"/>
                 <TextBlock x:Name="AutomationStatusText"
                            Margin="0,6,0,0"
-                           Foreground="{DynamicResource TextTertiary}"
+                           Foreground="{DynamicResource ShellMutedForegroundBrush}"
                            Text="自動監控：關閉"/>
             </StackPanel>
 
@@ -92,7 +92,7 @@
                                Text="請輸入或掃描完整條碼"
                                Margin="8,0,8,0"
                                VerticalAlignment="Center"
-                               Foreground="{DynamicResource TextTertiary}"
+                               Foreground="{DynamicResource ShellMutedForegroundBrush}"
                                IsHitTestVisible="False"/>
                 </Grid>
                 <Button Grid.Column="2"

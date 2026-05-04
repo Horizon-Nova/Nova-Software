@@ -8,7 +8,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using ExternalModules.InSpecTool.Core;
 using ExternalModules.InSpecTool.Services;
-using HorizonNova.HelixStudio.ModuleSdk;
+using HN_Studio.ModuleSdk;
 
 namespace ExternalModules.InSpecTool.Views;
 
@@ -24,7 +24,7 @@ public partial class InSpecToolView : UserControl
     private readonly InSpecAutomationService _automationService = new();
     private readonly InSpecFileBridgeService _fileBridgeService = new();
     private readonly DispatcherTimer _barcodeDebounceTimer = new();
-    private IShellContext? _hostContext;
+    private HnModuleContext? _hostContext;
     private InSpecToolConfiguration _configuration = new();
     private bool _suspendBarcodeRefresh;
     private bool _suspendFieldRefresh;
@@ -55,7 +55,7 @@ public partial class InSpecToolView : UserControl
         };
     }
 
-    internal void ApplyHostContext(IShellContext context)
+    internal void ApplyHostContext(HnModuleContext context)
     {
         _hostContext = context;
         ReloadConfigurationAndRefresh(clearFileIndex: true);

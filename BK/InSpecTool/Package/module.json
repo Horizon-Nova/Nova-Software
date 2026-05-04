@@ -1,0 +1,96 @@
+{
+  "Id": "inspec-tool",
+  "DisplayName": "InSpecTool",
+  "Version": "1.1.1",
+  "Description": "提供條碼解析、欄位同步、.iwp 檔案查找、InSpec 開檔、自動 Run 與 Input.txt 橋接寫入的 InSpec 作業模組。",
+  "IconFile": "icon.svg",
+  "EntryAssemblyFile": "bin/InSpecTool.dll",
+  "EntryType": "ExternalModules.InSpecTool.InSpecTool",
+  "SettingsViewType": "ExternalModules.InSpecTool.Views.InSpecToolSettingsView",
+  "ReadmeFile": "README.md",
+  "MinHostVersion": "",
+  "View": {
+    "PreferredWidth": 1280,
+    "PreferredHeight": 760
+  },
+  "Settings": [
+    {
+      "Key": "scanIntervalMs",
+      "DisplayName": "掃描間隔",
+      "Description": "控制條碼輸入防抖延遲，避免每次輸入都立刻觸發完整刷新。",
+      "Editor": "select",
+      "EditorOptions": {
+        "options": [80, 120, 160, 200, 300, 500]
+      },
+      "ValueType": "Integer",
+      "DefaultValue": 80,
+      "MinValue": 50,
+      "MaxValue": 5000
+    },
+    {
+      "Key": "enableAutoMonitoring",
+      "DisplayName": "自動監聽",
+      "Description": "控制是否啟用 InSpec 提示視窗監聽與自動輸入流程。",
+      "ValueType": "Boolean",
+      "DefaultValue": true
+    },
+    {
+      "Key": "monitorIntervalMs",
+      "DisplayName": "監聽間隔",
+      "Description": "控制自動監聽輪詢頻率。",
+      "Editor": "select",
+      "EditorOptions": {
+        "options": [200, 300, 500, 800, 1000]
+      },
+      "ValueType": "Integer",
+      "DefaultValue": 500,
+      "MinValue": 100,
+      "MaxValue": 10000
+    },
+    {
+      "Key": "searchDirectory",
+      "DisplayName": "搜尋目錄",
+      "Description": "設定 InSpec .iwp 檔案查找根目錄。",
+      "Editor": "directory",
+      "ValueType": "String",
+      "DefaultValue": ""
+    },
+    {
+      "Key": "systemLogDirectory",
+      "DisplayName": "系統記錄目錄",
+      "Description": "設定 Input.txt 內容寫入時使用的主輸出目錄。",
+      "Editor": "directory",
+      "ValueType": "String",
+      "DefaultValue": ""
+    },
+    {
+      "Key": "backupSavePath",
+      "DisplayName": "備份輸出目錄",
+      "Description": "設定補充輸出或備援輸出目錄。",
+      "Editor": "directory",
+      "ValueType": "String",
+      "DefaultValue": ""
+    },
+    {
+      "Key": "enableAutoRun",
+      "DisplayName": "自動執行 Run",
+      "Description": "控制開啟 .iwp 後是否自動執行 Run。",
+      "ValueType": "Boolean",
+      "DefaultValue": true
+    },
+    {
+      "Key": "fieldSchema",
+      "DisplayName": "欄位結構",
+      "Description": "管理欄位名稱、關鍵字、目標模式與是否可編輯，並作為條碼解析與目標路徑推算的基礎。",
+      "Editor": "inspec-input-type-grid",
+      "EditorOptions": {
+        "targetModes": [
+          "Direct Input",
+          "Prompt Confirmation"
+        ]
+      },
+      "ValueType": "String",
+      "DefaultValue": ""
+    }
+  ]
+}

@@ -5,14 +5,14 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using ExternalModules.InSpecTool.Core;
 using ExternalModules.InSpecTool.Utilities;
-using HorizonNova.HelixStudio.ModuleSdk;
+using HN_Studio.ModuleSdk;
 using Microsoft.Win32;
 
 namespace ExternalModules.InSpecTool.Views;
 
-public partial class InSpecToolSettingsView : UserControl
+public partial class InSpecToolSettingsView : UserControl, IHnModuleSettingsView
 {
-    private IShellContext? _context;
+    private HnModuleContext? _context;
     private bool _isLoading;
 
     public ObservableCollection<InSpecSettingsFieldRow> FieldRows { get; } = [];
@@ -28,7 +28,7 @@ public partial class InSpecToolSettingsView : UserControl
         FieldRowsItemsControl.ItemsSource = FieldRows;
     }
 
-    public void ApplyHostContext(IShellContext context)
+    public void ApplyHostContext(HnModuleContext context)
     {
         _context = context;
         LoadSettings();

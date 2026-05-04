@@ -3,7 +3,7 @@
 | 項目 | 內容 |
 | --- | --- |
 | 文件編號 | WPF-ARCH-001 |
-| 版本 | 1.0 |
+| 版本 | 1.1 |
 | 適用範圍 | Windows Presentation Foundation (WPF) |
 | 規範強度 | 強制，無例外 |
 | 目標讀者 | 開發者、AI 代理人 |
@@ -29,7 +29,7 @@ Net/YourProject/
 ├── ViewModels/          UI 狀態機，扁平結構，僅允許 Base/ 子資料夾
 │   └── Base/            ViewModelBase、RelayCommand 等基礎設施類別
 ├── Services/            薄 Facade，扁平結構，禁止任何子資料夾
-├── Domain/              業務邏輯，扁平結構，禁止任何子資料夾
+├── Domain/              業務規則與判斷，扁平結構，禁止任何子資料夾
 ├── Model/               資料結構，扁平結構，禁止任何子資料夾
 ├── Infrastructure/      基礎設施，允許依技術類型分子資料夾，不超過一層
 ├── Components/          跨 View 共用的 UserControl（至少 2 個 View 使用）
@@ -87,6 +87,9 @@ Net/YourProject/
 | `Update` | 修改現有資源 | `UpdateWorkspace()` |
 | `Open` | 開啟外部資源 | `OpenLegalNotices()` |
 | `Activate` | 啟用或切換使用中狀態 | `ActivateWorkspace()` |
+| `Validate` | 規則判斷，回傳是否成立 | `ValidateLicense()`、`ValidateWorkspaceName()` |
+| `Calculate` | 數值或結果計算 | `CalculateTimeoutDuration()` |
+| `Resolve` | 從輸入推導出對應結果 | `ResolveLanguage()`、`ResolveScaleFactor()` |
 
 **禁止** `Process`、`Handle`、`Do`、`Execute`、`Run`、`Manager` 作為函式名稱的主動詞。
 
@@ -221,39 +224,88 @@ public sealed class SettingsPageViewModel : ViewModelBase
 
 ### §4.4 Services
 
-**職責**：Service 是 ViewModel 與 Domain 之間的薄 Facade，負責組合 Domain 呼叫，提供穩定的操作入口。Service 不知道 UI 存在。
+**職責**：Service 是 ViewModel 與 Domain 之間的**薄 Facade**。它的工作是「把步驟串起來」，不是「判斷規則」。Service 不知道 UI 存在，也不自己決定業務上該怎麼做。
+
+**一句話區別**：Service 回答「**要做哪些步驟**」，Domain 回答「**這個規則是否成立、結果是什麼**」。
+
+Service 方法的典型結構：
+1. 呼叫 Domain 取得判斷結果或計算值
+2. 呼叫 Infrastructure 進行持久化或外部操作
+3. 整合結果後回傳給 ViewModel
+
+```csharp
+/// <summary>
+/// 儲存設定並即時套用 UI 配置。
+/// </summary>
+public void SaveSettings(AppSettings settings)
+{
+    // 流程串接：Domain 計算 → Infrastructure 儲存 → Infrastructure 套用
+    var resolved = _domain.ResolveLanguage(settings.LanguageIndex);
+    _repository.Save(settings);
+    _runtime.ApplyLanguage(resolved);
+}
+```
 
 **必須**：
-- 方法以一或多個 Domain 方法呼叫為主體，整合結果後回傳
+- 方法以呼叫 Domain 與 Infrastructure 為主體，整合結果後回傳
 - 不承擔業務規則判斷（業務規則屬 Domain）
 
 **禁止**：
 - 持有 `IsBusy`、`IsDirty` 等 UI 狀態
+- 在方法體內出現業務判斷的 `if` 分支（判斷屬 Domain）
 - 累積業務判斷邏輯（成為第二套 Domain）
 
 **判定式**：Service 方法若超過 **20 行**，或包含超過 **3 個 `if` 分支**，檢查是否有業務邏輯應下推至 Domain。
 
 ### §4.5 Domain
 
-**職責**：業務邏輯、規則、計算、解析的所在層。Domain 不知道 UI 存在，也不知道持久化方式。
+**職責**：Domain 是**業務規則、判斷與計算的唯一實作地點**。它回答的問題是「這個值對不對」、「這個條件成不成立」、「這個輸入對應什麼結果」。Domain 不知道 UI 存在，也不知道資料怎麼儲存。
+
+**和 Services 的根本差異**：
+
+| 問題類型 | 歸屬 | 範例 |
+| --- | --- | --- |
+| **這個步驟怎麼串** | Services | 取得設定 → 套用語言 → 儲存設定 |
+| **這個規則是否成立** | Domain | 語言索引 0 是否對應繁體中文 |
+| **這個輸入算出什麼** | Domain | index 3 換算為 TimeSpan 是多少 |
+| **這些資料要怎麼協調** | Services | 儲存設定並即時套用 UI 配置 |
+
+**判定方式**：寫程式時遇到需要 `if` 判斷業務條件、或需要公式計算的邏輯，一律放 Domain，不放 Service。
+
+```csharp
+/// <summary>
+/// 依語言索引解析對應的語言代碼。
+/// </summary>
+public string ResolveLanguage(int index) => index switch
+{
+    0 => "zh-TW",
+    1 => "en-US",
+    2 => "ja-JP",
+    _ => throw new ArgumentOutOfRangeException(nameof(index))
+};
+
+/// <summary>
+/// 依非活躍逾時索引換算對應的 TimeSpan。
+/// </summary>
+public TimeSpan CalculateTimeoutDuration(int index) => index switch
+{
+    0 => TimeSpan.FromMinutes(5),
+    1 => TimeSpan.FromMinutes(15),
+    2 => TimeSpan.FromMinutes(30),
+    _ => TimeSpan.FromMinutes(15)
+};
+```
 
 **必須**：
 - 以純 .NET 型別實作，不依賴 WPF、UI 框架、持久化技術
 - 可獨立單元測試，不需啟動 WPF 或資料庫
+- 所有業務規則判斷與計算集中於此層，Service 不得自行實作
 
 **禁止**：
 - 引用 `PresentationFramework`、`PresentationCore`、`WindowsBase`
 - 引用 Entity Framework、Dapper 等持久化框架的具體型別
 - 引用 `System.Windows.*` 任何命名空間
-
-**Domain 與 Service 的界線：**
-
-| 情境 | 歸屬 |
-| --- | --- |
-| 「語言索引 0 對應繁體中文」的對應規則 | Domain |
-| 「取得設定 → 套用語言 → 儲存設定」的流程串接 | Service |
-| 「非活躍逾時時間由 index 換算為 TimeSpan」 | Domain |
-| 「儲存設定並即時套用 UI 配置」的協調 | Service |
+- 呼叫 Service 或 Infrastructure（Domain 不知道外部世界）
 
 ### §4.6 Model
 
@@ -302,7 +354,7 @@ public sealed class SettingsPageViewModel : ViewModelBase
 /// <summary>
 /// 查詢當前套用的應用程式設定值。
 /// </summary>
-public AppSettings QuerySettings() => _service.QuerySettings();
+public AppSettings QuerySettings() => _domain.QuerySettings();
 
 /// <summary>
 /// 儲存設定並即時套用 UI 配置（語言、主題、縮放）。
@@ -310,8 +362,8 @@ public AppSettings QuerySettings() => _service.QuerySettings();
 /// <param name="settings">欲儲存之設定值快照。</param>
 public void SaveSettings(AppSettings settings)
 {
-    _service.Save(settings);
-    SettingsRuntimeServices.Apply(settings);
+    _repository.Save(settings);
+    _runtime.Apply(settings);
 }
 ```
 
@@ -319,14 +371,14 @@ public void SaveSettings(AppSettings settings)
 
 ```csharp
 // 查詢設定（禁止：用行內注釋替代 summary）
-public AppSettings QuerySettings() => _service.QuerySettings();
+public AppSettings QuerySettings() => _domain.QuerySettings();
 
 public void SaveSettings(AppSettings settings)
 {
     // 先儲存（禁止：方法體內的邏輯說明注釋）
-    _service.Save(settings);
+    _repository.Save(settings);
     // 再套用 UI
-    SettingsRuntimeServices.Apply(settings);
+    _runtime.Apply(settings);
 }
 ```
 
@@ -350,12 +402,14 @@ public void SaveSettings(AppSettings settings)
 | V-04 | ViewModel 直接呼叫 Domain 或 Infrastructure |
 | V-05 | ViewModel 以 public 方法（非 ICommand）暴露操作給 View |
 | V-06 | Service 持有 `IsBusy`、`IsDirty` 等 UI 狀態 |
-| V-07 | Service 方法超過 20 行或 3 個 if 分支且含業務判斷 |
-| V-08 | Domain 引用 WPF 或持久化框架具體型別 |
-| V-09 | Model 內含業務邏輯或 I/O 操作 |
-| V-10 | `Domain/`、`Model/`、`Services/` 內出現子資料夾 |
-| V-11 | 層內檔案後綴不符規定（如 `*Policy.cs` 在 Domain、`*PageService.cs` 在 Services） |
-| V-12 | 同功能主題在同一層拆分為多個檔案 |
-| V-13 | `public` / `internal` 類別或方法缺少 `<summary>` XML 文件注釋 |
-| V-14 | 方法體內出現邏輯說明的行內注釋 |
-| V-15 | 單一 `.csproj` 被拆分為多個專案（未經開發者明確指示） |
+| V-07 | Service 方法超過 20 行或 3 個 `if` 分支且含業務判斷 |
+| V-08 | Service 內出現業務規則判斷，未下推至 Domain | 
+| V-09 | Domain 引用 WPF 或持久化框架具體型別 |
+| V-10 | Domain 呼叫 Service 或 Infrastructure |
+| V-11 | Model 內含業務邏輯或 I/O 操作 |
+| V-12 | `Domain/`、`Model/`、`Services/` 內出現子資料夾 |
+| V-13 | 層內檔案後綴不符規定（如 `*Policy.cs` 在 Domain、`*PageService.cs` 在 Services） |
+| V-14 | 同功能主題在同一層拆分為多個檔案 |
+| V-15 | `public` / `internal` 類別或方法缺少 `<summary>` XML 文件注釋 |
+| V-16 | 方法體內出現邏輯說明的行內注釋 |
+| V-17 | 單一 `.csproj` 被拆分為多個專案（未經開發者明確指示） |

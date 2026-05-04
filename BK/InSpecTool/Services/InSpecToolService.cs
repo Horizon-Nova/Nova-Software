@@ -1,6 +1,6 @@
 using ExternalModules.InSpecTool.Core;
 using ExternalModules.InSpecTool.Utilities;
-using HorizonNova.HelixStudio.ModuleSdk;
+using HN_Studio.ModuleSdk;
 
 namespace ExternalModules.InSpecTool.Services;
 
@@ -8,7 +8,7 @@ public sealed class InSpecToolService
 {
     private readonly InSpecResultQueryUtility _resultQueryUtility = new();
 
-    public InSpecToolConfiguration QueryConfiguration(IShellContext? context) =>
+    public InSpecToolConfiguration QueryConfiguration(HnModuleContext? context) =>
         InSpecConfigurationUtility.QueryConfiguration(context);
 
     public IReadOnlyList<PreviewFieldItem> QueryFieldItems(string barcode, IReadOnlyList<InSpecFieldDefinition> definitions) =>
