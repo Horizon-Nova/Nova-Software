@@ -1,544 +1,489 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
-using Helix_Studio.Model.Settings;
-using Helix_Studio.Model.Workspace;
+using System.Threading;
+using System.Windows.Input;
+using Helix_Studio.Model;
 using Helix_Studio.Services;
 using Helix_Studio.ViewModels.Base;
 
 namespace Helix_Studio.ViewModels;
 
-/// <summary>設定分頁的 UI 狀態、搜尋、工作區、模組設定內嵌區與匯出日誌等命令。</summary>
-public sealed class SettingsPageViewModel : ViewModelBase, IDisposable
+/// <summary>
+/// 設定頁面的 UI 狀態機。
+/// </summary>
+public sealed class SettingsPageViewModel(SettingsServices services) : ViewModelBase, IDisposable
 {
-    private readonly SettingsServices _settings;
-    private readonly ModulesCatalogServices _modulesCatalog;
-    private readonly ModuleRuntimeServices _moduleRuntime;
+    private static readonly SettingsSearchSuggestionModel[] SectionSuggestions =
+    [
+        new() { SectionTag = "General", Display = "General 一般" },
+        new() { SectionTag = "Display", Display = "Display 顯示" },
+        new() { SectionTag = "Workspaces", Display = "Workspaces 工作區" },
+        new() { SectionTag = "Modules", Display = "Modules 模組設定" },
+        new() { SectionTag = "Log", Display = "Log 日誌設定" },
+        new() { SectionTag = "About", Display = "About 關於" },
+    ];
 
-    private bool _loading;
+    private readonly ObservableCollection<SettingsSearchSuggestionModel> _searchSuggestions = [];
+    private readonly ObservableCollection<SettingsWorkspaceItemModel> _workspaces = [];
+    private readonly ObservableCollection<SettingsModuleCardModel> _moduleSettingsCards = [];
+    private SynchronizationContext _synchronizationContext = new();
+    private RelayCommand? _reloadCommand;
+    private RelayCommand? _saveCommand;
+    private RelayCommand? _discardCommand;
+    private RelayCommand? _activateWorkspaceCommand;
+    private RelayCommand? _deleteWorkspaceCommand;
+    private RelayCommand? _exportLogsCommand;
+    private RelayCommand? _openLegalNoticesCommand;
+    private bool _isInitialized;
+    private bool _isDisposed;
+    private bool _isApplyingSnapshot;
+    private string _searchQuery = string.Empty;
+    private bool _isSearchPopupOpen;
+    private SettingsSearchSuggestionModel? _selectedSearchSuggestion;
     private bool _isDirty;
-
-    private int _languageIndex;
-    private int _startPageIndex;
-    private int _inactivityIndex;
-    private int _themeIndex;
-    private int _fontScaleIndex;
     private int _dataDensityIndex;
+    private int _fontScaleIndex;
+    private int _inactivityIndex;
+    private int _languageIndex;
+    private string _lastVisitedPageTag = string.Empty;
+    private string _logExportFolder = string.Empty;
     private int _logLevelIndex;
     private int _logRetentionIndex;
-    private string _logExportFolder = string.Empty;
-
-    private string _searchQuery = string.Empty;
-    private IReadOnlyList<SettingsSearchSuggestion> _searchSuggestions = [];
-    private SettingsSearchSuggestion? _selectedSearchSuggestion;
-    private bool _isSearchPopupOpen;
-
+    private int _startPageIndex;
+    private int _themeIndex;
     private string _aboutVersionText = "—";
     private string _aboutBuildDateText = "—";
     private string _aboutLicenseExpiryText = "—";
 
-    private IReadOnlyList<ModuleSettingsCard> _moduleSettingsCards = [];
-
-    /// <summary>以應用程式設定、模組目錄與執行時期服務建立，並訂閱清冊變更以更新模組卡。</summary>
-    public SettingsPageViewModel(
-        SettingsServices settings,
-        ModulesCatalogServices modulesCatalog,
-        ModuleRuntimeServices moduleRuntime)
-    {
-        _settings = settings;
-        _modulesCatalog = modulesCatalog;
-        _moduleRuntime = moduleRuntime;
-
-        LoadedCommand = new RelayCommand(LoadSnapshot);
-        SaveCommand = new RelayCommand(SaveSnapshot, () => IsDirty);
-        DiscardCommand = new RelayCommand(LoadSnapshot, () => IsDirty);
-
-        SetDataDensityCommand = new RelayCommand(SetDataDensityByParameter);
-        RefreshModulesCommand = new RelayCommand(RefreshModuleSettings);
-        RequestSectionCommand = new RelayCommand(RequestSectionByParameter);
-        AcceptSearchSuggestionCommand = new RelayCommand(AcceptSearchSuggestionByParameter);
-
-        CreateWorkspaceCommand = new RelayCommand(CreateWorkspaceByParameter);
-        UpdateWorkspaceCommand = new RelayCommand(UpdateWorkspaceByParameter);
-        ActivateWorkspaceCommand = new RelayCommand(ActivateWorkspaceByParameter);
-        DeleteWorkspaceCommand = new RelayCommand(DeleteWorkspaceByParameter);
-
-        ExportLogsCommand = new RelayCommand(ExportLogsByParameter);
-        OpenLegalNoticesCommand = new RelayCommand(OpenLegalNotices);
-
-        Workspaces.CollectionChanged += (_, _) => RaisePropertyChanged(nameof(ShowWorkspacesEmptyState));
-
-        _moduleRuntime.CatalogChanged += OnCatalogChanged;
-    }
-
-    /// <summary>使用 <see cref="AppServices"/> 相關靜態服務的預設建構子。</summary>
-    public SettingsPageViewModel()
-        : this(AppServices.Settings, AppServices.ModulesCatalog, AppServices.ModuleRuntime) { }
-
-    /// <summary>要求內容區捲動或切換至指定設定區段標籤。</summary>
-    public event Action<string>? SectionRequested;
-
-    /// <summary>日誌匯出完成（成功或失敗）時回傳結果給 View。</summary>
-    public event Action<LogExportResult>? LogExported;
-
-    /// <summary>嘗試開啟法律聲明檔案後的結果（例如找不到檔案）。</summary>
-    public event Action<LegalNoticeResult>? LegalNoticesOpened;
-
-    /// <summary>工作區刪除等操作失敗時的提示訊息（例如僅剩一個工作區）。</summary>
-    public event Action<string>? WorkspaceOperationFailed;
-
-    /// <summary>從服務快照載入各欄位、關於資訊與工作區／模組清單。</summary>
-    public RelayCommand LoadedCommand { get; }
-
-    /// <summary>將目前欄位寫入持久化（有未儲存變更時可用）。</summary>
-    public RelayCommand SaveCommand { get; }
-
-    /// <summary>放棄未儲存變更並重新載入快照。</summary>
-    public RelayCommand DiscardCommand { get; }
-
-    /// <summary>參數為資料密度選項索引，寫入 <see cref="DataDensityIndex"/>。</summary>
-    public RelayCommand SetDataDensityCommand { get; }
-
-    /// <summary>重新整理模組設定卡清單（掃描或模組狀態變更後）。</summary>
-    public RelayCommand RefreshModulesCommand { get; }
-
-    /// <summary>參數為設定區段標籤，觸發 <see cref="SectionRequested"/> 捲動至該區。</summary>
-    public RelayCommand RequestSectionCommand { get; }
-
-    /// <summary>參數為 <see cref="SettingsSearchSuggestion"/>，接受建議並導向區段。</summary>
-    public RelayCommand AcceptSearchSuggestionCommand { get; }
-
-    /// <summary>參數為 <see cref="WorkspaceModel"/>，建立新工作區。</summary>
-    public RelayCommand CreateWorkspaceCommand { get; }
-
-    /// <summary>參數為 <see cref="WorkspaceModel"/>，更新名稱與描述。</summary>
-    public RelayCommand UpdateWorkspaceCommand { get; }
-
-    /// <summary>參數為工作區 <c>Id</c>，啟用該工作區。</summary>
-    public RelayCommand ActivateWorkspaceCommand { get; }
-
-    /// <summary>參數為工作區 <c>Id</c>，刪除該工作區（受規則限制）。</summary>
-    public RelayCommand DeleteWorkspaceCommand { get; }
-
-    /// <summary>參數為匯出目錄路徑，封裝日誌目錄為 ZIP 並觸發 <see cref="LogExported"/>。</summary>
-    public RelayCommand ExportLogsCommand { get; }
-
-    /// <summary>在預設程式中開啟第三方聲明，並觸發 <see cref="LegalNoticesOpened"/>。</summary>
-    public RelayCommand OpenLegalNoticesCommand { get; }
-
-    /// <summary>相對於最後儲存快照，目前表單是否有未儲存變更。</summary>
-    public bool IsDirty
-    {
-        get => _isDirty;
-        private set
-        {
-            if (!SetProperty(ref _isDirty, value))
-                return;
-
-            RelayCommand.InvalidateAll();
-        }
-    }
-
-    /// <summary>介面語言選項索引；變更時標示為有未儲存變更。</summary>
-    public int LanguageIndex
-    {
-        get => _languageIndex;
-        set
-        {
-            if (SetProperty(ref _languageIndex, value))
-                MarkDirty();
-        }
-    }
-
-    /// <summary>啟動時要開啟的頁面（首頁或還原上次分頁等）。</summary>
-    public int StartPageIndex
-    {
-        get => _startPageIndex;
-        set
-        {
-            if (SetProperty(ref _startPageIndex, value))
-                MarkDirty();
-        }
-    }
-
-    /// <summary>閒置逾時或鎖定前等待時間選項索引。</summary>
-    public int InactivityIndex
-    {
-        get => _inactivityIndex;
-        set
-        {
-            if (SetProperty(ref _inactivityIndex, value))
-                MarkDirty();
-        }
-    }
-
-    /// <summary>介面主題（亮／暗等）選項索引。</summary>
-    public int ThemeIndex
-    {
-        get => _themeIndex;
-        set
-        {
-            if (SetProperty(ref _themeIndex, value))
-                MarkDirty();
-        }
-    }
-
-    /// <summary>字型或 UI 縮放選項索引。</summary>
-    public int FontScaleIndex
-    {
-        get => _fontScaleIndex;
-        set
-        {
-            if (SetProperty(ref _fontScaleIndex, value))
-                MarkDirty();
-        }
-    }
-
-    /// <summary>清單與表單資料密度選項索引。</summary>
-    public int DataDensityIndex
-    {
-        get => _dataDensityIndex;
-        set
-        {
-            if (SetProperty(ref _dataDensityIndex, value))
-                MarkDirty();
-        }
-    }
-
-    /// <summary>寫入檔案之日誌最低層級選項索引。</summary>
-    public int LogLevelIndex
-    {
-        get => _logLevelIndex;
-        set
-        {
-            if (SetProperty(ref _logLevelIndex, value))
-                MarkDirty();
-        }
-    }
-
-    /// <summary>日誌檔案在磁碟上保留天數的選項索引。</summary>
-    public int LogRetentionIndex
-    {
-        get => _logRetentionIndex;
-        set
-        {
-            if (SetProperty(ref _logRetentionIndex, value))
-                MarkDirty();
-        }
-    }
-
-    /// <summary>匯出日誌壓縮檔的預設或使用者指定目錄路徑。</summary>
-    public string LogExportFolder
-    {
-        get => _logExportFolder;
-        set
-        {
-            if (SetProperty(ref _logExportFolder, value))
-                MarkDirty();
-        }
-    }
-
-    /// <summary>關於區塊顯示的應用程式版本字串。</summary>
-    public string AboutVersionText
-    {
-        get => _aboutVersionText;
-        private set => SetProperty(ref _aboutVersionText, value);
-    }
-
-    /// <summary>關於區塊顯示的建置或組建日期字串。</summary>
-    public string AboutBuildDateText
-    {
-        get => _aboutBuildDateText;
-        private set => SetProperty(ref _aboutBuildDateText, value);
-    }
-
-    /// <summary>關於區塊顯示的授權到期日字串。</summary>
-    public string AboutLicenseExpiryText
-    {
-        get => _aboutLicenseExpiryText;
-        private set => SetProperty(ref _aboutLicenseExpiryText, value);
-    }
-
-    /// <summary>工作區清單（設定內之工作區一節）。</summary>
-    public ObservableCollection<WorkspaceModel> Workspaces { get; } = new();
-
-    /// <summary>是否應顯示「尚無工作區」空狀態。</summary>
-    public bool ShowWorkspacesEmptyState => Workspaces.Count == 0;
-
-    /// <summary>可內嵌模組設定內容的模組卡集合。</summary>
-    public IReadOnlyList<ModuleSettingsCard> ModuleSettingsCards => _moduleSettingsCards;
-
-    /// <summary>是否沒有任何模組可供設定（空狀態）。</summary>
-    public bool ShowModulesEmptyState => _moduleSettingsCards.Count == 0;
-
-    /// <summary>設定頁頂部搜尋關鍵字；變更時更新建議清單。</summary>
+    /// <summary>
+    /// 搜尋文字。
+    /// </summary>
     public string SearchQuery
     {
         get => _searchQuery;
         set
         {
-            if (!SetProperty(ref _searchQuery, value))
+            if (!SetField(ref _searchQuery, value))
+            {
                 return;
+            }
 
-            UpdateSearchSuggestions();
+            ApplySearchSuggestions();
         }
     }
 
-    /// <summary>依 <see cref="SearchQuery"/> 篩選後的搜尋建議。</summary>
-    public IReadOnlyList<SettingsSearchSuggestion> SearchSuggestions
-    {
-        get => _searchSuggestions;
-        private set => SetProperty(ref _searchSuggestions, value);
-    }
-
-    /// <summary>建議清單中反白或即將採用的一筆建議。</summary>
-    public SettingsSearchSuggestion? SelectedSearchSuggestion
-    {
-        get => _selectedSearchSuggestion;
-        set => SetProperty(ref _selectedSearchSuggestion, value);
-    }
-
-    /// <summary>是否顯示搜尋建議下拉／快顯內容。</summary>
+    /// <summary>
+    /// 是否開啟搜尋建議清單。
+    /// </summary>
     public bool IsSearchPopupOpen
     {
         get => _isSearchPopupOpen;
-        set => SetProperty(ref _isSearchPopupOpen, value);
+        set => SetField(ref _isSearchPopupOpen, value);
     }
 
-    private void MarkDirty()
+    /// <summary>
+    /// 搜尋建議清單。
+    /// </summary>
+    public ObservableCollection<SettingsSearchSuggestionModel> SearchSuggestions => _searchSuggestions;
+
+    /// <summary>
+    /// 目前選中的搜尋建議。
+    /// </summary>
+    public SettingsSearchSuggestionModel? SelectedSearchSuggestion
     {
-        if (_loading) return;
-        IsDirty = true;
+        get => _selectedSearchSuggestion;
+        set => SetField(ref _selectedSearchSuggestion, value);
     }
 
-    private void LoadSnapshot()
+    /// <summary>
+    /// 使用者是否已修改但尚未儲存。
+    /// </summary>
+    public bool IsDirty
     {
-        _loading = true;
-
-        var s = _settings.QuerySettings();
-
-        LanguageIndex = s.LanguageIndex;
-        StartPageIndex = s.StartPageIndex;
-        InactivityIndex = s.InactivityIndex;
-        ThemeIndex = s.ThemeIndex;
-        FontScaleIndex = s.FontScaleIndex;
-        DataDensityIndex = s.DataDensityIndex;
-        LogLevelIndex = s.LogLevelIndex;
-        LogRetentionIndex = s.LogRetentionIndex;
-
-        LogExportFolder = string.IsNullOrWhiteSpace(s.LogExportFolder)
-            ? _settings.QueryDefaultLogFolder()
-            : s.LogExportFolder;
-
-        LoadAboutInfo();
-        RefreshWorkspaces();
-        RefreshModuleSettings();
-
-        IsDirty = false;
-        _loading = false;
-    }
-
-    private void SaveSnapshot()
-    {
-        var settings = new AppSettings
+        get => _isDirty;
+        private set
         {
-            LanguageIndex = LanguageIndex,
-            StartPageIndex = StartPageIndex,
-            InactivityIndex = InactivityIndex,
-            ThemeIndex = ThemeIndex,
-            FontScaleIndex = FontScaleIndex,
-            DataDensityIndex = DataDensityIndex,
-            LogLevelIndex = LogLevelIndex,
-            LogRetentionIndex = LogRetentionIndex,
-            LogExportFolder = LogExportFolder?.Trim() ?? string.Empty,
-        };
-
-        _settings.SaveSettings(settings);
-        IsDirty = false;
-    }
-
-    private void LoadAboutInfo()
-    {
-        var info = _settings.QueryAboutInfo();
-        AboutVersionText = info.VersionText;
-        AboutBuildDateText = info.BuildDateText;
-        AboutLicenseExpiryText = info.LicenseExpiryText;
-    }
-
-    private void RefreshWorkspaces()
-    {
-        var list = _settings.QueryWorkspaces();
-
-        Workspaces.Clear();
-        foreach (var ws in list)
-            Workspaces.Add(ws);
-    }
-
-    private void CreateWorkspaceByParameter(object? parameter)
-    {
-        if (parameter is not WorkspaceModel model) return;
-
-        _settings.CreateWorkspace(model.Name, model.Description);
-        RefreshWorkspaces();
-    }
-
-    private void UpdateWorkspaceByParameter(object? parameter)
-    {
-        if (parameter is not WorkspaceModel model) return;
-
-        _settings.UpdateWorkspace(model.Id, model.Name, model.Description);
-        RefreshWorkspaces();
-    }
-
-    private void ActivateWorkspaceByParameter(object? parameter)
-    {
-        var id = parameter as int?;
-        if (!id.HasValue) return;
-
-        _settings.ActivateWorkspace(id.Value);
-        RefreshWorkspaces();
-    }
-
-    private void DeleteWorkspaceByParameter(object? parameter)
-    {
-        var id = parameter as int?;
-        if (!id.HasValue) return;
-
-        if (!_settings.DeleteWorkspace(id.Value))
-        {
-            WorkspaceOperationFailed?.Invoke("無法刪除唯一的工作區。");
-            return;
-        }
-
-        RefreshWorkspaces();
-    }
-
-    private void ExportLogsByParameter(object? parameter)
-    {
-        var exportDirectory = parameter as string ?? string.Empty;
-        var result = _settings.ExportLogs(exportDirectory);
-        LogExported?.Invoke(result);
-    }
-
-    private void OpenLegalNotices()
-    {
-        var result = _settings.OpenLegalNotices();
-        LegalNoticesOpened?.Invoke(result);
-    }
-
-    private void SetDataDensityByParameter(object? parameter)
-    {
-        var index = parameter as int?;
-        if (!index.HasValue) return;
-        DataDensityIndex = index.Value;
-    }
-
-    private void RequestSectionByParameter(object? parameter)
-    {
-        var tag = parameter as string;
-        if (string.IsNullOrWhiteSpace(tag)) return;
-        SectionRequested?.Invoke(tag);
-    }
-
-    private void AcceptSearchSuggestionByParameter(object? parameter)
-    {
-        if (parameter is not SettingsSearchSuggestion sug) return;
-
-        IsSearchPopupOpen = false;
-        SearchQuery = string.Empty;
-        SectionRequested?.Invoke(sug.Tag);
-    }
-
-    private static IReadOnlyList<SettingsSearchSuggestion> QuerySearchIndex()
-        => new[]
-        {
-            new SettingsSearchSuggestion("General", "General  一般"),
-            new SettingsSearchSuggestion("Display", "Display  顯示"),
-            new SettingsSearchSuggestion("Workspaces", "Workspaces  工作區"),
-            new SettingsSearchSuggestion("Modules", "Modules  模組設定"),
-            new SettingsSearchSuggestion("Log", "Log  日誌"),
-            new SettingsSearchSuggestion("About", "About  關於"),
-        };
-
-    private void UpdateSearchSuggestions()
-    {
-        var q = SearchQuery?.Trim() ?? string.Empty;
-        if (string.IsNullOrEmpty(q))
-        {
-            SearchSuggestions = [];
-            SelectedSearchSuggestion = null;
-            IsSearchPopupOpen = false;
-            return;
-        }
-
-        var list = QuerySearchIndex()
-            .Where(x => x.Display.Contains(q, StringComparison.OrdinalIgnoreCase))
-            .Take(10)
-            .ToList();
-
-        SearchSuggestions = list;
-        SelectedSearchSuggestion = list.Count > 0 ? list[0] : null;
-        IsSearchPopupOpen = list.Count > 0;
-    }
-
-    private void OnCatalogChanged(object? sender, EventArgs e)
-    {
-        RefreshModuleSettings();
-    }
-
-    private void RefreshModuleSettings()
-    {
-        var modules = _modulesCatalog.QueryLoadedModules();
-        _moduleSettingsCards = modules
-            .Select(m =>
+            if (!SetField(ref _isDirty, value))
             {
-                object? settingsContent = null;
+                return;
+            }
 
-                if (_moduleRuntime.IsModuleActivated(m.Id) && _moduleRuntime.ModuleHasSettings(m.Id))
-                {
-                    settingsContent = _moduleRuntime.ActivateSettings(m.Id);
-                }
-
-                 return new ModuleSettingsCard(
-                     m.Id,
-                     m.DisplayName,
-                     m.Version,
-                     m.Description,
-                     m.Icon,
-                     settingsContent);
-             })
-             .ToList();
-
-        RaisePropertyChanged(nameof(ModuleSettingsCards));
-        RaisePropertyChanged(nameof(ShowModulesEmptyState));
+            _saveCommand?.NotifyCanExecuteChanged();
+            _discardCommand?.NotifyCanExecuteChanged();
+        }
     }
 
-    /// <summary>取消訂閱模組目錄變更以停止更新模組卡。</summary>
+    /// <summary>
+    /// 設定頁面的工作區卡片清單。
+    /// </summary>
+    public ObservableCollection<SettingsWorkspaceItemModel> Workspaces => _workspaces;
+
+    /// <summary>
+    /// 設定頁面的模組卡片清單。
+    /// </summary>
+    public ObservableCollection<SettingsModuleCardModel> ModuleSettingsCards => _moduleSettingsCards;
+
+    /// <summary>
+    /// 是否顯示模組空狀態。
+    /// </summary>
+    public bool ShowModulesEmptyState => ModuleSettingsCards.Count == 0;
+
+    /// <summary>
+    /// 是否顯示工作區空狀態。
+    /// </summary>
+    public bool ShowWorkspacesEmptyState => Workspaces.Count == 0;
+
+    /// <summary>
+    /// 語言選單索引。
+    /// </summary>
+    public int LanguageIndex
+    {
+        get => _languageIndex;
+        set => SetSettingsField(ref _languageIndex, value);
+    }
+
+    /// <summary>
+    /// 起始頁面選單索引。
+    /// </summary>
+    public int StartPageIndex
+    {
+        get => _startPageIndex;
+        set => SetSettingsField(ref _startPageIndex, value);
+    }
+
+    /// <summary>
+    /// 非活躍逾時選單索引。
+    /// </summary>
+    public int InactivityIndex
+    {
+        get => _inactivityIndex;
+        set => SetSettingsField(ref _inactivityIndex, value);
+    }
+
+    /// <summary>
+    /// 佈景主題選單索引。
+    /// </summary>
+    public int ThemeIndex
+    {
+        get => _themeIndex;
+        set => SetSettingsField(ref _themeIndex, value);
+    }
+
+    /// <summary>
+    /// 字型縮放選單索引。
+    /// </summary>
+    public int FontScaleIndex
+    {
+        get => _fontScaleIndex;
+        set => SetSettingsField(ref _fontScaleIndex, value);
+    }
+
+    /// <summary>
+    /// 資料密度選單索引。
+    /// </summary>
+    public int DataDensityIndex
+    {
+        get => _dataDensityIndex;
+        set => SetSettingsField(ref _dataDensityIndex, value);
+    }
+
+    /// <summary>
+    /// 日誌等級選單索引。
+    /// </summary>
+    public int LogLevelIndex
+    {
+        get => _logLevelIndex;
+        set => SetSettingsField(ref _logLevelIndex, value);
+    }
+
+    /// <summary>
+    /// 日誌保留天數選單索引。
+    /// </summary>
+    public int LogRetentionIndex
+    {
+        get => _logRetentionIndex;
+        set => SetSettingsField(ref _logRetentionIndex, value);
+    }
+
+    /// <summary>
+    /// 日誌匯出資料夾。
+    /// </summary>
+    public string LogExportFolder
+    {
+        get => _logExportFolder;
+        set => SetSettingsField(ref _logExportFolder, value);
+    }
+
+    /// <summary>
+    /// 關於頁版本文字。
+    /// </summary>
+    public string AboutVersionText
+    {
+        get => _aboutVersionText;
+        private set => SetField(ref _aboutVersionText, value);
+    }
+
+    /// <summary>
+    /// 關於頁建置日期文字。
+    /// </summary>
+    public string AboutBuildDateText
+    {
+        get => _aboutBuildDateText;
+        private set => SetField(ref _aboutBuildDateText, value);
+    }
+
+    /// <summary>
+    /// 關於頁授權到期日文字。
+    /// </summary>
+    public string AboutLicenseExpiryText
+    {
+        get => _aboutLicenseExpiryText;
+        private set => SetField(ref _aboutLicenseExpiryText, value);
+    }
+
+    /// <summary>
+    /// 重新套用來源快照。
+    /// </summary>
+    public ICommand ReloadCommand
+        => _reloadCommand ??= new RelayCommand(_ => ApplySettingsSnapshot(services.QuerySettings(), false));
+
+    /// <summary>
+    /// 儲存設定值。
+    /// </summary>
+    public ICommand SaveCommand
+        => _saveCommand ??= new RelayCommand(_ => ApplySave(), _ => IsDirty);
+
+    /// <summary>
+    /// 放棄未儲存變更。
+    /// </summary>
+    public ICommand DiscardCommand
+        => _discardCommand ??= new RelayCommand(_ => ApplySettingsSnapshot(services.QuerySettings(), false), _ => IsDirty);
+
+    /// <summary>
+    /// 切換目前作用中的工作區。
+    /// </summary>
+    public ICommand ActivateWorkspaceCommand
+        => _activateWorkspaceCommand ??= new RelayCommand(parameter => services.ActivateWorkspace(parameter?.ToString() ?? string.Empty));
+
+    /// <summary>
+    /// 刪除指定工作區。
+    /// </summary>
+    public ICommand DeleteWorkspaceCommand
+        => _deleteWorkspaceCommand ??= new RelayCommand(parameter => services.DeleteWorkspace(parameter?.ToString() ?? string.Empty));
+
+    /// <summary>
+    /// 匯出目前日誌壓縮檔。
+    /// </summary>
+    public ICommand ExportLogsCommand
+        => _exportLogsCommand ??= new RelayCommand(parameter => services.ExportLogs(parameter?.ToString() ?? string.Empty));
+
+    /// <summary>
+    /// 開啟法律文件。
+    /// </summary>
+    public ICommand OpenLegalNoticesCommand
+        => _openLegalNoticesCommand ??= new RelayCommand(_ => services.OpenLegalNotices());
+
+    /// <summary>
+    /// 初始化設定頁面的 I/O 訂閱與初始快照。
+    /// </summary>
+    internal void ApplyViewLoaded()
+    {
+        if (_isInitialized)
+        {
+            return;
+        }
+
+        _synchronizationContext = SynchronizationContext.Current ?? new SynchronizationContext();
+        services.SettingsChanged += OnSettingsChanged;
+        services.WorkspacesChanged += OnWorkspacesChanged;
+        services.ModulesChanged += OnModulesChanged;
+        Workspaces.CollectionChanged += OnWorkspacesCollectionChanged;
+        ModuleSettingsCards.CollectionChanged += OnModuleSettingsCardsCollectionChanged;
+
+        ApplySettingsSnapshot(services.QuerySettings(), false);
+        ApplyWorkspacesSnapshot();
+        ApplyModuleSettingsCardsSnapshot();
+        ApplyAboutSnapshot();
+        _isInitialized = true;
+    }
+
+    /// <summary>
+    /// 套用搜尋建議後回傳對應區段標籤。
+    /// </summary>
+    internal string QuerySelectedSectionTag()
+    {
+        var sectionTag = SelectedSearchSuggestion?.SectionTag;
+        return string.IsNullOrWhiteSpace(sectionTag)
+            ? SectionSuggestions.FirstOrDefault(item => string.Equals(item.Display, SearchQuery, StringComparison.OrdinalIgnoreCase))?.SectionTag ?? string.Empty
+            : sectionTag;
+    }
+
+    /// <summary>
+    /// 套用目前選中的搜尋建議。
+    /// </summary>
+    internal void ApplySelectedSearchSuggestion()
+    {
+        if (SelectedSearchSuggestion is null)
+        {
+            return;
+        }
+
+        SearchQuery = SelectedSearchSuggestion.Display;
+        IsSearchPopupOpen = false;
+    }
+
+    /// <summary>
+    /// 套用使用者選取的日誌匯出資料夾。
+    /// </summary>
+    /// <param name="folderPath">使用者選取的資料夾路徑。</param>
+    internal void ApplyLogExportFolder(string folderPath)
+        => LogExportFolder = folderPath;
+
+    /// <summary>
+    /// 釋放設定頁面的事件訂閱。
+    /// </summary>
     public void Dispose()
     {
-        _moduleRuntime.CatalogChanged -= OnCatalogChanged;
+        if (_isDisposed)
+        {
+            return;
+        }
+
+        if (_isInitialized)
+        {
+            services.SettingsChanged -= OnSettingsChanged;
+            services.WorkspacesChanged -= OnWorkspacesChanged;
+            services.ModulesChanged -= OnModulesChanged;
+            Workspaces.CollectionChanged -= OnWorkspacesCollectionChanged;
+            ModuleSettingsCards.CollectionChanged -= OnModuleSettingsCardsCollectionChanged;
+        }
+
+        _isDisposed = true;
     }
-}
 
-/// <summary>設定頁「模組」區塊中，單一模組的顯示資料與內嵌設定內容。</summary>
-/// <param name="Id">模組識別碼。</param>
-/// <param name="DisplayName">顯示名稱。</param>
-/// <param name="Version">模組版本字串。</param>
-/// <param name="Description">模組說明。</param>
-/// <param name="Icon">圖示位元組或其他視覺承載，若無則為 <c>null</c>。</param>
-/// <param name="SettingsContent">模組提供的設定 UI 內容物件，若無則為 <c>null</c>。</param>
-public sealed record ModuleSettingsCard(
-    string Id,
-    string DisplayName,
-    string Version,
-    string Description,
-    object? Icon,
-    object? SettingsContent)
-{
-    /// <summary>是否具備圖示可供顯示。</summary>
-    public bool HasIcon => Icon is not null;
+    private void ApplySave()
+    {
+        services.SaveSettings(new SettingsModel
+        {
+            DataDensityIndex = DataDensityIndex,
+            FontScaleIndex = FontScaleIndex,
+            InactivityIndex = InactivityIndex,
+            LanguageIndex = LanguageIndex,
+            LastVisitedPageTag = _lastVisitedPageTag,
+            LogExportFolder = LogExportFolder,
+            LogLevelIndex = LogLevelIndex,
+            LogRetentionIndex = LogRetentionIndex,
+            StartPageIndex = StartPageIndex,
+            ThemeIndex = ThemeIndex,
+        });
 
-    /// <summary>目前是否已載入可內嵌的模組設定內容。</summary>
-    public bool HasSettingsContent => SettingsContent is not null;
+        IsDirty = false;
+    }
+
+    private void ApplySettingsSnapshot(SettingsModel settings, bool preserveDirty)
+    {
+        if (preserveDirty && IsDirty)
+        {
+            return;
+        }
+
+        _isApplyingSnapshot = true;
+        DataDensityIndex = settings.DataDensityIndex;
+        FontScaleIndex = settings.FontScaleIndex;
+        InactivityIndex = settings.InactivityIndex;
+        LanguageIndex = settings.LanguageIndex;
+        _lastVisitedPageTag = settings.LastVisitedPageTag;
+        LogExportFolder = settings.LogExportFolder;
+        LogLevelIndex = settings.LogLevelIndex;
+        LogRetentionIndex = settings.LogRetentionIndex;
+        StartPageIndex = settings.StartPageIndex;
+        ThemeIndex = settings.ThemeIndex;
+        _isApplyingSnapshot = false;
+        IsDirty = false;
+    }
+
+    private void ApplySearchSuggestions()
+    {
+        SearchSuggestions.Clear();
+
+        if (string.IsNullOrWhiteSpace(SearchQuery))
+        {
+            IsSearchPopupOpen = false;
+            SelectedSearchSuggestion = null;
+            return;
+        }
+
+        foreach (var suggestion in SectionSuggestions.Where(item => item.Display.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)))
+        {
+            SearchSuggestions.Add(suggestion);
+        }
+
+        SelectedSearchSuggestion = SearchSuggestions.FirstOrDefault();
+        IsSearchPopupOpen = SearchSuggestions.Count > 0;
+    }
+
+    private void ApplyWorkspacesSnapshot()
+    {
+        Workspaces.Clear();
+        foreach (var workspace in services.QueryWorkspaces())
+        {
+            Workspaces.Add(workspace);
+        }
+    }
+
+    private void ApplyModuleSettingsCardsSnapshot()
+    {
+        ModuleSettingsCards.Clear();
+        foreach (var moduleCard in services.QueryModuleSettingsCards())
+        {
+            ModuleSettingsCards.Add(moduleCard);
+        }
+    }
+
+    private void ApplyAboutSnapshot()
+    {
+        var about = services.QueryAbout();
+        AboutVersionText = about.VersionText;
+        AboutBuildDateText = about.BuildDateText;
+        AboutLicenseExpiryText = about.LicenseExpiryText;
+    }
+
+    private void OnSettingsChanged(object? sender, EventArgs e)
+        => PostToUi(() =>
+        {
+            ApplySettingsSnapshot(services.QuerySettings(), true);
+            ApplyAboutSnapshot();
+        });
+
+    private void OnWorkspacesChanged(object? sender, EventArgs e)
+        => PostToUi(ApplyWorkspacesSnapshot);
+
+    private void OnModulesChanged(object? sender, EventArgs e)
+        => PostToUi(ApplyModuleSettingsCardsSnapshot);
+
+    private void OnWorkspacesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        => NotifyPropertyChanged(nameof(ShowWorkspacesEmptyState));
+
+    private void OnModuleSettingsCardsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        => NotifyPropertyChanged(nameof(ShowModulesEmptyState));
+
+    private void PostToUi(Action action)
+        => _synchronizationContext.Post(_ => action(), null);
+
+    private void SetSettingsField<T>(ref T field, T value)
+    {
+        if (!SetField(ref field, value))
+        {
+            return;
+        }
+
+        if (_isApplyingSnapshot)
+        {
+            return;
+        }
+
+        IsDirty = true;
+    }
 }

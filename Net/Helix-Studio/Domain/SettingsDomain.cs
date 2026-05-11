@@ -1,78 +1,181 @@
 using System;
 using System.Collections.Generic;
-using Helix_Studio.Model.Configuration;
-using Helix_Studio.Model.EventLog;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Reflection;
+using Helix_Studio.Core;
+using Helix_Studio.Model;
 
 namespace Helix_Studio.Domain;
 
-/// <summary>應用程式設定相關之索引對應與預設值（純領域）。</summary>
-public static class SettingsDomain
+/// <summary>
+/// 設定頁面的功能邏輯與資料組合。
+/// </summary>
+public sealed class SettingsDomain(IniCore iniCore, WorkspacesCore workspacesCore, ModulesCore modulesCore)
 {
-    private static readonly IReadOnlyDictionary<int, string> CultureNameByIndex =
-        new Dictionary<int, string>
+    private const string MainSection = "Main";
+    private const string SettingsSection = "Settings";
+    private const string ZhHantLanguageCode = "zh-Hant";
+
+    /// <summary>
+    /// 設定值變更事件。
+    /// </summary>
+    public event EventHandler? SettingsChanged
+    {
+        add => iniCore.Changed += value;
+        remove => iniCore.Changed -= value;
+    }
+
+    /// <summary>
+    /// 工作區變更事件。
+    /// </summary>
+    public event EventHandler? WorkspacesChanged
+    {
+        add => workspacesCore.Changed += value;
+        remove => workspacesCore.Changed -= value;
+    }
+
+    /// <summary>
+    /// 模組清單變更事件。
+    /// </summary>
+    public event EventHandler? ModulesChanged
+    {
+        add => modulesCore.Changed += value;
+        remove => modulesCore.Changed -= value;
+    }
+
+    /// <summary>
+    /// 查詢設定值快照。
+    /// </summary>
+    public SettingsModel QuerySettings()
+        => iniCore.QuerySnapshot<SettingsModel>(SettingsSection);
+
+    /// <summary>
+    /// 儲存設定值快照。
+    /// </summary>
+    /// <param name="settings">欲儲存的設定值快照。</param>
+    public void SaveSettings(SettingsModel settings)
+        => iniCore.SaveSnapshot(SettingsSection, settings);
+
+    /// <summary>
+    /// 查詢設定頁面的工作區卡片資料。
+    /// </summary>
+    public IReadOnlyList<SettingsWorkspaceItemModel> QueryWorkspaces()
+    {
+        var activeWorkspaceName = QueryActiveWorkspaceName();
+
+        return workspacesCore.QueryWorkspaces()
+            .Select(workspaceName => new SettingsWorkspaceItemModel
+            {
+                Name = workspaceName,
+                Description = Path.Combine(workspacesCore.QueryWorkspacesDirectoryPath(), workspaceName),
+                IsActive = string.Equals(workspaceName, activeWorkspaceName, StringComparison.OrdinalIgnoreCase),
+            })
+            .ToList();
+    }
+
+    /// <summary>
+    /// 切換目前作用中的工作區。
+    /// </summary>
+    /// <param name="workspaceName">欲切換的工作區名稱。</param>
+    public void ActivateWorkspace(string workspaceName)
+        => iniCore.SaveSnapshot(MainSection, new MainModel { Workspace = workspaceName });
+
+    /// <summary>
+    /// 刪除指定工作區。
+    /// </summary>
+    /// <param name="workspaceName">欲刪除的工作區名稱。</param>
+    public void DeleteWorkspace(string workspaceName)
+    {
+        var workspaceDirectoryPath = Path.Combine(workspacesCore.QueryWorkspacesDirectoryPath(), workspaceName);
+        Directory.Delete(workspaceDirectoryPath, true);
+
+        var remainingWorkspaceName = workspacesCore.QueryWorkspaces()
+            .Where(name => !string.Equals(name, workspaceName, StringComparison.OrdinalIgnoreCase))
+            .FirstOrDefault() ?? string.Empty;
+
+        if (string.Equals(QueryActiveWorkspaceName(), workspaceName, StringComparison.OrdinalIgnoreCase))
         {
-            [1] = AppCultureNames.En,
-        };
+            iniCore.SaveSnapshot(MainSection, new MainModel { Workspace = remainingWorkspaceName });
+        }
+    }
 
-    private static readonly IReadOnlyDictionary<int, AppThemeMode> ThemeModeByIndex =
-        new Dictionary<int, AppThemeMode>
+    /// <summary>
+    /// 查詢設定頁面的模組卡片資料。
+    /// </summary>
+    public IReadOnlyList<SettingsModuleCardModel> QueryModuleSettingsCards()
+        => modulesCore.QueryModules()
+            .Select(module => new SettingsModuleCardModel
+            {
+                Id = module.Id,
+                DisplayName = module.DisplayName,
+                Version = module.Version,
+                Description = module.Description,
+                Icon = null,
+                HasIcon = false,
+                SettingsContent = null,
+                HasSettingsContent = false,
+            })
+            .ToList();
+
+    /// <summary>
+    /// 查詢設定頁面的關於資訊。
+    /// </summary>
+    public SettingsAboutModel QueryAbout()
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        var versionText = assembly.GetName().Version?.ToString() ?? "—";
+        var buildDateText = File.GetLastWriteTime(assembly.Location).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+
+        return new SettingsAboutModel
         {
-            [1] = AppThemeMode.Dark,
-            [2] = AppThemeMode.System,
+            VersionText = versionText,
+            BuildDateText = buildDateText,
+            LicenseExpiryText = "—",
         };
+    }
 
-    private static readonly IReadOnlyDictionary<int, TimeSpan> InactivityTimeoutByIndex =
-        new Dictionary<int, TimeSpan>
+    /// <summary>
+    /// 匯出目前日誌為壓縮檔。
+    /// </summary>
+    /// <param name="exportDirectoryPath">壓縮檔輸出資料夾。</param>
+    public void ExportLogs(string exportDirectoryPath)
+    {
+        Directory.CreateDirectory(exportDirectoryPath);
+
+        var logDirectoryPath = AppPathCore.QueryLogsDirectory();
+        var archiveFileName = $"Helix-Studio-Logs-{DateTime.Now:yyyyMMdd-HHmmss}.zip";
+        var archiveFilePath = Path.Combine(exportDirectoryPath, archiveFileName);
+        File.Delete(archiveFilePath);
+
+        using var archive = ZipFile.Open(archiveFilePath, ZipArchiveMode.Create);
+        foreach (var filePath in Directory.EnumerateFiles(logDirectoryPath, "*", SearchOption.AllDirectories))
         {
-            [1] = TimeSpan.FromMinutes(5),
-            [2] = TimeSpan.FromMinutes(15),
-            [3] = TimeSpan.FromMinutes(30),
-            [4] = TimeSpan.FromHours(1),
-        };
+            var entryName = Path.GetRelativePath(logDirectoryPath, filePath);
+            archive.CreateEntryFromFile(filePath, entryName);
+        }
+    }
 
-    private static readonly IReadOnlyDictionary<int, LogLevel> LogMinLevelByIndex =
-        new Dictionary<int, LogLevel>
+    /// <summary>
+    /// 開啟法律文件。
+    /// </summary>
+    public void OpenLegalNotices()
+    {
+        var languageCode = ResolveLanguageCode(QuerySettings().LanguageIndex);
+        var legalFilePath = AppPathCore.QueryLegalNoticesFilePath(languageCode);
+        Process.Start(new ProcessStartInfo
         {
-            [1] = LogLevel.Warning,
-            [2] = LogLevel.Error,
-            [3] = LogLevel.Debug,
-        };
+            FileName = legalFilePath,
+            UseShellExecute = true,
+        });
+    }
 
-    private static readonly IReadOnlyDictionary<int, int> RetentionDaysByIndex =
-        new Dictionary<int, int>
-        {
-            [0] = 7,
-            [2] = 90,
-            [3] = 180,
-        };
+    private string QueryActiveWorkspaceName()
+        => iniCore.QuerySnapshot<MainModel>(MainSection).Workspace ?? string.Empty;
 
-    /// <summary>依語言索引查詢文化名稱字串。</summary>
-    public static string QueryCultureName(int languageIndex) =>
-        CultureNameByIndex.TryGetValue(languageIndex, out var cultureName)
-            ? cultureName
-            : AppCultureNames.ZhHant;
-
-    /// <summary>依主題索引查詢主題模式。</summary>
-    public static AppThemeMode QueryThemeMode(int themeIndex) =>
-        ThemeModeByIndex.TryGetValue(themeIndex, out var themeMode)
-            ? themeMode
-            : AppThemeMode.Light;
-
-    /// <summary>依閒置鎖定索引查詢逾時時間。</summary>
-    public static TimeSpan QueryInactivityTimeout(int inactivityIndex) =>
-        InactivityTimeoutByIndex.TryGetValue(inactivityIndex, out var timeout)
-            ? timeout
-            : TimeSpan.Zero;
-
-    /// <summary>依日誌層級索引查詢最低紀錄層級。</summary>
-    public static LogLevel QueryLogMinLevel(int logLevelIndex) =>
-        LogMinLevelByIndex.TryGetValue(logLevelIndex, out var minLevel)
-            ? minLevel
-            : LogLevel.Info;
-
-    /// <summary>依保留天數索引查詢日誌保留天數。</summary>
-    public static int QueryRetentionDays(int retentionIndex) =>
-        RetentionDaysByIndex.TryGetValue(retentionIndex, out var days)
-            ? days
-            : 30;
+    private static string ResolveLanguageCode(int languageIndex)
+        => languageIndex == 0 ? ZhHantLanguageCode : "en";
 }

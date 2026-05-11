@@ -1,37 +1,38 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using Helix_Studio.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Helix_Studio.Views;
 
-/// <summary>事件日誌分頁：篩選、重新整理與清除（經使用者確認）。</summary>
+/// <summary>
+/// 事件日誌頁面的檢視層。
+/// </summary>
 public partial class EventLogPage : UserControl
 {
-    private readonly EventLogPageViewModel _viewModel;
-
-    /// <summary>建立分頁、繫結 <see cref="EventLogPageViewModel"/>；載入時重新整理、卸載時取消訂閱。</summary>
+    /// <summary>
+    /// 建立事件日誌頁面並接上 ViewModel。
+    /// </summary>
     public EventLogPage()
     {
         InitializeComponent();
 
-        _viewModel = new EventLogPageViewModel();
-        DataContext = _viewModel;
-
-        Loaded += (_, _) => _viewModel.RefreshCommand.Execute(null);
-        Unloaded += (_, _) => _viewModel.Dispose();
+        var provider = ((App)Application.Current).QueryServiceProvider();
+        var viewModel = provider.GetRequiredService<EventLogPageViewModel>();
+        DataContext = viewModel;
+        viewModel.ApplyViewLoaded();
+        Unloaded += OnUnloaded;
     }
 
-    private void Clear_Click(object sender, RoutedEventArgs e)
+    private void OnUnloaded(object sender, RoutedEventArgs e)
     {
-        var r = MessageBox.Show(
-            "確定要清除所有記錄嗎？",
-            "確認",
-            MessageBoxButton.YesNo,
-            MessageBoxImage.Warning);
+        if (DataContext is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
 
-        if (r != MessageBoxResult.Yes) return;
-
-        _viewModel.ClearCommand.Execute(null);
+        Unloaded -= OnUnloaded;
     }
 }
 

@@ -1,28 +1,30 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Collections.Generic;
 
 namespace Helix_Studio.ViewModels.Base;
 
-/// <summary>實作 <see cref="INotifyPropertyChanged"/> 的 ViewModel 基底，提供屬性變更通知輔助方法。</summary>
+/// <summary>ViewModel 基底。</summary>
 public abstract class ViewModelBase : INotifyPropertyChanged
 {
-    /// <summary>當屬性值變更時引發，供 WPF 繫結更新 UI。</summary>
+    /// <summary>屬性變更事件。</summary>
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    /// <summary>以 <paramref name="propertyName"/> 觸發屬性變更；未指定則由呼叫端成員名稱推斷。</summary>
-    protected void RaisePropertyChanged([CallerMemberName] string? propertyName = null)
+    /// <summary>通知屬性變更。</summary>
+    /// <param name="propertyName">屬性名稱。</param>
+    protected void NotifyPropertyChanged([CallerMemberName] string? propertyName = null)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-    /// <summary>當 <paramref name="value"/> 與目前值不同時寫入 <paramref name="storage"/> 並觸發屬性變更；否則回傳 <c>false</c>。</summary>
-    protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
+    /// <summary>設定欄位並通知變更。</summary>
+    /// <typeparam name="T">欄位型別。</typeparam>
+    /// <param name="field">欄位參考。</param>
+    /// <param name="value">新值。</param>
+    /// <param name="propertyName">屬性名稱。</param>
+    /// <returns>是否有變更。</returns>
+    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
     {
-        if (EqualityComparer<T>.Default.Equals(storage, value))
-            return false;
-
-        storage = value;
-        RaisePropertyChanged(propertyName);
+        if (Equals(field, value)) return false;
+        field = value;
+        NotifyPropertyChanged(propertyName);
         return true;
     }
 }
-

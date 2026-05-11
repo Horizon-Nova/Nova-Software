@@ -1,4 +1,4 @@
-HN Studio End User License Agreement
+﻿HN Studio End User License Agreement
 
 Version: v1.0
 Effective date: when the licensee clicks Agree, installs, activates, or first uses HN Studio

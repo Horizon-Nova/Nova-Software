@@ -1,49 +1,66 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using Helix_Studio.ViewModels;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Helix_Studio.Views;
 
-/// <summary>主選單「首頁」分頁：系統與工作區概覽、模組捷徑。</summary>
+/// <summary>
+/// 概覽頁面的檢視層。
+/// </summary>
 public partial class OverviewPage : UserControl
 {
-    private readonly OverviewPageViewModel _viewModel;
-
-    /// <summary>建立分頁、繫結 <see cref="OverviewPageViewModel"/> 並在載入時取快照、卸載時釋放。</summary>
+    /// <summary>
+    /// 建立概覽頁面並接上 ViewModel。
+    /// </summary>
     public OverviewPage()
     {
         InitializeComponent();
 
-        _viewModel = new OverviewPageViewModel();
-        DataContext = _viewModel;
-
-        Loaded += (_, _) => _viewModel.LoadedCommand.Execute(null);
-        Unloaded += (_, _) => _viewModel.Dispose();
+        var provider = ((App)Application.Current).QueryServiceProvider();
+        var viewModel = provider.GetRequiredService<OverviewPageViewModel>();
+        DataContext = viewModel;
+        viewModel.ApplyViewLoaded();
+        Unloaded += OnUnloaded;
     }
 
-    private void GoToModules_Click(object sender, RoutedEventArgs e)
-        => NavigateMainWindow("Modules");
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+
+        Unloaded -= OnUnloaded;
+    }
 
     private void GoToSettings_Click(object sender, RoutedEventArgs e)
-        => NavigateMainWindow("Settings");
+        => ApplyNavigation("Settings");
 
     private void GoToWorkspaces_Click(object sender, RoutedEventArgs e)
-        => NavigateMainWindow("Settings");
+        => ApplyNavigation("Settings");
+
+    private void GoToModules_Click(object sender, RoutedEventArgs e)
+        => ApplyNavigation("Modules");
 
     private void GoToEventLog_Click(object sender, RoutedEventArgs e)
-        => NavigateMainWindow("EventLog");
+        => ApplyNavigation("EventLog");
 
     private void OpenModule_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button btn) return;
-        if (btn.Tag is not string moduleId) return;
-        NavigateMainWindow($"Module:{moduleId}");
-    }
+        => ApplyNavigation("Modules");
 
-    private void NavigateMainWindow(string tag)
+    private void ApplyNavigation(string tag)
     {
-        if (Window.GetWindow(this) is MainWindow mw)
-            mw.NavigateTo(tag);
+        if (Window.GetWindow(this) is not MainWindow mainWindow)
+        {
+            return;
+        }
+
+        var radio = mainWindow.FindName($"Nav{tag}") as RadioButton;
+        if (radio is not null)
+        {
+            radio.IsChecked = true;
+        }
     }
 }
-

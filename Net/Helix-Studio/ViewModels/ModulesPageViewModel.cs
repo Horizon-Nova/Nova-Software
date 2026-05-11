@@ -1,171 +1,245 @@
 using System;
-using Helix_Studio.Model.Modules;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
+using System.Linq;
+using System.Threading;
+using System.Windows.Input;
+using Helix_Studio.Model;
 using Helix_Studio.Services;
 using Helix_Studio.ViewModels.Base;
 
 namespace Helix_Studio.ViewModels;
 
-/// <summary>模組分頁：已載入清單、選取、重新掃描、匯入與停用／解除安裝。</summary>
-public sealed class ModulesPageViewModel : ViewModelBase, IDisposable
+/// <summary>
+/// 模組頁面的 UI 狀態機。
+/// </summary>
+public sealed class ModulesPageViewModel(ModulesServices services) : ViewModelBase, IDisposable
 {
-    private readonly ModulesCatalogServices _catalog;
-    private readonly ModuleRuntimeServices _runtime;
+    private SynchronizationContext _synchronizationContext = new();
+    private RelayCommand? _rescanCommand;
+    private RelayCommand? _importCommand;
+    private RelayCommand? _disableCommand;
+    private RelayCommand? _uninstallCommand;
+    private RelayCommand? _openCommand;
+    private bool _isInitialized;
+    private bool _isDisposed;
+    private string _modulesDirectoryPath = string.Empty;
+    private ModulesInstalledItemModel? _selectedItem;
 
-    private IReadOnlyList<ModuleListItem> _items = [];
-    private ModuleListItem? _selected;
-
-    /// <summary>要求內容區開啟指定模組識別之內容。</summary>
-    public event Action<string>? OpenModuleRequested;
-
-    /// <summary>要求顯示從資料夾匯入模組的 UI（例如對話框）。</summary>
-    public event Action? ImportRequested;
-
-    /// <summary>要求停用目前選取之模組（可與專屬按鈕併用）。</summary>
-    public event Action? DisableRequested;
-
-    /// <summary>要求解除安裝目前選取之模組（可與專屬按鈕併用）。</summary>
-    public event Action? UninstallRequested;
-
-    /// <summary>使用 <see cref="AppServices"/> 模組相關服務的預設建構子。</summary>
-    public ModulesPageViewModel()
-        : this(AppServices.ModulesCatalog, AppServices.ModuleRuntime) { }
-
-    /// <summary>以模組目錄與執行時期服務建立，並訂閱掃描完成事件以重新載入清單。</summary>
-    public ModulesPageViewModel(ModulesCatalogServices catalog, ModuleRuntimeServices runtime)
+    /// <summary>
+    /// 模組目錄路徑。
+    /// </summary>
+    public string ModulesDirectoryPath
     {
-        _catalog = catalog;
-        _runtime = runtime;
-
-        _runtime.CatalogChanged += OnCatalogChanged;
-
-        RescanCommand = new RelayCommand(DoRescan);
-        ImportCommand = new RelayCommand(() => ImportRequested?.Invoke());
-        OpenCommand = new RelayCommand(DoOpen, () => _selected is not null);
-        DisableCommand = new RelayCommand(() => DisableRequested?.Invoke(), () => _selected is not null);
-        UninstallCommand = new RelayCommand(() => UninstallRequested?.Invoke(), () => _selected is not null);
-
-        ImportFromFolderCommand = new RelayCommand(ImportFromFolderByParameter);
-        DisableSelectedCommand = new RelayCommand(DisableSelected, () => _selected is not null);
-        UninstallSelectedCommand = new RelayCommand(UninstallSelected, () => _selected is not null);
-
-        LoadSnapshot();
+        get => _modulesDirectoryPath;
+        private set => SetField(ref _modulesDirectoryPath, value);
     }
 
-    /// <summary>觸發背景重新掃描模組目錄。</summary>
-    public RelayCommand RescanCommand { get; }
+    /// <summary>
+    /// 已安裝模組清單。
+    /// </summary>
+    public ObservableCollection<ModulesInstalledItemModel> Items { get; } = [];
 
-    /// <summary>顯示匯入模組的入口（觸發 <see cref="ImportRequested"/>）。</summary>
-    public RelayCommand ImportCommand { get; }
-
-    /// <summary>開啟目前選取模組（觸發 <see cref="OpenModuleRequested"/>）。</summary>
-    public RelayCommand OpenCommand { get; }
-
-    /// <summary>停用目前選取模組（觸發 <see cref="DisableRequested"/>）。</summary>
-    public RelayCommand DisableCommand { get; }
-
-    /// <summary>解除安裝目前選取模組（觸發 <see cref="UninstallRequested"/>）。</summary>
-    public RelayCommand UninstallCommand { get; }
-
-    /// <summary>參數為來源資料夾路徑，複製至安裝目錄後重新掃描。</summary>
-    public RelayCommand ImportFromFolderCommand { get; }
-
-    /// <summary>卸載目前選取模組但不刪除檔案。</summary>
-    public RelayCommand DisableSelectedCommand { get; }
-
-    /// <summary>卸載並刪除目前選取模組之安裝目錄。</summary>
-    public RelayCommand UninstallSelectedCommand { get; }
-
-    /// <summary>已載入模組的唯讀清單。</summary>
-    public IReadOnlyList<ModuleListItem> Items => _items;
-
-    /// <summary>清單中目前選取項目；變更時重算命令可用性。</summary>
-    public ModuleListItem? SelectedItem
+    /// <summary>
+    /// 目前選取的模組。
+    /// </summary>
+    public ModulesInstalledItemModel? SelectedItem
     {
-        get => _selected;
+        get => _selectedItem;
         set
         {
-            if (_selected == value) return;
-            _selected = value;
-            RaisePropertyChanged();
-            RaisePropertyChanged(nameof(HasSelection));
-            RaisePropertyChanged(nameof(NoSelection));
-            RelayCommand.InvalidateAll();
+            if (!SetField(ref _selectedItem, value))
+            {
+                return;
+            }
+
+            NotifyPropertyChanged(nameof(HasSelection));
+            NotifyPropertyChanged(nameof(NoSelection));
+            _disableCommand?.NotifyCanExecuteChanged();
+            _uninstallCommand?.NotifyCanExecuteChanged();
+            _openCommand?.NotifyCanExecuteChanged();
         }
     }
 
-    /// <summary>是否已選取一筆模組。</summary>
-    public bool HasSelection => _selected is not null;
+    /// <summary>
+    /// 是否顯示空狀態。
+    /// </summary>
+    public bool ShowEmptyState => Items.Count == 0;
 
-    /// <summary>是否未選取任何模組（空選取狀態）。</summary>
-    public bool NoSelection => _selected is null;
+    /// <summary>
+    /// 是否顯示清單。
+    /// </summary>
+    public bool ShowList => Items.Count > 0;
 
-    /// <summary>應顯示「尚無模組」空狀態版面。</summary>
-    public bool ShowEmptyState => _items.Count == 0;
+    /// <summary>
+    /// 是否尚未選取任何模組。
+    /// </summary>
+    public bool NoSelection => SelectedItem is null;
 
-    /// <summary>應顯示模組清單（至少一筆）。</summary>
-    public bool ShowList => _items.Count > 0;
+    /// <summary>
+    /// 是否已選取模組。
+    /// </summary>
+    public bool HasSelection => SelectedItem is not null;
 
-    /// <summary>目前工作區或預設的模組實體安裝目錄路徑。</summary>
-    public string ModulesDirectoryPath => _catalog.QueryInstallDirectoryPath();
+    /// <summary>
+    /// 重新掃描模組目錄。
+    /// </summary>
+    public ICommand RescanCommand
+        => _rescanCommand ??= new RelayCommand(_ => ApplySnapshot());
 
-    private void LoadSnapshot()
+    /// <summary>
+    /// 導入模組。
+    /// </summary>
+    public ICommand ImportCommand
+        => _importCommand ??= new RelayCommand(_ => ImportRequested?.Invoke(this, EventArgs.Empty));
+
+    /// <summary>
+    /// 開啟模組。
+    /// </summary>
+    public ICommand OpenCommand
+        => _openCommand ??= new RelayCommand(_ => ApplyOpen(), _ => SelectedItem is not null);
+
+    /// <summary>
+    /// 停用模組。
+    /// </summary>
+    public ICommand DisableCommand
+        => _disableCommand ??= new RelayCommand(_ => ApplyDisable(), _ => SelectedItem is not null);
+
+    /// <summary>
+    /// 移除模組。
+    /// </summary>
+    public ICommand UninstallCommand
+        => _uninstallCommand ??= new RelayCommand(_ => ApplyUninstall(), _ => SelectedItem is not null);
+
+    /// <summary>
+    /// 模組開啟請求事件（由 View 決定如何呈現模組畫面）。
+    /// </summary>
+    public event EventHandler<string>? ModuleOpenRequested;
+
+    /// <summary>
+    /// 導入模組請求事件（由 View 顯示資料夾挑選對話框）。
+    /// </summary>
+    public event EventHandler? ImportRequested;
+
+    /// <summary>
+    /// 初始化模組頁面的 I/O 訂閱與初始快照。
+    /// </summary>
+    internal void ApplyViewLoaded()
     {
-        var previousId = _selected?.Id;
-        _items = _catalog.QueryLoadedModules();
+        if (_isInitialized)
+        {
+            return;
+        }
 
-        RaisePropertyChanged(nameof(Items));
-        RaisePropertyChanged(nameof(ShowEmptyState));
-        RaisePropertyChanged(nameof(ShowList));
-
-        SelectedItem = previousId is null
-            ? null
-            : _items.FirstOrDefault(m =>
-                string.Equals(m.Id, previousId, StringComparison.OrdinalIgnoreCase));
-
-        RelayCommand.InvalidateAll();
+        _synchronizationContext = SynchronizationContext.Current ?? new SynchronizationContext();
+        services.Changed += OnChanged;
+        Items.CollectionChanged += OnItemsChanged;
+        ApplySnapshot();
+        _isInitialized = true;
     }
 
-    private void OnCatalogChanged(object? sender, EventArgs e)
+    /// <summary>
+    /// 導入模組資料夾（由 View 傳入資料夾路徑）。
+    /// </summary>
+    /// <param name="sourceDirectoryPath">來源資料夾路徑。</param>
+    internal void ImportModule(string sourceDirectoryPath)
     {
-        LoadSnapshot();
+        var imported = services.ImportModule(sourceDirectoryPath);
+        ApplySnapshot(imported.Id);
     }
 
-    private void DoRescan()
+    /// <summary>
+    /// 依模組識別值選取模組。
+    /// </summary>
+    /// <param name="moduleId">模組識別值。</param>
+    internal void ApplySelectModule(string moduleId)
     {
-        _catalog.RequestScan();
+        ApplySnapshot(moduleId);
     }
 
-    private void ImportFromFolderByParameter(object? parameter)
-    {
-        var folder = parameter as string;
-        if (string.IsNullOrWhiteSpace(folder)) return;
-        _catalog.ImportFromFolder(folder);
-        LoadSnapshot();
-    }
-
-    private void DoOpen()
-    {
-        if (_selected is null) return;
-        OpenModuleRequested?.Invoke(_selected.Id);
-    }
-
-    private void DisableSelected()
-    {
-        if (_selected is null) return;
-        _catalog.Unload(_selected.Id, deleteFolder: false);
-        LoadSnapshot();
-    }
-
-    private void UninstallSelected()
-    {
-        if (_selected is null) return;
-        _catalog.Unload(_selected.Id);
-        LoadSnapshot();
-    }
-
-    /// <summary>取消訂閱模組掃描完成事件。</summary>
+    /// <summary>
+    /// 釋放模組頁面的事件訂閱。
+    /// </summary>
     public void Dispose()
     {
-        _runtime.CatalogChanged -= OnCatalogChanged;
+        if (_isDisposed)
+        {
+            return;
+        }
+
+        if (_isInitialized)
+        {
+            services.Changed -= OnChanged;
+            Items.CollectionChanged -= OnItemsChanged;
+        }
+
+        _isDisposed = true;
+    }
+
+    private void OnChanged(object? sender, EventArgs e)
+        => PostToUi(() => ApplySnapshot());
+
+    private void OnItemsChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        NotifyPropertyChanged(nameof(ShowEmptyState));
+        NotifyPropertyChanged(nameof(ShowList));
+    }
+
+    private void PostToUi(Action action)
+        => _synchronizationContext.Post(_ => action(), null);
+
+    private void ApplySnapshot(string? preferSelectModuleId = null)
+    {
+        ModulesDirectoryPath = services.QueryModulesDirectoryPath();
+
+        var modules = services.QueryModules();
+        Items.Clear();
+        foreach (var module in modules)
+        {
+            Items.Add(module);
+        }
+
+        if (!string.IsNullOrWhiteSpace(preferSelectModuleId))
+        {
+            SelectedItem = Items.FirstOrDefault(item => string.Equals(item.Id, preferSelectModuleId, StringComparison.OrdinalIgnoreCase));
+            return;
+        }
+
+        if (SelectedItem is not null)
+        {
+            SelectedItem = Items.FirstOrDefault(item => string.Equals(item.Id, SelectedItem.Id, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    private void ApplyDisable()
+    {
+        if (SelectedItem is null)
+        {
+            return;
+        }
+
+        services.DisableModule(SelectedItem.Id);
+    }
+
+    private void ApplyUninstall()
+    {
+        if (SelectedItem is null)
+        {
+            return;
+        }
+
+        var moduleId = SelectedItem.Id;
+        SelectedItem = null;
+        services.UninstallModule(moduleId);
+    }
+
+    private void ApplyOpen()
+    {
+        if (SelectedItem is null)
+        {
+            return;
+        }
+
+        ModuleOpenRequested?.Invoke(this, SelectedItem.Id);
     }
 }

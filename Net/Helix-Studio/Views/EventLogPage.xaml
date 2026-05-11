@@ -133,11 +133,11 @@
                             <TextBlock Text="Refresh" Margin="6,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
-                    <Button Style="{DynamicResource DangerButton}" Click="Clear_Click" Margin="8,0,0,0">
+                    <Button Style="{DynamicResource GhostButton}" Command="{Binding ExportZipCommand}" Margin="8,0,0,0">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets"
+                            <TextBlock Text="&#xE896;" FontFamily="Segoe MDL2 Assets"
                                        FontSize="12" VerticalAlignment="Center"/>
-                            <TextBlock Text="Clear" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Download .zip" Margin="6,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                 </StackPanel>

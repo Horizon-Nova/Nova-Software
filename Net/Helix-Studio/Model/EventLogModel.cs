@@ -1,42 +1,56 @@
-﻿namespace Helix_Studio.Model.EventLog;
+using System;
 
-/// <summary>事件日誌訊息層級。</summary>
-public enum LogLevel
+namespace Helix_Studio.Model;
+
+/// <summary>
+/// 事件日誌等級。
+/// </summary>
+public enum EventLogLevel
 {
-    /// <summary>一般資訊。</summary>
+    /// <summary>
+    /// 資訊。
+    /// </summary>
     Info,
 
-    /// <summary>警告。</summary>
+    /// <summary>
+    /// 警告。
+    /// </summary>
     Warning,
 
-    /// <summary>錯誤。</summary>
+    /// <summary>
+    /// 錯誤。
+    /// </summary>
     Error,
 
-    /// <summary>偵錯。</summary>
-    Debug
+    /// <summary>
+    /// 偵錯。
+    /// </summary>
+    Debug,
 }
 
-/// <summary>單筆事件日誌條目。</summary>
-public class LogEntry
+/// <summary>
+/// 事件日誌項目。
+/// </summary>
+public sealed record EventLogEntryModel
 {
-    /// <summary>資料庫或序列識別。</summary>
-    public int       Id        { get; init; }
+    /// <summary>
+    /// 時間戳記（UTC）。
+    /// </summary>
+    public DateTime TimestampUtc { get; init; }
 
-    /// <summary>事件時間（本地建立時間）。</summary>
-    public DateTime  Timestamp { get; init; } = DateTime.Now;
+    /// <summary>
+    /// 來源。
+    /// </summary>
+    public string Source { get; init; } = string.Empty;
 
-    /// <summary>訊息層級。</summary>
-    public LogLevel  Level     { get; init; } = LogLevel.Info;
+    /// <summary>
+    /// 等級。
+    /// </summary>
+    public EventLogLevel Level { get; init; }
 
-    /// <summary>來源模組或元件名稱。</summary>
-    public string    Source    { get; init; } = "Shell";
-
-    /// <summary>日誌訊息本文。</summary>
-    public string    Message   { get; init; } = string.Empty;
-
-    /// <summary>格式化後之時間戳記顯示字串。</summary>
-    public string TimestampText => Timestamp.ToString("yyyy-MM-dd HH:mm:ss");
-
-    /// <summary>層級之顯示文字（大寫）。</summary>
-    public string LevelText     => Level.ToString().ToUpper();
+    /// <summary>
+    /// 訊息。
+    /// </summary>
+    public string Message { get; init; } = string.Empty;
 }
+

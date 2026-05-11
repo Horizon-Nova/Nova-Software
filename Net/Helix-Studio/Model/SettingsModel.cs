@@ -1,61 +1,161 @@
-namespace Helix_Studio.Model.Settings;
+namespace Helix_Studio.Model;
 
-/// <summary>使用者可調整之應用程式設定（持久化模型）。</summary>
-public sealed class AppSettings
+/// <summary>
+/// 設定頁面的設定值快照。
+/// </summary>
+public sealed record SettingsModel
 {
-    /// <summary>語言選項索引。</summary>
-    public int LanguageIndex { get; set; } = 0;
+    /// <summary>
+    /// 資料密度選單索引。
+    /// </summary>
+    public int DataDensityIndex { get; set; }
 
-    /// <summary>啟動頁面選項索引。</summary>
-    public int StartPageIndex { get; set; } = 0;
+    /// <summary>
+    /// 字型縮放選單索引。
+    /// </summary>
+    public int FontScaleIndex { get; set; }
 
-    /// <summary>上次造訪之頁面標籤。</summary>
-    public string LastVisitedPageTag { get; set; } = "Home";
+    /// <summary>
+    /// 非活躍逾時選單索引。
+    /// </summary>
+    public int InactivityIndex { get; set; }
 
-    /// <summary>閒置鎖定選項索引。</summary>
-    public int InactivityIndex { get; set; } = 2;
+    /// <summary>
+    /// 語言選單索引。
+    /// </summary>
+    public int LanguageIndex { get; set; }
 
-    /// <summary>主題選項索引。</summary>
-    public int ThemeIndex { get; set; } = 0;
+    /// <summary>
+    /// 上次瀏覽頁面標籤。
+    /// </summary>
+    public string LastVisitedPageTag { get; set; } = string.Empty;
 
-    /// <summary>字型縮放選項索引。</summary>
-    public int FontScaleIndex { get; set; } = 1;
-
-    /// <summary>資料密度選項索引。</summary>
-    public int DataDensityIndex { get; set; } = 0;
-
-    /// <summary>日誌層級選項索引。</summary>
-    public int LogLevelIndex { get; set; } = 0;
-
-    /// <summary>日誌保留天數選項索引。</summary>
-    public int LogRetentionIndex { get; set; } = 1;
-
-    /// <summary>日誌匯出預設資料夾路徑。</summary>
+    /// <summary>
+    /// 日誌匯出資料夾。
+    /// </summary>
     public string LogExportFolder { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 日誌等級選單索引。
+    /// </summary>
+    public int LogLevelIndex { get; set; }
+
+    /// <summary>
+    /// 日誌保留天數選單索引。
+    /// </summary>
+    public int LogRetentionIndex { get; set; }
+
+    /// <summary>
+    /// 起始頁面選單索引。
+    /// </summary>
+    public int StartPageIndex { get; set; }
+
+    /// <summary>
+    /// 佈景主題選單索引。
+    /// </summary>
+    public int ThemeIndex { get; set; }
 }
 
-/// <summary>關於對話框顯示之版本與授權到期文字。</summary>
-public sealed record AboutInfo(string VersionText, string BuildDateText, string LicenseExpiryText);
-
-/// <summary>日誌匯出操作結果。</summary>
-public sealed record LogExportResult(bool IsSuccess, string? ArchivePath, string? ErrorMessage)
+/// <summary>
+/// 設定頁面搜尋建議項目。
+/// </summary>
+public sealed record SettingsSearchSuggestionModel
 {
-    /// <summary>建立成功結果。</summary>
-    public static LogExportResult Success(string archivePath) => new(true, archivePath, null);
+    /// <summary>
+    /// 區段標籤。
+    /// </summary>
+    public string SectionTag { get; init; } = string.Empty;
 
-    /// <summary>建立失敗結果。</summary>
-    public static LogExportResult Failure(string errorMessage) => new(false, null, errorMessage);
+    /// <summary>
+    /// 顯示文字。
+    /// </summary>
+    public string Display { get; init; } = string.Empty;
 }
 
-/// <summary>法律文件開啟嘗試之結果。</summary>
-public sealed record LegalNoticeResult(bool IsFound, string? Message)
+/// <summary>
+/// 設定頁面工作區卡片資料。
+/// </summary>
+public sealed record SettingsWorkspaceItemModel
 {
-    /// <summary>已成功開啟文件。</summary>
-    public static LegalNoticeResult Opened() => new(true, null);
+    /// <summary>
+    /// 工作區名稱。
+    /// </summary>
+    public string Name { get; init; } = string.Empty;
 
-    /// <summary>找不到文件時之結果。</summary>
-    public static LegalNoticeResult NotFound(string message) => new(false, message);
+    /// <summary>
+    /// 工作區描述。
+    /// </summary>
+    public string Description { get; init; } = string.Empty;
+
+    /// <summary>
+    /// 是否為目前作用中的工作區。
+    /// </summary>
+    public bool IsActive { get; init; }
 }
 
-/// <summary>設定頁搜尋建議之一筆。</summary>
-public sealed record SettingsSearchSuggestion(string Tag, string Display);
+/// <summary>
+/// 設定頁面模組卡片資料。
+/// </summary>
+public sealed record SettingsModuleCardModel
+{
+    /// <summary>
+    /// 模組識別值。
+    /// </summary>
+    public string Id { get; init; } = string.Empty;
+
+    /// <summary>
+    /// 模組顯示名稱。
+    /// </summary>
+    public string DisplayName { get; init; } = string.Empty;
+
+    /// <summary>
+    /// 模組版本文字。
+    /// </summary>
+    public string Version { get; init; } = string.Empty;
+
+    /// <summary>
+    /// 模組描述。
+    /// </summary>
+    public string Description { get; init; } = string.Empty;
+
+    /// <summary>
+    /// 模組圖示位元組。
+    /// </summary>
+    public byte[]? Icon { get; init; }
+
+    /// <summary>
+    /// 是否有圖示可顯示。
+    /// </summary>
+    public bool HasIcon { get; init; }
+
+    /// <summary>
+    /// 模組設定內容。
+    /// </summary>
+    public object? SettingsContent { get; init; }
+
+    /// <summary>
+    /// 是否已有設定內容。
+    /// </summary>
+    public bool HasSettingsContent { get; init; }
+}
+
+/// <summary>
+/// 設定頁面的關於資訊。
+/// </summary>
+public sealed record SettingsAboutModel
+{
+    /// <summary>
+    /// 版本文字。
+    /// </summary>
+    public string VersionText { get; init; } = string.Empty;
+
+    /// <summary>
+    /// 建置日期文字。
+    /// </summary>
+    public string BuildDateText { get; init; } = string.Empty;
+
+    /// <summary>
+    /// 授權到期日文字。
+    /// </summary>
+    public string LicenseExpiryText { get; init; } = string.Empty;
+}

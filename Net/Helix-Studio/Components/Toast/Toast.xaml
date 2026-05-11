@@ -10,23 +10,18 @@
              UseLayoutRounding="True"
              SnapsToDevicePixels="True"
              Width="340">
-    <Border CornerRadius="4">
-        <Border.Background>
-            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                <LinearGradientBrush.RelativeTransform>
-                    <TransformGroup>
-                        <ScaleTransform CenterY="0.5" CenterX="0.5"/>
-                        <SkewTransform CenterX="0.5" CenterY="0.5"/>
-                        <RotateTransform Angle="90" CenterX="0.5" CenterY="0.5"/>
-                        <TranslateTransform/>
-                    </TransformGroup>
-                </LinearGradientBrush.RelativeTransform>
-                <GradientStop Color="White" Offset="0.99"/>
-                <GradientStop Color="#0F4C81" Offset="0.99"/>
-                <GradientStop Color="#0F4C81" Offset="1"/>
-            </LinearGradientBrush>
-        </Border.Background>
+    <Border CornerRadius="6"
+            Background="{DynamicResource SurfaceRaised}"
+            BorderBrush="{DynamicResource BorderLight}"
+            BorderThickness="1">
         <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="4"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="{DynamicResource AccentPrimary}"/>
+
             <Button Width="24"
                     Height="24"
                     HorizontalAlignment="Right"
@@ -37,21 +32,31 @@
                     Click="CloseButton_Click">
                 <TextBlock Text="&#xE711;"
                         FontFamily="Segoe MDL2 Assets"
-                        FontSize="10"/>
+                        FontSize="10"
+                        Foreground="{DynamicResource TextTertiary}"/>
             </Button>
 
-            <StackPanel Margin="12,8,36,8">
+            <StackPanel Grid.Column="1" Margin="12,8,36,8">
                 <TextBox x:Name="TitleBlock"
                         Text="{Binding Title, ElementName=Root, Mode=OneWay, FallbackValue='Notification'}"
                         BorderThickness="0"
-                        Background="Transparent"/>
+                        Background="Transparent"
+                        Foreground="{DynamicResource TextPrimary}"
+                        FontWeight="SemiBold"
+                        FontSize="12"
+                        IsReadOnly="True"
+                        IsReadOnlyCaretVisible="False"/>
 
                 <TextBox x:Name="MessageBlock"
                         Text="{Binding Message, ElementName=Root, Mode=OneWay, FallbackValue='Check layout in the designer.'}"
                         BorderThickness="0"
-                        Background="Transparent"/>
+                        Background="Transparent"
+                        Foreground="{DynamicResource TextSecondary}"
+                        FontSize="12"
+                        TextWrapping="Wrap"
+                        IsReadOnly="True"
+                        IsReadOnlyCaretVisible="False"/>
             </StackPanel>
         </Grid>
     </Border>
 </UserControl>
-

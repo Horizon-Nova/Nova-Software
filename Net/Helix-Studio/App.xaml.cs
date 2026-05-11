@@ -1,26 +1,68 @@
+using System;
 using System.Windows;
-using Helix_Studio.Infrastructure.Localization;
-using Helix_Studio.Services;
+using System.Threading.Tasks;
+using Helix_Studio.Core;
+using Helix_Studio.Domain;
+using Helix_Studio.Extensions;
 using Helix_Studio.Views;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Helix_Studio;
 
-/// <summary>WPF 應用程式進入點：初始化服務、套用啟動時本地化與主題，並顯示主視窗。</summary>
+/// <summary>WPF 應用程式入口。</summary>
 public partial class App : Application
 {
-    /// <summary>應用程式啟動時建立服務容器、套用設定並顯示 <see cref="MainWindow"/>。</summary>
+    private ServiceProvider? _serviceProvider;
+
+    /// <summary>取得 DI 容器。</summary>
+    public ServiceProvider QueryServiceProvider()
+        => _serviceProvider ?? throw new InvalidOperationException("DI 尚未完成初始化。");
+
+    /// <summary>啟動應用程式並建立主視窗。</summary>
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
-        AppServices.Initialize();
+        var services = new ServiceCollection();
+        services
+            .ViewModelsModule()
+            .ServicesModule()
+            .DomainModule()
+            .CoreModule();
 
-        var config = AppServices.Config.QueryCurrent();
-        UiLocale.Apply(config.Ui.CultureName, persist: false);
-        UiTheme.Apply(config.Ui.ThemeMode, persist: false);
+        _serviceProvider = services.BuildServiceProvider();
+        _serviceProvider.GetRequiredService<AppearanceCore>();
+        ApplyUnhandledExceptionCapture(_serviceProvider);
 
         var mainWindow = new MainWindow();
         MainWindow = mainWindow;
         mainWindow.Show();
+    }
+
+    /// <summary>結束應用程式並釋放 DI 資源。</summary>
+    protected override void OnExit(ExitEventArgs e)
+    {
+        _serviceProvider?.Dispose();
+        _serviceProvider = null;
+        base.OnExit(e);
+    }
+
+    private static void ApplyUnhandledExceptionCapture(ServiceProvider provider)
+    {
+        var domain = provider.GetRequiredService<EventLogDomain>();
+
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+        {
+            if (args.ExceptionObject is Exception exception)
+            {
+                domain.RecordUnhandledException("AppDomain", exception);
+            }
+        };
+
+        TaskScheduler.UnobservedTaskException += (_, args) =>
+        {
+            domain.RecordUnhandledException("TaskScheduler", args.Exception);
+            args.SetObserved();
+        };
     }
 }

@@ -1,11 +1,15 @@
-﻿using System.Windows;
+using System.Windows;
 
 namespace Helix_Studio.Views;
 
-/// <summary>閒置逾時或手動鎖定時的簡單解鎖對話框。</summary>
+/// <summary>
+/// 鎖定視窗的檢視層。
+/// </summary>
 public partial class LockWindow : Window
 {
-    /// <summary>僅建立視窗 UI；解鎖由 <c>DialogResult</c> 表達。</summary>
+    /// <summary>
+    /// 建立鎖定視窗。
+    /// </summary>
     public LockWindow()
     {
         InitializeComponent();
@@ -13,9 +17,5 @@ public partial class LockWindow : Window
 
     private void Unlock_Click(object sender, RoutedEventArgs e)
     {
-        DialogResult = true;
-        Close();
     }
 }
-
-
