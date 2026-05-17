@@ -1,7 +1,8 @@
-﻿<Window x:Class="Helix_Studio.Views.ActivationWindow"
+<Window x:Class="Helix_Studio.Views.ActivationWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="啟用 Helix Studio"
+        Icon="/Assets/image/AppLogo.png"
         Height="580" Width="900"
         MinHeight="580" MinWidth="900"
         MaxHeight="580" MaxWidth="900"
@@ -60,7 +61,7 @@
 
                     <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Top">
                         <Border Width="24" Height="24" Background="Transparent">
-                            <Image Source="/Assets/image/Horizon Nova Icon.png" Stretch="Uniform"/>
+                            <Image Source="/Assets/image/AppLogo.png" Stretch="Uniform"/>
                         </Border>
                         <TextBlock Text="HELIX" FontSize="11" FontWeight="Bold"
                                    Foreground="{StaticResource TextOnDark}"
@@ -72,7 +73,7 @@
 
                     <StackPanel Grid.Row="1" VerticalAlignment="Center">
                         <Border Width="88" Height="88" HorizontalAlignment="Left">
-                            <Image Source="/Assets/image/Horizon Nova Icon.png" Stretch="Uniform"/>
+                            <Image Source="/Assets/image/AppLogo.png" Stretch="Uniform"/>
                         </Border>
                         <TextBlock Text="Welcome to" FontSize="14" FontWeight="Light"
                                    Foreground="{StaticResource TextOnDarkMuted}" Margin="0,28,0,0"/>

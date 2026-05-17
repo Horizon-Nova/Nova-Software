@@ -12,6 +12,7 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <ApplicationIcon>Assets\image\AppLogo.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,16 +32,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Helix-Studio.Contracts\Helix-Studio.Contracts.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <!-- 避免 WPF 與 WinForms 隱含 Global Usings 造成型別名稱模稜兩可 -->
     <Using Remove="System.Drawing" />
     <Using Remove="System.Windows.Forms" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Assets\image\AppLogo.png" />
     <Resource Include="Assets\Lucide\*.svg" />
     <Resource Include="Assets\Legal\*.txt" />
   </ItemGroup>
@@ -50,7 +48,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Assets\image\" />
     <Folder Include="Core\" />
     <Folder Include="Domain\" />
     <Folder Include="Model\" />

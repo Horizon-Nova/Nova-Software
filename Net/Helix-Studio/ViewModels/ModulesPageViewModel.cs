@@ -228,9 +228,9 @@ public sealed class ModulesPageViewModel(ModulesServices services) : ViewModelBa
             return;
         }
 
-        var moduleId = SelectedItem.Id;
+        var installedFolderPath = SelectedItem.InstalledFolderPath;
         SelectedItem = null;
-        services.UninstallModule(moduleId);
+        services.UninstallModule(installedFolderPath);
     }
 
     private void ApplyOpen()

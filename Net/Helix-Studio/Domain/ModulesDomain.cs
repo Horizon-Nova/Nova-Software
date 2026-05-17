@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,12 +9,12 @@ using Helix_Studio.Model;
 namespace Helix_Studio.Domain;
 
 /// <summary>
-/// 模組頁面的功能邏輯與資料組合。
+/// 模組功能 Domain。
 /// </summary>
 public sealed class ModulesDomain(IniCore iniCore, ModulesCore modulesCore)
 {
     /// <summary>
-    /// 模組清單變更事件。
+    /// 模組或相關 I/O 變更事件。
     /// </summary>
     public event EventHandler? Changed
     {
@@ -32,7 +31,7 @@ public sealed class ModulesDomain(IniCore iniCore, ModulesCore modulesCore)
     }
 
     /// <summary>
-    /// 查詢目前模組目錄路徑。
+    /// 查詢目前工作區的模組目錄路徑。
     /// </summary>
     public string QueryModulesDirectoryPath()
         => modulesCore.QueryModulesDirectoryPath();
@@ -47,36 +46,30 @@ public sealed class ModulesDomain(IniCore iniCore, ModulesCore modulesCore)
             .ToList();
 
     /// <summary>
-    /// 導入模組。
+    /// 匯入模組。
     /// </summary>
-    /// <param name="sourceDirectoryPath">來源資料夾路徑。</param>
+    /// <param name="sourceDirectoryPath">來源模組資料夾。</param>
     public ModulesInstalledItemModel ImportModule(string sourceDirectoryPath)
         => QueryInstalledItem(modulesCore.ImportModule(sourceDirectoryPath));
 
     /// <summary>
     /// 停用模組。
     /// </summary>
-    /// <param name="moduleId">模組識別值。</param>
+    /// <param name="moduleId">模組識別碼。</param>
     public void DisableModule(string moduleId)
         => modulesCore.DisableModule(moduleId);
 
     /// <summary>
-    /// 移除模組。
+    /// 解除安裝模組（刪除安裝資料夾）。
     /// </summary>
-    /// <param name="moduleId">模組識別值。</param>
-    public void UninstallModule(string moduleId)
-    {
-        var module = modulesCore.QueryModules()
-            .FirstOrDefault(model => string.Equals(model.Id, moduleId, StringComparison.OrdinalIgnoreCase))
-            ?? throw new InvalidOperationException("找不到欲移除的模組。");
-
-        modulesCore.DeleteModule(module.FolderPath);
-    }
+    /// <param name="installedFolderPath">模組安裝資料夾。</param>
+    public void UninstallModule(string installedFolderPath)
+        => modulesCore.DeleteModule(installedFolderPath);
 
     private ModulesInstalledItemModel QueryInstalledItem(ModuleModel module)
     {
         var readmeText = QueryReadmeText(module.FolderPath);
-        var statusText = module.RequiresLicense ? "需要授權" : "可用";
+        var statusText = module.RequiresLicense ? "需要授權" : "可使用";
 
         return new ModulesInstalledItemModel
         {

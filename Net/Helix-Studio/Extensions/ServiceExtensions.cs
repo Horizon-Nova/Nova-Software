@@ -2,7 +2,6 @@ using Helix_Studio.Core;
 using Helix_Studio.Domain;
 using Helix_Studio.Services;
 using Helix_Studio.ViewModels;
-using HorizonNova.HelixStudio.Contracts;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Helix_Studio.Extensions;
@@ -58,14 +57,12 @@ public static class ServiceExtensions
     {
         services.AddSingleton<IniCore>();
         services.AddSingleton<LicenseCore>();
+        services.AddSingleton<ModuleHealthSink>();
         services.AddSingleton<ModulesCore>();
         services.AddSingleton<WorkspacesCore>();
         services.AddSingleton<ThemeCore>();
         services.AddSingleton<AppearanceCore>();
         services.AddSingleton<EventLogCore>();
-        services.AddSingleton<ShellHealthNotifier>();
-        services.AddSingleton<IModuleHealthSink>(static provider => provider.GetRequiredService<ShellHealthNotifier>());
-        services.AddSingleton<ShellContextFactory>();
         return services;
     }
 }

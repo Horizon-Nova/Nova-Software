@@ -1,18 +1,18 @@
 using System;
 using System.Collections.Generic;
+using Helix_Studio.Core;
 using Helix_Studio.Domain;
 using Helix_Studio.Model;
-using HorizonNova.HelixStudio.Contracts;
 
 namespace Helix_Studio.Services;
 
 /// <summary>
-/// MainWindow 的零邏輯轉發服務。
+/// MainWindow 服務（僅轉呼叫至 Domain）。
 /// </summary>
-public sealed class MainWindowServices(MainWindowDomain domain, IModuleHealthSink moduleHealthSink)
+public sealed class MainWindowServices(MainWindowDomain domain, ModuleHealthSink moduleHealthSink)
 {
     /// <summary>
-    /// 模組健康狀態回報事件。
+    /// 模組健康狀態變更事件。
     /// </summary>
     public event Action<string, ModuleHealth, string?>? ModuleHealthChanged
     {
@@ -21,7 +21,7 @@ public sealed class MainWindowServices(MainWindowDomain domain, IModuleHealthSin
     }
 
     /// <summary>
-    /// 轉發工作區 I/O 變更通知。
+    /// 工作區 I/O 變更事件。
     /// </summary>
     public event EventHandler? WorkspacesChanged
     {
@@ -30,7 +30,7 @@ public sealed class MainWindowServices(MainWindowDomain domain, IModuleHealthSin
     }
 
     /// <summary>
-    /// 轉發模組 I/O 變更通知。
+    /// 模組 I/O 變更事件。
     /// </summary>
     public event EventHandler? ModulesChanged
     {
@@ -39,7 +39,7 @@ public sealed class MainWindowServices(MainWindowDomain domain, IModuleHealthSin
     }
 
     /// <summary>
-    /// 轉發主設定 I/O 變更通知。
+    /// 狀態 I/O 變更事件。
     /// </summary>
     public event EventHandler? StateChanged
     {
@@ -48,7 +48,7 @@ public sealed class MainWindowServices(MainWindowDomain domain, IModuleHealthSin
     }
 
     /// <summary>
-    /// 查詢工作區名稱清單。
+    /// 查詢工作區清單。
     /// </summary>
     public IReadOnlyList<string> QueryWorkspaces() => domain.QueryWorkspaces();
 
@@ -63,8 +63,9 @@ public sealed class MainWindowServices(MainWindowDomain domain, IModuleHealthSin
     public IReadOnlyList<ModuleModel> QueryModules() => domain.QueryModules();
 
     /// <summary>
-    /// 啟用指定工作區。
+    /// 切換工作區。
     /// </summary>
-    /// <param name="workspaceName">欲啟用的工作區名稱。</param>
+    /// <param name="workspaceName">工作區名稱。</param>
     public void ActivateWorkspace(string workspaceName) => domain.ActivateWorkspace(workspaceName);
 }
+

@@ -7,48 +7,54 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Helix_Studio.Model;
 using Helix_Studio.Model.Notifications;
 using Helix_Studio.Services;
 using Helix_Studio.ViewModels.Base;
-using HorizonNova.HelixStudio.Contracts;
 
 namespace Helix_Studio.ViewModels;
 
 /// <summary>
-/// MainWindow 的 UI 狀態機，負責工作區切換、模組導覽與狀態列顯示。
+/// 主視窗 ViewModel。
 /// </summary>
 public sealed class MainWindowViewModel(MainWindowServices services) : ViewModelBase, IDisposable
 {
     private const int WorkspaceSwitchShimmerMinimumMilliseconds = 200;
-    private SynchronizationContext _synchronizationContext = new();
+
+    private SynchronizationContext _uiContext = new();
+    private bool _isInitialized;
+    private bool _isDisposed;
+
     private RelayCommand? _activateWorkspaceCommand;
     private RelayCommand? _toggleWorkspacePopupCommand;
     private RelayCommand? _clearInboxCommand;
-    private bool _isInitialized;
-    private bool _isDisposed;
+
     private string _activeWorkspaceName = string.Empty;
     private bool _isWorkspacePopupOpen;
     private bool _isWorkspaceSwitching;
+    private bool _isModulesLoading;
     private int _workspaceSwitchToken;
     private long _workspaceSwitchStartedTimestamp;
-    private bool _isModulesLoading;
-    private string _workspaceBreadcrumbText = "—";
+
+    private string _workspaceBreadcrumbText = "工作區";
     private string _breadcrumbText = "Home";
-    private string _statusWorkspaceText = "工作區：未選取";
+
+    private string _statusWorkspaceText = "工作區：未選擇";
     private string _statusModulesText = "模組：0";
     private string _statusDeviceText = $"裝置：{Environment.MachineName}";
     private string _statusBuildText = $"版本：{Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "未知"}";
+
     private string _currentModuleHealth = "Healthy";
     private string _currentModuleHealthMessage = "模組狀態正常";
     private string? _contentModuleId;
 
     /// <summary>
-    /// 提供給 View 顯示的工作區清單。
+    /// 工作區清單。
     /// </summary>
     public ObservableCollection<WorkspaceItem> Workspaces { get; } = new();
 
     /// <summary>
-    /// 提供給 View 顯示的模組導覽清單。
+    /// 模組導覽清單。
     /// </summary>
     public ObservableCollection<ModuleNavItem> ModuleNavItems { get; } = new();
 
@@ -58,7 +64,7 @@ public sealed class MainWindowViewModel(MainWindowServices services) : ViewModel
     public ObservableCollection<ShellInboxItem> InboxItems { get; } = new();
 
     /// <summary>
-    /// 上方導覽列的工作區麵包屑文字。
+    /// 工作區麵包屑文字。
     /// </summary>
     public string WorkspaceBreadcrumbText
     {
@@ -67,7 +73,7 @@ public sealed class MainWindowViewModel(MainWindowServices services) : ViewModel
     }
 
     /// <summary>
-    /// 上方導覽列的頁面/模組麵包屑文字。
+    /// 麵包屑文字。
     /// </summary>
     public string BreadcrumbText
     {
@@ -85,12 +91,12 @@ public sealed class MainWindowViewModel(MainWindowServices services) : ViewModel
     }
 
     /// <summary>
-    /// 是否已有模組導覽項目。
+    /// 是否有模組導覽項目。
     /// </summary>
     public bool HasModuleNavItems => ModuleNavItems.Count > 0;
 
     /// <summary>
-    /// 是否開啟工作區選單。
+    /// 工作區彈出視窗是否開啟。
     /// </summary>
     public bool IsWorkspacePopupOpen
     {
@@ -99,7 +105,7 @@ public sealed class MainWindowViewModel(MainWindowServices services) : ViewModel
     }
 
     /// <summary>
-    /// 是否顯示工作區切換中的提示。
+    /// 是否正在切換工作區。
     /// </summary>
     public bool IsWorkspaceSwitching
     {
@@ -108,7 +114,7 @@ public sealed class MainWindowViewModel(MainWindowServices services) : ViewModel
     }
 
     /// <summary>
-    /// 是否顯示模組載入中的提示。
+    /// 是否正在載入模組清單。
     /// </summary>
     public bool IsModulesLoading
     {
@@ -117,7 +123,7 @@ public sealed class MainWindowViewModel(MainWindowServices services) : ViewModel
     }
 
     /// <summary>
-    /// 狀態列的工作區文字。
+    /// 狀態列工作區文字。
     /// </summary>
     public string StatusWorkspaceText
     {
@@ -126,7 +132,7 @@ public sealed class MainWindowViewModel(MainWindowServices services) : ViewModel
     }
 
     /// <summary>
-    /// 狀態列的模組數量文字。
+    /// 狀態列模組文字。
     /// </summary>
     public string StatusModulesText
     {
@@ -135,7 +141,7 @@ public sealed class MainWindowViewModel(MainWindowServices services) : ViewModel
     }
 
     /// <summary>
-    /// 狀態列的裝置文字。
+    /// 狀態列裝置文字。
     /// </summary>
     public string StatusDeviceText
     {
@@ -144,7 +150,7 @@ public sealed class MainWindowViewModel(MainWindowServices services) : ViewModel
     }
 
     /// <summary>
-    /// 狀態列的版本文字。
+    /// 狀態列版本文字。
     /// </summary>
     public string StatusBuildText
     {
@@ -153,7 +159,7 @@ public sealed class MainWindowViewModel(MainWindowServices services) : ViewModel
     }
 
     /// <summary>
-    /// 目前模組健康狀態。
+    /// 模組健康狀態字串。
     /// </summary>
     public string CurrentModuleHealth
     {
@@ -162,7 +168,7 @@ public sealed class MainWindowViewModel(MainWindowServices services) : ViewModel
     }
 
     /// <summary>
-    /// 目前模組健康狀態訊息。
+    /// 模組健康狀態提示文字。
     /// </summary>
     public string CurrentModuleHealthMessage
     {
@@ -171,188 +177,84 @@ public sealed class MainWindowViewModel(MainWindowServices services) : ViewModel
     }
 
     /// <summary>
-    /// 是否顯示通知徽章。
-    /// </summary>
-    public bool ShowNotificationBadge => UnreadCount > 0;
-
-    /// <summary>
-    /// 未讀通知數量。
-    /// </summary>
-    public int UnreadCount => InboxItems.Count;
-
-    /// <summary>
     /// 是否有通知項目。
     /// </summary>
     public bool HasInboxItems => InboxItems.Count > 0;
 
     /// <summary>
-    /// 是否顯示空收件匣提示。
+    /// 是否顯示收件匣空狀態。
     /// </summary>
     public bool ShowInboxEmptyState => !HasInboxItems;
 
     /// <summary>
-    /// 空收件匣提示文字。
+    /// 收件匣空狀態文字。
     /// </summary>
-    public string InboxEmptyText => "目前沒有通知";
+    public string InboxEmptyText => "目前沒有通知。";
 
     /// <summary>
-    /// 啟用工作區命令。
+    /// 未讀數量。
     /// </summary>
-    public ICommand ActivateWorkspaceCommand
-        => _activateWorkspaceCommand ??= new RelayCommand(ExecuteActivateWorkspace);
+    public int UnreadCount => InboxItems.Count;
 
     /// <summary>
-    /// 切換工作區選單命令。
+    /// 是否顯示通知紅點。
+    /// </summary>
+    public bool ShowNotificationBadge => UnreadCount > 0;
+
+    /// <summary>
+    /// 切換工作區彈出視窗命令。
     /// </summary>
     public ICommand ToggleWorkspacePopupCommand
-        => _toggleWorkspacePopupCommand ??= new RelayCommand(_ => IsWorkspacePopupOpen = !IsWorkspacePopupOpen);
+        => _toggleWorkspacePopupCommand ??= new RelayCommand(() => IsWorkspacePopupOpen = !IsWorkspacePopupOpen);
 
     /// <summary>
-    /// 清除收件匣命令。
+    /// 切換工作區命令。
+    /// </summary>
+    public ICommand ActivateWorkspaceCommand
+        => _activateWorkspaceCommand ??= new RelayCommand(parameter => ExecuteActivateWorkspace(parameter as string));
+
+    /// <summary>
+    /// 清除通知命令。
     /// </summary>
     public ICommand ClearInboxCommand
-        => _clearInboxCommand ??= new RelayCommand(_ => InboxItems.Clear());
+        => _clearInboxCommand ??= new RelayCommand(() => InboxItems.Clear());
 
     /// <summary>
-    /// 由 View 載入後呼叫，建立 I/O 訂閱並套用初始快照。
+    /// View 載入後呼叫，建立訂閱並套用初始快照。
     /// </summary>
-    internal void ApplyViewLoaded()
+    public void ApplyViewLoaded()
     {
         if (_isInitialized)
         {
             return;
         }
 
-        _synchronizationContext = SynchronizationContext.Current ?? new SynchronizationContext();
-        services.WorkspacesChanged += OnWorkspacesChanged;
-        services.ModulesChanged += OnModulesChanged;
-        services.StateChanged += OnStateChanged;
-        services.ModuleHealthChanged += OnShellModuleHealthChanged;
-        ModuleNavItems.CollectionChanged += OnModuleNavItemsChanged;
-        InboxItems.CollectionChanged += OnInboxItemsChanged;
-
-        ApplyShellSnapshot();
         _isInitialized = true;
+        _uiContext = SynchronizationContext.Current ?? new SynchronizationContext();
+
+        Workspaces.CollectionChanged += OnWorkspacesChanged;
+        ModuleNavItems.CollectionChanged += OnModulesChanged;
+        InboxItems.CollectionChanged += OnInboxChanged;
+
+        services.WorkspacesChanged += OnRuntimeChanged;
+        services.ModulesChanged += OnRuntimeChanged;
+        services.StateChanged += OnRuntimeChanged;
+        services.ModuleHealthChanged += OnModuleHealthChanged;
+
+        ApplySnapshot();
     }
 
     /// <summary>
-    /// 釋放 ViewModel 的事件訂閱。
+    /// 套用麵包屑文字。
     /// </summary>
-    public void Dispose()
-    {
-        if (_isDisposed)
-        {
-            return;
-        }
-
-        if (_isInitialized)
-        {
-            services.WorkspacesChanged -= OnWorkspacesChanged;
-            services.ModulesChanged -= OnModulesChanged;
-            services.StateChanged -= OnStateChanged;
-            services.ModuleHealthChanged -= OnShellModuleHealthChanged;
-            ModuleNavItems.CollectionChanged -= OnModuleNavItemsChanged;
-            InboxItems.CollectionChanged -= OnInboxItemsChanged;
-        }
-
-        _isDisposed = true;
-    }
-
-    private void ExecuteActivateWorkspace(object? parameter)
-    {
-        if (parameter is not string workspaceName || string.IsNullOrWhiteSpace(workspaceName))
-        {
-            return;
-        }
-
-        _workspaceSwitchToken++;
-        _workspaceSwitchStartedTimestamp = Stopwatch.GetTimestamp();
-
-        IsWorkspaceSwitching = true;
-        IsModulesLoading = true;
-        ActiveWorkspaceName = workspaceName;
-        CurrentModuleHealth = "Warning";
-        CurrentModuleHealthMessage = "模組切換中";
-        IsWorkspacePopupOpen = false;
-
-        ApplyWorkspaceItems(services.QueryWorkspaces(), workspaceName);
-        ApplyStatusSnapshot();
-        services.ActivateWorkspace(workspaceName);
-    }
-
-    private void OnWorkspacesChanged(object? sender, EventArgs e)
-        => PostToUi(() =>
-        {
-            ApplyWorkspaceSnapshot();
-            ApplyStatusSnapshot();
-        });
-
-    private void OnModulesChanged(object? sender, EventArgs e)
-        => PostToUi(() =>
-        {
-            ApplyModulesSnapshot();
-            ApplyStatusSnapshot();
-        });
-
-    private void OnStateChanged(object? sender, EventArgs e)
-        => PostToUi(ApplyShellSnapshot);
-
-    private void OnModuleNavItemsChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        => NotifyPropertyChanged(nameof(HasModuleNavItems));
-
-    private void OnInboxItemsChanged(object? sender, NotifyCollectionChangedEventArgs e)
-    {
-        NotifyPropertyChanged(nameof(UnreadCount));
-        NotifyPropertyChanged(nameof(ShowNotificationBadge));
-        NotifyPropertyChanged(nameof(HasInboxItems));
-        NotifyPropertyChanged(nameof(ShowInboxEmptyState));
-    }
-
-    private void PostToUi(Action action)
-        => _synchronizationContext.Post(_ => action(), null);
-
-    private void ApplyShellSnapshot()
-    {
-        ApplyWorkspaceSnapshot();
-        ApplyModulesSnapshot();
-        ApplyStatusSnapshot();
-    }
-
-    private void ApplyWorkspaceSnapshot()
-    {
-        var workspaceNames = services.QueryWorkspaces();
-        var activeWorkspaceName = ResolveActiveWorkspaceName(workspaceNames, services.QueryActiveWorkspaceName());
-        ApplyWorkspaceItems(workspaceNames, activeWorkspaceName);
-    }
-
-    private void ApplyWorkspaceItems(
-        System.Collections.Generic.IReadOnlyList<string> workspaceNames,
-        string activeWorkspaceName)
-    {
-        ActiveWorkspaceName = activeWorkspaceName;
-        WorkspaceBreadcrumbText = string.IsNullOrWhiteSpace(activeWorkspaceName) ? "—" : activeWorkspaceName;
-        Workspaces.Clear();
-
-        foreach (var workspaceName in workspaceNames)
-        {
-            Workspaces.Add(new WorkspaceItem
-            {
-                Name = workspaceName,
-                IsActive = string.Equals(workspaceName, activeWorkspaceName, StringComparison.OrdinalIgnoreCase),
-            });
-        }
-    }
-
-    /// <summary>
-    /// 套用上方導覽列麵包屑文字。
-    /// </summary>
-    /// <param name="breadcrumbText">頁面或模組名稱。</param>
+    /// <param name="breadcrumbText">麵包屑文字。</param>
     internal void ApplyBreadcrumb(string breadcrumbText)
-        => BreadcrumbText = string.IsNullOrWhiteSpace(breadcrumbText) ? "—" : breadcrumbText;
+        => BreadcrumbText = string.IsNullOrWhiteSpace(breadcrumbText) ? "Home" : breadcrumbText;
 
     /// <summary>
-    /// 設定目前主內容區顯示的模組識別碼（殼層頁面請傳 null）。
+    /// 設定目前內容模組識別碼。
     /// </summary>
+    /// <param name="moduleId">模組識別碼。</param>
     internal void SetContentModuleId(string? moduleId)
     {
         _contentModuleId = moduleId;
@@ -363,7 +265,70 @@ public sealed class MainWindowViewModel(MainWindowServices services) : ViewModel
         }
     }
 
-    private void OnShellModuleHealthChanged(string moduleId, ModuleHealth health, string? message)
+    /// <summary>
+    /// 釋放資源。
+    /// </summary>
+    public void Dispose()
+    {
+        if (_isDisposed)
+        {
+            return;
+        }
+
+        _isDisposed = true;
+        services.WorkspacesChanged -= OnRuntimeChanged;
+        services.ModulesChanged -= OnRuntimeChanged;
+        services.StateChanged -= OnRuntimeChanged;
+        services.ModuleHealthChanged -= OnModuleHealthChanged;
+
+        Workspaces.CollectionChanged -= OnWorkspacesChanged;
+        ModuleNavItems.CollectionChanged -= OnModulesChanged;
+        InboxItems.CollectionChanged -= OnInboxChanged;
+    }
+
+    private void ExecuteActivateWorkspace(string? workspaceName)
+    {
+        if (string.IsNullOrWhiteSpace(workspaceName))
+        {
+            return;
+        }
+
+        IsWorkspacePopupOpen = false;
+        IsWorkspaceSwitching = true;
+        IsModulesLoading = true;
+        CurrentModuleHealth = "Warning";
+        CurrentModuleHealthMessage = "工作區切換中";
+
+        _workspaceSwitchStartedTimestamp = Stopwatch.GetTimestamp();
+        _workspaceSwitchToken++;
+        var token = _workspaceSwitchToken;
+
+        services.ActivateWorkspace(workspaceName);
+        ApplySnapshot();
+        _ = ApplyWorkspaceSwitchCompleted(token);
+    }
+
+    private async Task ApplyWorkspaceSwitchCompleted(int token)
+    {
+        var elapsed = Stopwatch.GetElapsedTime(_workspaceSwitchStartedTimestamp).TotalMilliseconds;
+        var remaining = WorkspaceSwitchShimmerMinimumMilliseconds - elapsed;
+
+        if (remaining > 0)
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(remaining));
+        }
+
+        if (_workspaceSwitchToken != token)
+        {
+            return;
+        }
+
+        IsWorkspaceSwitching = false;
+    }
+
+    private void OnRuntimeChanged(object? sender, EventArgs e) => PostToUi(ApplySnapshot);
+
+    private void OnModuleHealthChanged(string moduleId, ModuleHealth health, string? message)
     {
         if (_contentModuleId is null || !string.Equals(moduleId, _contentModuleId, StringComparison.OrdinalIgnoreCase))
         {
@@ -387,6 +352,32 @@ public sealed class MainWindowViewModel(MainWindowServices services) : ViewModel
         });
     }
 
+    private void ApplySnapshot()
+    {
+        ApplyWorkspaceSnapshot();
+        ApplyModulesSnapshot();
+        ApplyStatusSnapshot();
+    }
+
+    private void ApplyWorkspaceSnapshot()
+    {
+        var workspaceNames = services.QueryWorkspaces();
+        var active = services.QueryActiveWorkspaceName();
+        ActiveWorkspaceName = ResolveActiveWorkspaceName(workspaceNames, active);
+
+        Workspaces.Clear();
+        foreach (var name in workspaceNames)
+        {
+            Workspaces.Add(new WorkspaceItem
+            {
+                Name = name,
+                IsActive = string.Equals(name, ActiveWorkspaceName, StringComparison.OrdinalIgnoreCase),
+            });
+        }
+
+        WorkspaceBreadcrumbText = string.IsNullOrWhiteSpace(ActiveWorkspaceName) ? "工作區" : ActiveWorkspaceName;
+    }
+
     private void ApplyModulesSnapshot()
     {
         var modules = services.QueryModules();
@@ -402,56 +393,49 @@ public sealed class MainWindowViewModel(MainWindowServices services) : ViewModel
         }
 
         IsModulesLoading = false;
-        ApplyWorkspaceSwitchCompleted();
         CurrentModuleHealth = "Healthy";
-        CurrentModuleHealthMessage = modules.Count == 0 ? "目前工作區沒有模組" : "模組狀態正常";
-    }
-
-    private async void ApplyWorkspaceSwitchCompleted()
-    {
-        var token = _workspaceSwitchToken;
-        var elapsedMilliseconds = Stopwatch.GetElapsedTime(_workspaceSwitchStartedTimestamp).TotalMilliseconds;
-        var remainingMilliseconds = WorkspaceSwitchShimmerMinimumMilliseconds - elapsedMilliseconds;
-
-        if (remainingMilliseconds > 0)
-        {
-            await Task.Delay(TimeSpan.FromMilliseconds(remainingMilliseconds));
-        }
-
-        if (_workspaceSwitchToken != token)
-        {
-            return;
-        }
-
-        IsWorkspaceSwitching = false;
+        CurrentModuleHealthMessage = ModuleNavItems.Count == 0 ? "目前工作區沒有模組" : "模組狀態正常";
     }
 
     private void ApplyStatusSnapshot()
     {
         StatusWorkspaceText = string.IsNullOrWhiteSpace(ActiveWorkspaceName)
-            ? "工作區：未選取"
+            ? "工作區：未選擇"
             : $"工作區：{ActiveWorkspaceName}";
         StatusModulesText = $"模組：{ModuleNavItems.Count}";
         StatusDeviceText = $"裝置：{Environment.MachineName}";
         StatusBuildText = $"版本：{Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "未知"}";
+
+        NotifyPropertyChanged(nameof(ShowNotificationBadge));
+        NotifyPropertyChanged(nameof(UnreadCount));
+        NotifyPropertyChanged(nameof(HasInboxItems));
+        NotifyPropertyChanged(nameof(ShowInboxEmptyState));
     }
 
-    private static string ResolveActiveWorkspaceName(
-        System.Collections.Generic.IReadOnlyList<string> workspaceNames,
-        string activeWorkspaceName)
-    {
-        if (workspaceNames.Count == 0)
-        {
-            return string.Empty;
-        }
-
-        return workspaceNames.Contains(activeWorkspaceName, StringComparer.OrdinalIgnoreCase)
+    private static string ResolveActiveWorkspaceName(IReadOnlyList<string> workspaceNames, string activeWorkspaceName)
+        => workspaceNames.Contains(activeWorkspaceName, StringComparer.OrdinalIgnoreCase)
             ? activeWorkspaceName
-            : workspaceNames[0];
+            : workspaceNames.FirstOrDefault() ?? string.Empty;
+
+    private void PostToUi(Action action)
+        => _uiContext.Post(_ => action(), null);
+
+    private void OnWorkspacesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        => NotifyPropertyChanged(nameof(ActiveWorkspaceName));
+
+    private void OnModulesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        => NotifyPropertyChanged(nameof(HasModuleNavItems));
+
+    private void OnInboxChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        NotifyPropertyChanged(nameof(HasInboxItems));
+        NotifyPropertyChanged(nameof(ShowInboxEmptyState));
+        NotifyPropertyChanged(nameof(ShowNotificationBadge));
+        NotifyPropertyChanged(nameof(UnreadCount));
     }
 
     /// <summary>
-    /// 工作區清單項目模型。
+    /// 工作區項目。
     /// </summary>
     public sealed class WorkspaceItem
     {
@@ -461,28 +445,33 @@ public sealed class MainWindowViewModel(MainWindowServices services) : ViewModel
         public string Name { get; init; } = string.Empty;
 
         /// <summary>
-        /// 是否為目前啟用的工作區。
+        /// 是否為啟用中的工作區。
         /// </summary>
         public bool IsActive { get; init; }
+
+        /// <summary>
+        /// 描述文字（目前未使用）。
+        /// </summary>
+        public string? Description { get; init; }
     }
 
     /// <summary>
-    /// 模組導覽項目模型。
+    /// 模組導覽項目。
     /// </summary>
     public sealed class ModuleNavItem
     {
         /// <summary>
-        /// 模組識別標記。
+        /// 導覽標記。
         /// </summary>
         public string Tag { get; init; } = string.Empty;
 
         /// <summary>
-        /// 模組圖示位元組資料。
+        /// 圖示（PNG 位元組）。
         /// </summary>
         public byte[]? Icon { get; init; }
 
         /// <summary>
-        /// 模組顯示名稱。
+        /// 顯示名稱。
         /// </summary>
         public string DisplayName { get; init; } = string.Empty;
     }

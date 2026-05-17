@@ -72,7 +72,12 @@ public sealed class EventLogDomain(EventLogCore logCore, IniCore iniCore)
     public string ExportZip()
     {
         var settings = iniCore.QuerySnapshot<SettingsModel>(SettingsSection);
-        var exportDirectoryPath = settings.LogExportFolder ?? string.Empty;
+        var exportDirectoryPath = settings.LogExportFolder;
+        if (string.IsNullOrWhiteSpace(exportDirectoryPath))
+        {
+            throw new InvalidOperationException("尚未設定日誌匯出資料夾，請先至 Settings 設定。");
+        }
+
         Directory.CreateDirectory(exportDirectoryPath);
 
         var logDirectoryPath = AppPathCore.QueryLogsDirectory();
@@ -90,4 +95,3 @@ public sealed class EventLogDomain(EventLogCore logCore, IniCore iniCore)
         return archiveFilePath;
     }
 }
-

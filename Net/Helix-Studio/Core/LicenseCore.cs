@@ -10,57 +10,51 @@ using Helix_Studio.Model;
 
 namespace Helix_Studio.Core;
 
-/// <summary>授權驗證核心。</summary>
+/// <summary>
+/// 授權驗證核心。
+/// </summary>
 public sealed class LicenseCore
 {
     private const string Salt = "HorizonNova-InSpecTool-Salt-v2";
     private const int PassThreshold = 60;
 
-    private static readonly HashSet<string> InvalidPlaceholders =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            string.Empty,
-            "To Be Filled By O.E.M.",
-            "Default string",
-            "None",
-            "System Serial Number",
-            "System Product Name",
-            "FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF",
-            "00000000-0000-0000-0000-000000000000",
-            "0000000000000000",
-        };
-
-    /// <summary>驗證主授權金鑰。</summary>
-    /// <param name="license">授權輸入模型。</param>
+    /// <summary>
+    /// 驗證主授權金鑰。
+    /// </summary>
+    /// <param name="license">授權金鑰模型。</param>
     public bool ValidateLicense(LicenseModel license)
         => Verify(string.Empty, license);
 
-    /// <summary>驗證模組授權金鑰。</summary>
-    /// <param name="moduleId">系統提供的模組識別碼。</param>
-    /// <param name="license">授權輸入模型。</param>
+    /// <summary>
+    /// 驗證模組授權金鑰。
+    /// </summary>
+    /// <param name="moduleId">模組識別碼。</param>
+    /// <param name="license">授權金鑰模型。</param>
     public bool ValidateModuleLicense(string moduleId, LicenseModel license)
         => Verify(moduleId, license);
 
-    /// <summary>查詢模組授權驗證結果。</summary>
+    /// <summary>
+    /// 查詢模組授權驗證結果。
+    /// </summary>
     /// <param name="moduleId">模組識別碼。</param>
     /// <param name="licenseKey">授權金鑰字串。</param>
-    public HorizonNova.HelixStudio.Contracts.ModuleLicenseResult QueryModuleLicenseResult(string moduleId, string licenseKey)
+    public ModuleLicenseResultModel QueryModuleLicenseResult(string moduleId, string licenseKey)
     {
         if (string.IsNullOrWhiteSpace(licenseKey))
         {
-            return HorizonNova.HelixStudio.Contracts.ModuleLicenseResult.Invalid("授權金鑰為空。");
+            return ModuleLicenseResultModel.Invalid("授權金鑰為空。");
         }
 
         try
         {
             var ok = ValidateModuleLicense(moduleId, new LicenseModel { LicenseKey = licenseKey.Trim() });
             return ok
-                ? HorizonNova.HelixStudio.Contracts.ModuleLicenseResult.Valid()
-                : HorizonNova.HelixStudio.Contracts.ModuleLicenseResult.Invalid("授權驗證失敗。");
+                ? ModuleLicenseResultModel.Valid()
+                : ModuleLicenseResultModel.Invalid("授權驗證失敗。");
         }
         catch (FormatException ex)
         {
-            return HorizonNova.HelixStudio.Contracts.ModuleLicenseResult.Invalid(ex.Message);
+            return ModuleLicenseResultModel.Invalid(ex.Message);
         }
     }
 
@@ -91,7 +85,7 @@ public sealed class LicenseCore
         var separatorIndex = key.IndexOf(':', StringComparison.Ordinal);
         if (separatorIndex < 1 || separatorIndex >= key.Length - 1)
         {
-            throw new FormatException("授權格式錯誤，應為 GUID:HASH。");
+            throw new FormatException("授權金鑰格式錯誤，必須為 GUID:HASH。");
         }
 
         var guidPart = key[..separatorIndex].Trim();
@@ -100,7 +94,7 @@ public sealed class LicenseCore
         _ = Guid.Parse(guidPart);
         if (hashPart.Length != 64)
         {
-            throw new FormatException("授權雜湊長度錯誤，應為 64 碼。");
+            throw new FormatException("授權金鑰雜湊長度錯誤，必須為 64 字元。");
         }
 
         return new ParsedKey(guidPart, hashPart);
@@ -244,6 +238,7 @@ public sealed class LicenseCore
 
     private sealed record Fingerprint(string Label, string Value, int Weight)
     {
-        public bool IsValid => !string.IsNullOrWhiteSpace(Value) && !InvalidPlaceholders.Contains(Value);
+        public bool IsValid => !string.IsNullOrWhiteSpace(Value);
     }
 }
+

@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Helix_Studio.Core;
 using Helix_Studio.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Helix_Studio.Views;
 
 /// <summary>
-/// MainWindow 的檢視層。
+/// 主視窗。
 /// </summary>
 public partial class MainWindow : Window
 {
@@ -25,7 +24,7 @@ public partial class MainWindow : Window
     private readonly Dictionary<string, UserControl> _pages = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
-    /// 建立 MainWindow 並接上 ViewModel。
+    /// 建立主視窗。
     /// </summary>
     public MainWindow()
     {
@@ -39,9 +38,9 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
-    /// 關閉視窗時釋放 ViewModel 訂閱。
+    /// 視窗關閉事件。
     /// </summary>
-    /// <param name="e">關閉事件資料。</param>
+    /// <param name="e">事件參數。</param>
     protected override void OnClosed(EventArgs e)
     {
         if (DataContext is IDisposable disposable)
@@ -94,12 +93,8 @@ public partial class MainWindow : Window
 
     private void ApplyContent(string tag)
     {
-        var provider = ((App)Application.Current).QueryServiceProvider();
-        var modulesCore = provider.GetRequiredService<ModulesCore>();
-
         if (_pageFactories.TryGetValue(tag, out var factory))
         {
-            modulesCore.DeactivateAllModuleUi();
             if (DataContext is MainWindowViewModel viewModel)
             {
                 viewModel.ApplyBreadcrumb(tag);
@@ -110,34 +105,24 @@ public partial class MainWindow : Window
             return;
         }
 
-        modulesCore.DeactivateAllModuleUi();
-
         if (DataContext is MainWindowViewModel vm)
         {
             vm.ApplyBreadcrumb(tag);
             vm.SetContentModuleId(tag);
         }
 
-        try
+        MainContent.Content = new TextBlock
         {
-            var shellFactory = provider.GetRequiredService<ShellContextFactory>();
-            var context = shellFactory.Create(tag);
-            MainContent.Content = modulesCore.LoadModule(tag, context);
-        }
-        catch (Exception ex)
-        {
-            MainContent.Content = new TextBlock
-            {
-                Text = $"模組載入失敗：{ex.Message}",
-                Margin = new Thickness(16),
-                TextWrapping = TextWrapping.Wrap,
-            };
-        }
+            Text = "目前未啟用模組 SDK，模組畫面載入功能尚未提供。",
+            Margin = new Thickness(16),
+            TextWrapping = TextWrapping.Wrap,
+        };
     }
 
     /// <summary>
-    /// 由模組管理頁或其他入口導覽至指定模組主檢視。
+    /// 由內部元件要求導覽至指定模組。
     /// </summary>
+    /// <param name="moduleId">模組識別碼。</param>
     internal void ApplyNavigateToModule(string moduleId) => ApplyContent(moduleId);
 
     private UserControl QueryOrCreatePage(string tag, Func<UserControl> factory)
@@ -152,3 +137,4 @@ public partial class MainWindow : Window
         return created;
     }
 }
+

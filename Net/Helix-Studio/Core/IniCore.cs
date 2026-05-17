@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
@@ -18,6 +19,7 @@ public sealed class IniCore : IDisposable
     private readonly string _iniFilePath;
     private readonly ConfigurationRoot _configuration;
     private readonly IDisposable _reloadSubscription;
+    private readonly SemaphoreSlim _ioLock = new(1, 1);
 
     private static readonly IReadOnlyDictionary<Type, Func<string, object>> Parsers =
         new Dictionary<Type, Func<string, object>>
@@ -92,50 +94,94 @@ public sealed class IniCore : IDisposable
 
     private void Save(params IniEntry[] entries)
     {
-        var sections = _configuration
-            .AsEnumerable()
-            .Where(pair => pair.Value is not null)
-            .Select(pair =>
-            {
-                var separatorIndex = pair.Key.IndexOf(':', StringComparison.Ordinal);
-                return separatorIndex < 0
-                    ? null
-                    : new
-                    {
-                        Section = pair.Key[..separatorIndex],
-                        Key = pair.Key[(separatorIndex + 1)..],
-                        Value = pair.Value!,
-                    };
-            })
-            .Where(item => item is not null)
-            .GroupBy(item => item!.Section, StringComparer.Ordinal)
-            .ToDictionary(
-                group => group.Key,
-                group => group.ToDictionary(item => item!.Key, item => item!.Value, StringComparer.Ordinal),
-                StringComparer.Ordinal);
-
-        foreach (var entry in entries)
+        _ioLock.Wait();
+        try
         {
-            var section = sections.TryGetValue(entry.Section, out var existing)
-                ? existing
-                : sections[entry.Section] = new Dictionary<string, string>(StringComparer.Ordinal);
+            var sections = QuerySectionsFromFile();
 
-            section[entry.Key] = entry.Value;
-        }
-
-        var output = new StringBuilder();
-        foreach (var section in sections.OrderBy(section => section.Key, StringComparer.Ordinal))
-        {
-            output.Append('[').Append(section.Key).AppendLine("]");
-            foreach (var value in section.Value.OrderBy(value => value.Key, StringComparer.Ordinal))
+            foreach (var entry in entries)
             {
-                output.Append(value.Key).Append('=').Append(value.Value).AppendLine();
+                var section = sections.TryGetValue(entry.Section, out var existing)
+                    ? existing
+                    : sections[entry.Section] = new Dictionary<string, string>(StringComparer.Ordinal);
+
+                section[entry.Key] = entry.Value;
             }
 
-            output.AppendLine();
+            var output = new StringBuilder();
+            foreach (var section in sections.OrderBy(section => section.Key, StringComparer.Ordinal))
+            {
+                output.Append('[').Append(section.Key).AppendLine("]");
+                foreach (var value in section.Value.OrderBy(value => value.Key, StringComparer.Ordinal))
+                {
+                    output.Append(value.Key).Append('=').Append(value.Value).AppendLine();
+                }
+
+                output.AppendLine();
+            }
+
+            SaveToFile(output.ToString());
+            _configuration.Reload();
+        }
+        finally
+        {
+            _ioLock.Release();
+        }
+    }
+
+    private Dictionary<string, Dictionary<string, string>> QuerySectionsFromFile()
+    {
+        var text = File.ReadAllText(_iniFilePath, Encoding.UTF8);
+        var sections = new Dictionary<string, Dictionary<string, string>>(StringComparer.Ordinal);
+        var currentSection = string.Empty;
+
+        foreach (var rawLine in text.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries))
+        {
+            var line = rawLine.Trim();
+            if (line.Length == 0)
+            {
+                continue;
+            }
+
+            if (line.StartsWith(';') || line.StartsWith('#'))
+            {
+                continue;
+            }
+
+            if (line.StartsWith('[') && line.EndsWith(']') && line.Length >= 2)
+            {
+                currentSection = line[1..^1].Trim();
+                _ = sections.TryAdd(currentSection, new Dictionary<string, string>(StringComparer.Ordinal));
+                continue;
+            }
+
+            var equalsIndex = line.IndexOf('=', StringComparison.Ordinal);
+            if (equalsIndex < 0)
+            {
+                continue;
+            }
+
+            var key = line[..equalsIndex].Trim();
+            var value = line[(equalsIndex + 1)..].Trim();
+
+            var section = sections.TryGetValue(currentSection, out var existing)
+                ? existing
+                : sections[currentSection] = new Dictionary<string, string>(StringComparer.Ordinal);
+
+            section[key] = value;
         }
 
-        File.WriteAllText(_iniFilePath, output.ToString(), new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+        return sections;
+    }
+
+    private void SaveToFile(string content)
+    {
+        var tempPath = Path.Combine(
+            Path.GetDirectoryName(_iniFilePath)!,
+            $"{Path.GetFileName(_iniFilePath)}.{Guid.NewGuid():N}.tmp");
+
+        File.WriteAllText(tempPath, content, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+        File.Move(tempPath, _iniFilePath, overwrite: true);
     }
 
     private static string ResolveIniFilePath(string? iniFilePath)
@@ -153,4 +199,3 @@ public sealed class IniCore : IDisposable
 
     private sealed record IniEntry(string Section, string Key, string Value);
 }
-
