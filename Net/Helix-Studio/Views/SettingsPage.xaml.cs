@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Helix_Studio.AppHost;
 using Helix_Studio.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
@@ -10,20 +11,22 @@ using Microsoft.Win32;
 namespace Helix_Studio.Views;
 
 /// <summary>
-/// 設定頁面的檢視層。
+/// 設定頁。
 /// </summary>
 public partial class SettingsPage : UserControl
 {
     private readonly Dictionary<string, FrameworkElement> _sectionMap;
+    private readonly LocalizationRuntime _localizationRuntime;
 
     /// <summary>
-    /// 建立設定頁面並接上 ViewModel。
+    /// 建立設定頁並綁定 ViewModel。
     /// </summary>
     public SettingsPage()
     {
         InitializeComponent();
 
         var provider = ((App)Application.Current).QueryServiceProvider();
+        _localizationRuntime = provider.GetRequiredService<LocalizationRuntime>();
         var viewModel = provider.GetRequiredService<SettingsPageViewModel>();
         DataContext = viewModel;
         viewModel.ApplyViewLoaded();
@@ -36,17 +39,6 @@ public partial class SettingsPage : UserControl
             ["Log"] = SectionLog,
             ["About"] = SectionAbout,
         };
-        Unloaded += OnUnloaded;
-    }
-
-    private void OnUnloaded(object sender, RoutedEventArgs e)
-    {
-        if (DataContext is IDisposable disposable)
-        {
-            disposable.Dispose();
-        }
-
-        Unloaded -= OnUnloaded;
     }
 
     private void SettingsSearchBox_KeyDown(object sender, KeyEventArgs e)
@@ -90,23 +82,37 @@ public partial class SettingsPage : UserControl
         var dialog = new OpenFolderDialog
         {
             InitialDirectory = viewModel.LogExportFolder,
-            Title = "選取日誌匯出資料夾",
+            Title = _localizationRuntime.QueryString("Loc_Settings_LogFolderDialogTitle"),
         };
 
         if (dialog.ShowDialog() == true)
         {
-            viewModel.ApplyLogExportFolder(dialog.FolderName);
+            var selected = dialog.FolderName ?? string.Empty;
+            viewModel.ApplyLogExportFolder(selected);
         }
     }
 
-    private void DataDensity_Click(object sender, MouseButtonEventArgs e)
+    private async void CreateWorkspace_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is not Border { Tag: string tag } || DataContext is not SettingsPageViewModel viewModel)
+        if (DataContext is not SettingsPageViewModel viewModel)
         {
             return;
         }
 
-        viewModel.DataDensityIndex = int.Parse(tag, System.Globalization.CultureInfo.InvariantCulture);
+        var confirmed = await WorkspaceCreateDialog.ShowDialogAsync(
+            _localizationRuntime.QueryString("Loc_Settings_WorkspaceCreateDialogTitle"),
+            _localizationRuntime.QueryString("Loc_Settings_WorkspaceCreateDialogBody"),
+            _localizationRuntime.QueryString("Loc_Settings_WorkspaceCreateDialogName"),
+            _localizationRuntime.QueryString("Loc_Settings_WorkspaceCreateDialogDescription"),
+            _localizationRuntime.QueryString("Loc_Common_Create"),
+            _localizationRuntime.QueryString("Loc_Common_Cancel")).ConfigureAwait(true);
+
+        if (!confirmed)
+        {
+            return;
+        }
+
+        viewModel.ApplyCreateWorkspaceNow(WorkspaceCreateDialog.Input1Text, WorkspaceCreateDialog.Input2Text);
     }
 
     private void ScrollToSection(string sectionTag)

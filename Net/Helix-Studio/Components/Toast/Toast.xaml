@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:shell="clr-namespace:Helix_Studio.Components"
              mc:Ignorable="d"
              x:Name="Root"
              d:DesignWidth="340" d:DesignHeight="100"
@@ -20,7 +21,28 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Background="{DynamicResource AccentPrimary}"/>
+            <Border x:Name="SeverityBar"
+                    Grid.Column="0">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Background" Value="{DynamicResource AccentPrimary}"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Severity, ElementName=Root}" Value="Information">
+                                <Setter Property="Background" Value="{DynamicResource AccentPrimary}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Severity, ElementName=Root}" Value="Success">
+                                <Setter Property="Background" Value="{DynamicResource StatusSuccess}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Severity, ElementName=Root}" Value="Warning">
+                                <Setter Property="Background" Value="{DynamicResource StatusWarning}"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Severity, ElementName=Root}" Value="Error">
+                                <Setter Property="Background" Value="{DynamicResource StatusDanger}"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+            </Border>
 
             <Button Width="24"
                     Height="24"
@@ -30,10 +52,9 @@
                     BorderThickness="0"
                     Background="Transparent"
                     Click="CloseButton_Click">
-                <TextBlock Text="&#xE711;"
-                        FontFamily="Segoe MDL2 Assets"
-                        FontSize="10"
-                        Foreground="{DynamicResource TextTertiary}"/>
+                <shell:SvgIcon Source="/Assets/lucide/x.svg"
+                               Width="10" Height="10"
+                               Foreground="{DynamicResource TextTertiary}"/>
             </Button>
 
             <StackPanel Grid.Column="1" Margin="12,8,36,8">
@@ -57,6 +78,7 @@
                         IsReadOnly="True"
                         IsReadOnlyCaretVisible="False"/>
             </StackPanel>
+
         </Grid>
     </Border>
 </UserControl>

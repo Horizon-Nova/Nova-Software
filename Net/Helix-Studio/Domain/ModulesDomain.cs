@@ -3,30 +3,32 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Helix_Studio.Core;
+using Helix_Studio.Data.Repositories;
 using Helix_Studio.Model;
 
 namespace Helix_Studio.Domain;
 
 /// <summary>
-/// 模組功能 Domain。
+/// 模組 Domain（提供模組管理頁所需資料與操作）。
 /// </summary>
-public sealed class ModulesDomain(IniCore iniCore, ModulesCore modulesCore)
+public sealed class ModulesDomain(
+    ModulesRepository modulesRepository,
+    IniRepository iniRepository)
 {
     /// <summary>
-    /// 模組或相關 I/O 變更事件。
+    /// 模組或工作區變更事件。
     /// </summary>
     public event EventHandler? Changed
     {
         add
         {
-            modulesCore.Changed += value;
-            iniCore.Changed += value;
+            modulesRepository.Changed += value;
+            iniRepository.Changed += value;
         }
         remove
         {
-            modulesCore.Changed -= value;
-            iniCore.Changed -= value;
+            modulesRepository.Changed -= value;
+            iniRepository.Changed -= value;
         }
     }
 
@@ -34,13 +36,13 @@ public sealed class ModulesDomain(IniCore iniCore, ModulesCore modulesCore)
     /// 查詢目前工作區的模組目錄路徑。
     /// </summary>
     public string QueryModulesDirectoryPath()
-        => modulesCore.QueryModulesDirectoryPath();
+        => modulesRepository.QueryModulesDirectoryPath();
 
     /// <summary>
     /// 查詢已安裝模組清單。
     /// </summary>
     public IReadOnlyList<ModulesInstalledItemModel> QueryModules()
-        => modulesCore.QueryModules()
+        => modulesRepository.QueryModules()
             .Select(QueryInstalledItem)
             .OrderBy(static item => item.DisplayName, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -48,25 +50,22 @@ public sealed class ModulesDomain(IniCore iniCore, ModulesCore modulesCore)
     /// <summary>
     /// 匯入模組。
     /// </summary>
-    /// <param name="sourceDirectoryPath">來源模組資料夾。</param>
     public ModulesInstalledItemModel ImportModule(string sourceDirectoryPath)
-        => QueryInstalledItem(modulesCore.ImportModule(sourceDirectoryPath));
+        => QueryInstalledItem(modulesRepository.ImportModule(sourceDirectoryPath));
 
     /// <summary>
     /// 停用模組。
     /// </summary>
-    /// <param name="moduleId">模組識別碼。</param>
     public void DisableModule(string moduleId)
-        => modulesCore.DisableModule(moduleId);
+        => modulesRepository.DisableModule(moduleId);
 
     /// <summary>
     /// 解除安裝模組（刪除安裝資料夾）。
     /// </summary>
-    /// <param name="installedFolderPath">模組安裝資料夾。</param>
     public void UninstallModule(string installedFolderPath)
-        => modulesCore.DeleteModule(installedFolderPath);
+        => modulesRepository.DeleteModule(installedFolderPath);
 
-    private ModulesInstalledItemModel QueryInstalledItem(ModuleModel module)
+    private static ModulesInstalledItemModel QueryInstalledItem(ModuleModel module)
     {
         var readmeText = QueryReadmeText(module.FolderPath);
         var statusText = module.RequiresLicense ? "需要授權" : "可使用";
@@ -89,7 +88,7 @@ public sealed class ModulesDomain(IniCore iniCore, ModulesCore modulesCore)
     private static string QueryReadmeText(string moduleDirectoryPath)
     {
         var readmePath = Directory.EnumerateFiles(moduleDirectoryPath, "*", SearchOption.TopDirectoryOnly)
-            .FirstOrDefault(path =>
+            .FirstOrDefault(static path =>
             {
                 var name = Path.GetFileName(path);
                 return name.Equals("README.md", StringComparison.OrdinalIgnoreCase)
@@ -97,12 +96,6 @@ public sealed class ModulesDomain(IniCore iniCore, ModulesCore modulesCore)
                     || name.Equals("README", StringComparison.OrdinalIgnoreCase);
             });
 
-        if (readmePath is null)
-        {
-            return string.Empty;
-        }
-
-        return File.ReadAllText(readmePath, Encoding.UTF8);
+        return readmePath is null ? string.Empty : File.ReadAllText(readmePath, Encoding.UTF8);
     }
 }
-

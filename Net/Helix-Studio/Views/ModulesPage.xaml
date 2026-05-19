@@ -32,8 +32,10 @@
                     <TextBlock Text="Modules  ·  模組管理"
                                Style="{DynamicResource SectionTitle}" Margin="0"/>
                     <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                        <TextBlock Text="&#xE8B7;" FontFamily="Segoe MDL2 Assets" FontSize="11"
-                                   Foreground="{DynamicResource TextTertiary}" VerticalAlignment="Center"/>
+                        <modulesViews:SvgIcon Source="/Assets/lucide/folder-open.svg"
+                                              Width="12" Height="12"
+                                              Foreground="{DynamicResource TextTertiary}"
+                                              VerticalAlignment="Center"/>
                         <TextBlock Text="{Binding ModulesDirectoryPath}"
                                    FontSize="11" FontFamily="Consolas, Cascadia Mono"
                                    Foreground="{DynamicResource TextTertiary}"
@@ -51,8 +53,10 @@
                             Command="{Binding ImportCommand}"
                             Padding="12,6">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE8F4;" FontFamily="Segoe MDL2 Assets"
-                                       FontSize="12" VerticalAlignment="Center"/>
+                            <modulesViews:SvgIcon Source="/Assets/lucide/package-plus.svg"
+                                                  Width="14" Height="14"
+                                                  Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                  VerticalAlignment="Center"/>
                             <TextBlock Text="導入模組" Margin="6,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
@@ -95,9 +99,10 @@
                                 VerticalAlignment="Center" HorizontalAlignment="Center"
                                 Margin="16"
                                 Visibility="{Binding ShowEmptyState, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="&#xECAA;" FontFamily="Segoe MDL2 Assets" FontSize="36"
-                                   Foreground="{DynamicResource TextTertiary}"
-                                   HorizontalAlignment="Center"/>
+                        <modulesViews:SvgIcon Source="/Assets/lucide/package.svg"
+                                              Width="36" Height="36"
+                                              Foreground="{DynamicResource TextTertiary}"
+                                              HorizontalAlignment="Center"/>
                         <TextBlock Text="尚未安裝模組" FontSize="13" FontWeight="SemiBold"
                                    Foreground="{DynamicResource TextSecondary}"
                                    HorizontalAlignment="Center" Margin="0,12,0,4"/>
@@ -158,12 +163,12 @@
                                                    Width="20" Height="20"
                                                    RenderOptions.BitmapScalingMode="HighQuality"
                                                    Visibility="{Binding Icon, Converter={StaticResource NullToCollapsed}}"/>
-                                            <TextBlock Text="&#xECAA;"
-                                                       FontFamily="Segoe MDL2 Assets" FontSize="14"
-                                                       Foreground="{DynamicResource AccentPrimary}"
-                                                       HorizontalAlignment="Center"
-                                                       VerticalAlignment="Center"
-                                                       Visibility="{Binding Icon, Converter={StaticResource NullToVisible}}"/>
+                                            <modulesViews:SvgIcon Source="/Assets/lucide/package.svg"
+                                                                  Width="14" Height="14"
+                                                                  Foreground="{DynamicResource AccentPrimary}"
+                                                                  HorizontalAlignment="Center"
+                                                                  VerticalAlignment="Center"
+                                                                  Visibility="{Binding Icon, Converter={StaticResource NullToVisible}}"/>
                                         </Grid>
                                     </Border>
 
@@ -196,9 +201,10 @@
 
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
                             Visibility="{Binding NoSelection, Converter={StaticResource BoolToVisibility}}">
-                    <TextBlock Text="&#xECAA;" FontFamily="Segoe MDL2 Assets" FontSize="48"
-                               Foreground="{DynamicResource TextTertiary}"
-                               HorizontalAlignment="Center"/>
+                    <modulesViews:SvgIcon Source="/Assets/lucide/package.svg"
+                                          Width="48" Height="48"
+                                          Foreground="{DynamicResource TextTertiary}"
+                                          HorizontalAlignment="Center"/>
                     <TextBlock Text="選擇左側模組以查看詳細資訊"
                                FontSize="13" Foreground="{DynamicResource TextTertiary}"
                                HorizontalAlignment="Center" Margin="0,16,0,0"/>
@@ -223,11 +229,11 @@
                                            Width="32" Height="32"
                                            RenderOptions.BitmapScalingMode="HighQuality"
                                            Visibility="{Binding Icon, Converter={StaticResource NullToCollapsed}}"/>
-                                    <TextBlock Text="&#xECAA;"
-                                               FontFamily="Segoe MDL2 Assets" FontSize="22"
-                                               Foreground="{DynamicResource AccentPrimary}"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"
-                                               Visibility="{Binding Icon, Converter={StaticResource NullToVisible}}"/>
+                                    <modulesViews:SvgIcon Source="/Assets/lucide/package.svg"
+                                                          Width="22" Height="22"
+                                                          Foreground="{DynamicResource AccentPrimary}"
+                                                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                          Visibility="{Binding Icon, Converter={StaticResource NullToVisible}}"/>
                                 </Grid>
                             </Border>
 
@@ -312,8 +318,10 @@
                                               RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     Padding="16,8" Margin="0,0,8,0">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="&#xE7E8;" FontFamily="Segoe MDL2 Assets"
-                                               FontSize="11" VerticalAlignment="Center"/>
+                                    <modulesViews:SvgIcon Source="/Assets/lucide/ban.svg"
+                                                          Width="12" Height="12"
+                                                          Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                          VerticalAlignment="Center"/>
                                     <TextBlock Text="停用模組" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
@@ -322,8 +330,10 @@
                                               RelativeSource={RelativeSource AncestorType=UserControl}}"
                                     Padding="16,8">
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets"
-                                               FontSize="11" VerticalAlignment="Center"/>
+                                    <modulesViews:SvgIcon Source="/Assets/lucide/trash-2.svg"
+                                                          Width="12" Height="12"
+                                                          Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                          VerticalAlignment="Center"/>
                                     <TextBlock Text="移除模組" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>

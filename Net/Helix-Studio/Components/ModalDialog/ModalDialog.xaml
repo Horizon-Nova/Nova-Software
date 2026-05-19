@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:shell="clr-namespace:Helix_Studio.Components"
              mc:Ignorable="d"
              x:Name="Root"
              d:DesignWidth="520"
@@ -33,11 +34,10 @@
                         Padding="16,0">
 
                     <DockPanel VerticalAlignment="Center">
-                        <TextBlock Text="&#xE783;"
-                                   FontFamily="Segoe MDL2 Assets"
-                                   FontSize="14"
-                                   Foreground="{DynamicResource AccentPrimary}"
-                                   Margin="0,0,8,0"/>
+                        <shell:SvgIcon Source="/Assets/lucide/info.svg"
+                                       Width="14" Height="14"
+                                       Foreground="{DynamicResource AccentPrimary}"
+                                       Margin="0,0,8,0"/>
 
                         <TextBlock Text="{Binding Title, ElementName=Root, Mode=OneWay, FallbackValue=請確認操作}"
                                    FontSize="14"

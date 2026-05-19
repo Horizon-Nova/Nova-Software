@@ -27,6 +27,7 @@ obj/
 *.pdb
 *.db
 *.lock
+*.lscache
 
 # NuGet 相關 (允許 `packages/`，但忽略還原時的 cache 和 log)
 # 排除 NuGet 還原的中繼文件
@@ -61,6 +62,9 @@ HNB/Areas/Backoffice/storage/
 Sites/
 
 QdrantEmbedding
+
+# 臨時備份資料夾
+Net/BK/
 
 # Node.js
 npm-debug.log

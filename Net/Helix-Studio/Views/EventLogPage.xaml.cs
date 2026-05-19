@@ -22,17 +22,6 @@ public partial class EventLogPage : UserControl
         var viewModel = provider.GetRequiredService<EventLogPageViewModel>();
         DataContext = viewModel;
         viewModel.ApplyViewLoaded();
-        Unloaded += OnUnloaded;
-    }
-
-    private void OnUnloaded(object sender, RoutedEventArgs e)
-    {
-        if (DataContext is IDisposable disposable)
-        {
-            disposable.Dispose();
-        }
-
-        Unloaded -= OnUnloaded;
     }
 }
 

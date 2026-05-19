@@ -25,7 +25,6 @@ public partial class ModulesPage : UserControl
         viewModel.ApplyViewLoaded();
         viewModel.ImportRequested += OnImportRequested;
         viewModel.ModuleOpenRequested += OnModuleOpenRequested;
-        Unloaded += OnUnloaded;
     }
 
     /// <summary>
@@ -40,21 +39,7 @@ public partial class ModulesPage : UserControl
         }
     }
 
-    private void OnUnloaded(object sender, RoutedEventArgs e)
-    {
-        if (DataContext is ModulesPageViewModel viewModel)
-        {
-            viewModel.ImportRequested -= OnImportRequested;
-            viewModel.ModuleOpenRequested -= OnModuleOpenRequested;
-        }
 
-        if (DataContext is IDisposable disposable)
-        {
-            disposable.Dispose();
-        }
-
-        Unloaded -= OnUnloaded;
-    }
 
     private void OnModuleOpenRequested(object? sender, string moduleId)
     {

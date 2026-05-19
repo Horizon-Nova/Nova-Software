@@ -1,13 +1,13 @@
 <Window x:Class="Helix_Studio.Views.LockWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Locked"
+        Title="{DynamicResource Loc_Lock_Title}"
         Icon="/Assets/image/AppLogo.png"
         WindowStyle="None"
         ResizeMode="NoResize"
         WindowState="Maximized"
         Topmost="True"
-        Background="{StaticResource SurfaceBase}"
+        Background="{DynamicResource SurfaceBase}"
         FontFamily="Segoe UI, Microsoft JhengHei UI"
         TextOptions.TextFormattingMode="Display"
         TextOptions.TextRenderingMode="ClearType"
@@ -15,8 +15,8 @@
         SnapsToDevicePixels="True">
 
     <Grid>
-        <Border Background="{StaticResource SurfaceRaised}"
-                BorderBrush="{StaticResource BorderLight}"
+        <Border Background="{DynamicResource SurfaceRaised}"
+                BorderBrush="{DynamicResource BorderLight}"
                 BorderThickness="1"
                 CornerRadius="6"
                 Padding="32"
@@ -24,22 +24,25 @@
                 VerticalAlignment="Center"
                 MaxWidth="520">
             <StackPanel>
-                <TextBlock Text="已鎖定"
+                <TextBlock Text="{DynamicResource Loc_Lock_Header}"
                            FontSize="22"
                            FontWeight="SemiBold"
-                           Foreground="{StaticResource TextPrimary}"/>
-                <TextBlock Text="因閒置時間過長，已自動鎖定。"
+                           Foreground="{DynamicResource TextPrimary}"/>
+                <TextBlock Text="{DynamicResource Loc_Lock_Body1}"
                            Margin="0,10,0,0"
                            FontSize="13"
-                           Foreground="{StaticResource TextSecondary}"/>
-                <TextBlock Text="按下「解除鎖定」即可繼續使用。"
+                           Foreground="{DynamicResource TextSecondary}"/>
+                <TextBlock Text="{DynamicResource Loc_Lock_Body2}"
                            Margin="0,6,0,0"
                            FontSize="12"
-                           Foreground="{StaticResource TextTertiary}"/>
+                           Foreground="{DynamicResource TextTertiary}"/>
 
                 <StackPanel Orientation="Horizontal" Margin="0,22,0,0" HorizontalAlignment="Right">
-                    <Button Style="{StaticResource PrimaryButton}" Width="120" Height="34"
-                            Content="解除鎖定" Click="Unlock_Click"/>
+                    <Button Style="{DynamicResource PrimaryButton}"
+                            Width="120"
+                            Height="34"
+                            Content="{DynamicResource Loc_Lock_Unlock}"
+                            Click="Unlock_Click"/>
                 </StackPanel>
             </StackPanel>
         </Border>

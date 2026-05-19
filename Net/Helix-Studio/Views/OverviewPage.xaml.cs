@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using Helix_Studio.ViewModels;
@@ -11,6 +12,14 @@ namespace Helix_Studio.Views;
 /// </summary>
 public partial class OverviewPage : UserControl
 {
+    private static readonly IReadOnlyDictionary<string, string> QuickNavPageIds =
+        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Settings"] = "settings",
+            ["Modules"] = "modules",
+            ["EventLog"] = "eventlog",
+        };
+
     /// <summary>
     /// 建立概覽頁面並接上 ViewModel。
     /// </summary>
@@ -22,17 +31,6 @@ public partial class OverviewPage : UserControl
         var viewModel = provider.GetRequiredService<OverviewPageViewModel>();
         DataContext = viewModel;
         viewModel.ApplyViewLoaded();
-        Unloaded += OnUnloaded;
-    }
-
-    private void OnUnloaded(object sender, RoutedEventArgs e)
-    {
-        if (DataContext is IDisposable disposable)
-        {
-            disposable.Dispose();
-        }
-
-        Unloaded -= OnUnloaded;
     }
 
     private void GoToSettings_Click(object sender, RoutedEventArgs e)
@@ -52,15 +50,16 @@ public partial class OverviewPage : UserControl
 
     private void ApplyNavigation(string tag)
     {
-        if (Window.GetWindow(this) is not MainWindow mainWindow)
+        if (!QuickNavPageIds.TryGetValue(tag, out var pageId))
         {
             return;
         }
 
-        var radio = mainWindow.FindName($"Nav{tag}") as RadioButton;
-        if (radio is not null)
+        if (Window.GetWindow(this)?.DataContext is not MainWindowWindowViewModel shellViewModel)
         {
-            radio.IsChecked = true;
+            return;
         }
+
+        shellViewModel.NavigateCommand.Execute(pageId);
     }
 }

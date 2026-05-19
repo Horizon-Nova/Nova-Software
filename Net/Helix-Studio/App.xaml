@@ -1,4 +1,4 @@
-﻿<Application x:Class="Helix_Studio.App"
+<Application x:Class="Helix_Studio.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Helix_Studio"
@@ -8,18 +8,22 @@
             <conv:BoolToVisibilityConverter x:Key="BoolToVisibility" />
             <conv:NullToCollapsedConverter x:Key="NullToCollapsed" />
             <conv:NullToVisibleConverter x:Key="NullToVisible" />
+            <conv:InverseBoolConverter x:Key="InverseBool" />
+            <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility" />
+            <conv:IntEqualsToBooleanConverter x:Key="IntEqualsToBoolean" />
+            <conv:FormatStringConverter x:Key="FormatString" />
             <conv:PngBytesToImageSourceConverter x:Key="PngBytesToImageSource" />
+            <conv:StringEqualsToBooleanConverter x:Key="StringEqualsToBoolean" />
+            <conv:StringEqualsMultiBooleanConverter x:Key="StringEqualsMultiBoolean" />
+            <conv:StringEqualsToVisibilityConverter x:Key="StringEqualsToVisibility" />
             <ResourceDictionary.MergedDictionaries>
-                <!-- Design-time defaults; runtime is controlled by AppearanceCore/ThemeCore. -->
+                <ResourceDictionary Source="Themes/ShellColors.xaml" />
                 <ResourceDictionary Source="Themes/ShellChromeStyles.xaml" />
                 <ResourceDictionary Source="Themes/ShellTypography.xaml" />
                 <ResourceDictionary Source="Themes/ShellScrollStyles.xaml" />
                 <ResourceDictionary Source="Themes/ShellSettingsStyles.xaml" />
                 <ResourceDictionary Source="Themes/ShellMarkdownStyles.xaml" />
-                <ResourceDictionary Source="Themes/ShellColors.xaml" />
-                <ResourceDictionary Source="Themes/Locale/Strings.zh-Hant.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
-

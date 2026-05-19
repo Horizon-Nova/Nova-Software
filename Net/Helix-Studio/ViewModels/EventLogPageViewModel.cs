@@ -5,8 +5,9 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Windows.Input;
+using Helix_Studio.AppHost;
+using Helix_Studio.Domain;
 using Helix_Studio.Model;
-using Helix_Studio.Services;
 using Helix_Studio.ViewModels.Base;
 
 namespace Helix_Studio.ViewModels;
@@ -14,7 +15,10 @@ namespace Helix_Studio.ViewModels;
 /// <summary>
 /// 事件日誌頁面的 UI 狀態機。
 /// </summary>
-public sealed class EventLogPageViewModel(EventLogServices services) : ViewModelBase, IDisposable
+public sealed class EventLogPageViewModel(
+    EventLogDomain domain,
+    NotificationRuntime notificationRuntime,
+    LocalizationRuntime localizationRuntime) : ViewModelBase, IDisposable
 {
     private SynchronizationContext _synchronizationContext = new();
     private RelayCommand? _setLevelFilterCommand;
@@ -81,7 +85,7 @@ public sealed class EventLogPageViewModel(EventLogServices services) : ViewModel
         }
 
         _synchronizationContext = SynchronizationContext.Current ?? new SynchronizationContext();
-        services.Changed += OnChanged;
+        domain.Changed += OnChanged;
         Entries.CollectionChanged += OnEntriesChanged;
         ApplySnapshot();
         _isInitialized = true;
@@ -99,7 +103,7 @@ public sealed class EventLogPageViewModel(EventLogServices services) : ViewModel
 
         if (_isInitialized)
         {
-            services.Changed -= OnChanged;
+            domain.Changed -= OnChanged;
             Entries.CollectionChanged -= OnEntriesChanged;
         }
 
@@ -126,7 +130,7 @@ public sealed class EventLogPageViewModel(EventLogServices services) : ViewModel
         var keyword = Keyword?.Trim() ?? string.Empty;
         var filter = _levelFilter;
 
-        var entries = services.QueryEntries()
+        var entries = domain.QueryEntries()
             .Where(entry => filter == "All" || string.Equals(entry.Level.ToString(), filter, StringComparison.OrdinalIgnoreCase))
             .Where(entry => string.IsNullOrEmpty(keyword)
                 || entry.Message.Contains(keyword, StringComparison.OrdinalIgnoreCase)
@@ -143,7 +147,27 @@ public sealed class EventLogPageViewModel(EventLogServices services) : ViewModel
 
     private void ApplyExportZip()
     {
-        _ = services.ExportZip();
+        try
+        {
+            var zipPath = domain.ExportZip();
+            notificationRuntime.Request(new NotificationRequest
+            {
+                Title = localizationRuntime.QueryString("Loc_Toast_LogsExportedTitle"),
+                Message = localizationRuntime.QueryString("Loc_Toast_LogsExportedBody"),
+                Severity = NotificationSeverity.Success,
+                Action = NotificationAction.RevealInFolder,
+                ActionPath = zipPath,
+            });
+        }
+        catch (Exception ex)
+        {
+            notificationRuntime.Request(new NotificationRequest
+            {
+                Title = localizationRuntime.QueryString("Loc_Toast_LogsExportFailedTitle"),
+                Message = ex.Message,
+                Severity = NotificationSeverity.Error,
+            });
+        }
     }
 
     /// <summary>

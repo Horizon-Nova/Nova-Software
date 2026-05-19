@@ -1,0 +1,12 @@
+<UserControl x:Class="Helix_Studio.Components.SvgIcon"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:svgc="http://sharpvectors.codeplex.com/svgc/">
+    <Grid Margin="0.5">
+        <svgc:SvgIcon x:Name="IconHost"
+                      Stretch="Uniform"
+                      Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                      UriSource="{Binding Source, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                      Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+    </Grid>
+</UserControl>

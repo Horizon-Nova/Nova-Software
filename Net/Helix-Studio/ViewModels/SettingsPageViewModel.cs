@@ -2,33 +2,40 @@ using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Threading;
 using System.Windows.Input;
+using Helix_Studio.AppHost;
+using Helix_Studio.Domain;
 using Helix_Studio.Model;
-using Helix_Studio.Services;
 using Helix_Studio.ViewModels.Base;
 
 namespace Helix_Studio.ViewModels;
 
 /// <summary>
-/// 設定頁面的 UI 狀態機。
+/// 設定頁面的 ViewModel（UI 狀態機）。
 /// </summary>
-public sealed class SettingsPageViewModel(SettingsServices services) : ViewModelBase, IDisposable
+public sealed class SettingsPageViewModel(
+    ApplicationRuntime applicationRuntime,
+    SettingsDomain domain,
+    NotificationRuntime notificationRuntime,
+    LocalizationRuntime localizationRuntime) : ViewModelBase, IDisposable
 {
-    private static readonly SettingsSearchSuggestionModel[] SectionSuggestions =
+    private const string ZhHantLanguageCode = "zh-Hant";
+    private const string EnLanguageCode = "en";
+
+    private static readonly (string Tag, string DisplayKey)[] SectionSuggestions =
     [
-        new() { SectionTag = "General", Display = "General 一般" },
-        new() { SectionTag = "Display", Display = "Display 顯示" },
-        new() { SectionTag = "Workspaces", Display = "Workspaces 工作區" },
-        new() { SectionTag = "Modules", Display = "Modules 模組設定" },
-        new() { SectionTag = "Log", Display = "Log 日誌設定" },
-        new() { SectionTag = "About", Display = "About 關於" },
+        ("General", "Loc_Settings_SectionGeneral"),
+        ("Display", "Loc_Settings_SectionDisplay"),
+        ("Workspaces", "Loc_Settings_SectionWorkspaces"),
+        ("Modules", "Loc_Settings_SectionModules"),
+        ("Log", "Loc_Settings_SectionLog"),
+        ("About", "Loc_Settings_SectionAbout"),
     ];
 
     private readonly ObservableCollection<SettingsSearchSuggestionModel> _searchSuggestions = [];
     private readonly ObservableCollection<SettingsWorkspaceItemModel> _workspaces = [];
     private readonly ObservableCollection<SettingsModuleCardModel> _moduleSettingsCards = [];
-    private SynchronizationContext _synchronizationContext = new();
+
     private RelayCommand? _reloadCommand;
     private RelayCommand? _saveCommand;
     private RelayCommand? _discardCommand;
@@ -36,29 +43,41 @@ public sealed class SettingsPageViewModel(SettingsServices services) : ViewModel
     private RelayCommand? _deleteWorkspaceCommand;
     private RelayCommand? _exportLogsCommand;
     private RelayCommand? _openLegalNoticesCommand;
+
     private bool _isInitialized;
     private bool _isDisposed;
     private bool _isApplyingSnapshot;
+    private bool _isSaving;
+    private int _baselineLanguageIndex;
+    private int _baselineStartPageIndex;
+    private int _baselineInactivityIndex;
+    private int _baselineThemeIndex;
+    private int _baselineFontScaleIndex;
+    private int _baselineDataDensityIndex;
+    private int _baselineLogLevelIndex;
+    private int _baselineLogRetentionIndex;
+    private string _baselineLogExportFolder = string.Empty;
+
     private string _searchQuery = string.Empty;
     private bool _isSearchPopupOpen;
     private SettingsSearchSuggestionModel? _selectedSearchSuggestion;
+
     private bool _isDirty;
     private int _dataDensityIndex;
     private int _fontScaleIndex;
     private int _inactivityIndex;
     private int _languageIndex;
-    private string _lastVisitedPageTag = string.Empty;
     private string _logExportFolder = string.Empty;
     private int _logLevelIndex;
     private int _logRetentionIndex;
     private int _startPageIndex;
     private int _themeIndex;
-    private string _aboutVersionText = "—";
-    private string _aboutBuildDateText = "—";
-    private string _aboutLicenseExpiryText = "—";
+    private string _aboutVersionText = "-";
+    private string _aboutBuildDateText = "-";
+    private string _aboutLicenseExpiryText = "-";
 
     /// <summary>
-    /// 搜尋文字。
+    /// 搜尋輸入內容。
     /// </summary>
     public string SearchQuery
     {
@@ -75,7 +94,7 @@ public sealed class SettingsPageViewModel(SettingsServices services) : ViewModel
     }
 
     /// <summary>
-    /// 是否開啟搜尋建議清單。
+    /// 是否顯示搜尋建議彈出層。
     /// </summary>
     public bool IsSearchPopupOpen
     {
@@ -84,12 +103,12 @@ public sealed class SettingsPageViewModel(SettingsServices services) : ViewModel
     }
 
     /// <summary>
-    /// 搜尋建議清單。
+    /// 搜尋建議清單（供 XAML 綁定）。
     /// </summary>
     public ObservableCollection<SettingsSearchSuggestionModel> SearchSuggestions => _searchSuggestions;
 
     /// <summary>
-    /// 目前選中的搜尋建議。
+    /// 當前選取的搜尋建議。
     /// </summary>
     public SettingsSearchSuggestionModel? SelectedSearchSuggestion
     {
@@ -98,7 +117,7 @@ public sealed class SettingsPageViewModel(SettingsServices services) : ViewModel
     }
 
     /// <summary>
-    /// 使用者是否已修改但尚未儲存。
+    /// 是否存在尚未儲存的變更。
     /// </summary>
     public bool IsDirty
     {
@@ -116,12 +135,17 @@ public sealed class SettingsPageViewModel(SettingsServices services) : ViewModel
     }
 
     /// <summary>
-    /// 設定頁面的工作區卡片清單。
+    /// 工作區清單（供 XAML 綁定）。
     /// </summary>
     public ObservableCollection<SettingsWorkspaceItemModel> Workspaces => _workspaces;
 
     /// <summary>
-    /// 設定頁面的模組卡片清單。
+    /// 是否顯示工作區空狀態。
+    /// </summary>
+    public bool ShowWorkspacesEmptyState => Workspaces.Count == 0;
+
+    /// <summary>
+    /// 模組卡片資料來源（供 XAML 綁定）。
     /// </summary>
     public ObservableCollection<SettingsModuleCardModel> ModuleSettingsCards => _moduleSettingsCards;
 
@@ -130,163 +154,119 @@ public sealed class SettingsPageViewModel(SettingsServices services) : ViewModel
     /// </summary>
     public bool ShowModulesEmptyState => ModuleSettingsCards.Count == 0;
 
-    /// <summary>
-    /// 是否顯示工作區空狀態。
-    /// </summary>
-    public bool ShowWorkspacesEmptyState => Workspaces.Count == 0;
-
-    /// <summary>
-    /// 語言選單索引。
-    /// </summary>
     public int LanguageIndex
     {
         get => _languageIndex;
         set => SetSettingsField(ref _languageIndex, value);
     }
 
-    /// <summary>
-    /// 起始頁面選單索引。
-    /// </summary>
     public int StartPageIndex
     {
         get => _startPageIndex;
         set => SetSettingsField(ref _startPageIndex, value);
     }
 
-    /// <summary>
-    /// 非活躍逾時選單索引。
-    /// </summary>
     public int InactivityIndex
     {
         get => _inactivityIndex;
         set => SetSettingsField(ref _inactivityIndex, value);
     }
 
-    /// <summary>
-    /// 佈景主題選單索引。
-    /// </summary>
     public int ThemeIndex
     {
         get => _themeIndex;
         set => SetSettingsField(ref _themeIndex, value);
     }
 
-    /// <summary>
-    /// 字型縮放選單索引。
-    /// </summary>
     public int FontScaleIndex
     {
         get => _fontScaleIndex;
         set => SetSettingsField(ref _fontScaleIndex, value);
     }
 
-    /// <summary>
-    /// 資料密度選單索引。
-    /// </summary>
     public int DataDensityIndex
     {
         get => _dataDensityIndex;
         set => SetSettingsField(ref _dataDensityIndex, value);
     }
 
-    /// <summary>
-    /// 日誌等級選單索引。
-    /// </summary>
     public int LogLevelIndex
     {
         get => _logLevelIndex;
         set => SetSettingsField(ref _logLevelIndex, value);
     }
 
-    /// <summary>
-    /// 日誌保留天數選單索引。
-    /// </summary>
     public int LogRetentionIndex
     {
         get => _logRetentionIndex;
         set => SetSettingsField(ref _logRetentionIndex, value);
     }
 
-    /// <summary>
-    /// 日誌匯出資料夾。
-    /// </summary>
     public string LogExportFolder
     {
         get => _logExportFolder;
         set => SetSettingsField(ref _logExportFolder, value);
     }
 
-    /// <summary>
-    /// 關於頁版本文字。
-    /// </summary>
     public string AboutVersionText
     {
         get => _aboutVersionText;
         private set => SetField(ref _aboutVersionText, value);
     }
 
-    /// <summary>
-    /// 關於頁建置日期文字。
-    /// </summary>
     public string AboutBuildDateText
     {
         get => _aboutBuildDateText;
         private set => SetField(ref _aboutBuildDateText, value);
     }
 
-    /// <summary>
-    /// 關於頁授權到期日文字。
-    /// </summary>
     public string AboutLicenseExpiryText
     {
         get => _aboutLicenseExpiryText;
         private set => SetField(ref _aboutLicenseExpiryText, value);
     }
 
-    /// <summary>
-    /// 重新套用來源快照。
-    /// </summary>
     public ICommand ReloadCommand
-        => _reloadCommand ??= new RelayCommand(_ => ApplySettingsSnapshot(services.QuerySettings(), false));
+        => _reloadCommand ??= new RelayCommand(_ =>
+        {
+            ApplyAllSnapshots(markDirty: false);
+            notificationRuntime.Request(new NotificationRequest
+            {
+                Title = localizationRuntime.QueryString("Loc_Toast_SettingsReloadedTitle"),
+                Message = localizationRuntime.QueryString("Loc_Toast_SettingsReloadedBody"),
+                Severity = NotificationSeverity.Information,
+            });
+        });
 
-    /// <summary>
-    /// 儲存設定值。
-    /// </summary>
     public ICommand SaveCommand
         => _saveCommand ??= new RelayCommand(_ => ApplySave(), _ => IsDirty);
 
-    /// <summary>
-    /// 放棄未儲存變更。
-    /// </summary>
     public ICommand DiscardCommand
-        => _discardCommand ??= new RelayCommand(_ => ApplySettingsSnapshot(services.QuerySettings(), false), _ => IsDirty);
+        => _discardCommand ??= new RelayCommand(_ =>
+        {
+            ApplyDiscard();
+            notificationRuntime.Request(new NotificationRequest
+            {
+                Title = localizationRuntime.QueryString("Loc_Toast_SettingsDiscardedTitle"),
+                Message = localizationRuntime.QueryString("Loc_Toast_SettingsDiscardedBody"),
+                Severity = NotificationSeverity.Information,
+            });
+        }, _ => IsDirty);
 
-    /// <summary>
-    /// 切換目前作用中的工作區。
-    /// </summary>
     public ICommand ActivateWorkspaceCommand
-        => _activateWorkspaceCommand ??= new RelayCommand(parameter => services.ActivateWorkspace(parameter?.ToString() ?? string.Empty));
+        => _activateWorkspaceCommand ??= new RelayCommand(parameter => ApplyActivateWorkspace(parameter?.ToString() ?? string.Empty));
 
-    /// <summary>
-    /// 刪除指定工作區。
-    /// </summary>
     public ICommand DeleteWorkspaceCommand
-        => _deleteWorkspaceCommand ??= new RelayCommand(parameter => services.DeleteWorkspace(parameter?.ToString() ?? string.Empty));
+        => _deleteWorkspaceCommand ??= new RelayCommand(parameter => ApplyDeleteWorkspace(parameter?.ToString() ?? string.Empty));
 
-    /// <summary>
-    /// 匯出目前日誌壓縮檔。
-    /// </summary>
     public ICommand ExportLogsCommand
-        => _exportLogsCommand ??= new RelayCommand(parameter => services.ExportLogs(parameter?.ToString() ?? string.Empty));
+        => _exportLogsCommand ??= new RelayCommand(parameter => ApplyExportLogs(parameter?.ToString() ?? string.Empty));
 
-    /// <summary>
-    /// 開啟法律文件。
-    /// </summary>
     public ICommand OpenLegalNoticesCommand
-        => _openLegalNoticesCommand ??= new RelayCommand(_ => services.OpenLegalNotices());
+        => _openLegalNoticesCommand ??= new RelayCommand(_ => domain.OpenLegalNotices(ResolveLanguageCode(LanguageIndex)));
 
     /// <summary>
-    /// 初始化設定頁面的 I/O 訂閱與初始快照。
+    /// 由 View 呼叫：標記 ViewModel 已載入並掛上事件。
     /// </summary>
     internal void ApplyViewLoaded()
     {
@@ -295,55 +275,14 @@ public sealed class SettingsPageViewModel(SettingsServices services) : ViewModel
             return;
         }
 
-        _synchronizationContext = SynchronizationContext.Current ?? new SynchronizationContext();
-        services.SettingsChanged += OnSettingsChanged;
-        services.WorkspacesChanged += OnWorkspacesChanged;
-        services.ModulesChanged += OnModulesChanged;
-        Workspaces.CollectionChanged += OnWorkspacesCollectionChanged;
-        ModuleSettingsCards.CollectionChanged += OnModuleSettingsCardsCollectionChanged;
+        domain.SettingsChanged += OnChanged;
+        domain.WorkspacesChanged += OnChanged;
+        Workspaces.CollectionChanged += OnWorkspacesChanged;
 
-        ApplySettingsSnapshot(services.QuerySettings(), false);
-        ApplyWorkspacesSnapshot();
-        ApplyModuleSettingsCardsSnapshot();
-        ApplyAboutSnapshot();
+        ApplyAllSnapshots(markDirty: false);
         _isInitialized = true;
     }
 
-    /// <summary>
-    /// 套用搜尋建議後回傳對應區段標籤。
-    /// </summary>
-    internal string QuerySelectedSectionTag()
-    {
-        var sectionTag = SelectedSearchSuggestion?.SectionTag;
-        return string.IsNullOrWhiteSpace(sectionTag)
-            ? SectionSuggestions.FirstOrDefault(item => string.Equals(item.Display, SearchQuery, StringComparison.OrdinalIgnoreCase))?.SectionTag ?? string.Empty
-            : sectionTag;
-    }
-
-    /// <summary>
-    /// 套用目前選中的搜尋建議。
-    /// </summary>
-    internal void ApplySelectedSearchSuggestion()
-    {
-        if (SelectedSearchSuggestion is null)
-        {
-            return;
-        }
-
-        SearchQuery = SelectedSearchSuggestion.Display;
-        IsSearchPopupOpen = false;
-    }
-
-    /// <summary>
-    /// 套用使用者選取的日誌匯出資料夾。
-    /// </summary>
-    /// <param name="folderPath">使用者選取的資料夾路徑。</param>
-    internal void ApplyLogExportFolder(string folderPath)
-        => LogExportFolder = folderPath;
-
-    /// <summary>
-    /// 釋放設定頁面的事件訂閱。
-    /// </summary>
     public void Dispose()
     {
         if (_isDisposed)
@@ -353,124 +292,277 @@ public sealed class SettingsPageViewModel(SettingsServices services) : ViewModel
 
         if (_isInitialized)
         {
-            services.SettingsChanged -= OnSettingsChanged;
-            services.WorkspacesChanged -= OnWorkspacesChanged;
-            services.ModulesChanged -= OnModulesChanged;
-            Workspaces.CollectionChanged -= OnWorkspacesCollectionChanged;
-            ModuleSettingsCards.CollectionChanged -= OnModuleSettingsCardsCollectionChanged;
+            domain.SettingsChanged -= OnChanged;
+            domain.WorkspacesChanged -= OnChanged;
+            Workspaces.CollectionChanged -= OnWorkspacesChanged;
         }
 
         _isDisposed = true;
     }
 
-    private void ApplySave()
-    {
-        services.SaveSettings(new SettingsModel
+    private void OnChanged(object? sender, EventArgs e)
+        => applicationRuntime.InvokeOnUiThread(() =>
         {
-            DataDensityIndex = DataDensityIndex,
-            FontScaleIndex = FontScaleIndex,
-            InactivityIndex = InactivityIndex,
-            LanguageIndex = LanguageIndex,
-            LastVisitedPageTag = _lastVisitedPageTag,
-            LogExportFolder = LogExportFolder,
-            LogLevelIndex = LogLevelIndex,
-            LogRetentionIndex = LogRetentionIndex,
-            StartPageIndex = StartPageIndex,
-            ThemeIndex = ThemeIndex,
+            if (IsDirty && !_isSaving)
+            {
+                ApplyNonEditSnapshots();
+                return;
+            }
+
+            ApplyAllSnapshots(markDirty: false);
         });
 
-        IsDirty = false;
+    private void OnWorkspacesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        => NotifyPropertyChanged(nameof(ShowWorkspacesEmptyState));
+
+    private void ApplyAllSnapshots(bool markDirty)
+    {
+        ApplySettingsSnapshot(domain.QuerySettings(), markDirty);
+        ApplyNonEditSnapshots();
     }
 
-    private void ApplySettingsSnapshot(SettingsModel settings, bool preserveDirty)
+    private void ApplyDiscard()
     {
-        if (preserveDirty && IsDirty)
+        ApplyBaselineFields();
+        ApplyNonEditSnapshots();
+    }
+
+    private void ApplyNonEditSnapshots()
+    {
+        ApplyWorkspacesSnapshot();
+        ApplyAboutSnapshot();
+        ApplySearchSuggestions();
+    }
+
+    private void ApplySettingsSnapshot(SettingsModel settings, bool markDirty)
+    {
+        if (!markDirty)
         {
-            return;
+            _baselineLanguageIndex = settings.LanguageIndex;
+            _baselineStartPageIndex = settings.StartPageIndex;
+            _baselineInactivityIndex = settings.InactivityIndex;
+            _baselineThemeIndex = settings.ThemeIndex;
+            _baselineFontScaleIndex = settings.FontScaleIndex;
+            _baselineDataDensityIndex = settings.DataDensityIndex;
+            _baselineLogLevelIndex = settings.LogLevelIndex;
+            _baselineLogRetentionIndex = settings.LogRetentionIndex;
+            _baselineLogExportFolder = settings.LogExportFolder ?? string.Empty;
         }
 
         _isApplyingSnapshot = true;
-        DataDensityIndex = settings.DataDensityIndex;
-        FontScaleIndex = settings.FontScaleIndex;
-        InactivityIndex = settings.InactivityIndex;
+
         LanguageIndex = settings.LanguageIndex;
-        _lastVisitedPageTag = settings.LastVisitedPageTag;
-        LogExportFolder = settings.LogExportFolder;
+        StartPageIndex = settings.StartPageIndex;
+        InactivityIndex = settings.InactivityIndex;
+        ThemeIndex = settings.ThemeIndex;
+        FontScaleIndex = settings.FontScaleIndex;
+        DataDensityIndex = settings.DataDensityIndex;
         LogLevelIndex = settings.LogLevelIndex;
         LogRetentionIndex = settings.LogRetentionIndex;
-        StartPageIndex = settings.StartPageIndex;
-        ThemeIndex = settings.ThemeIndex;
+        LogExportFolder = settings.LogExportFolder ?? string.Empty;
+
         _isApplyingSnapshot = false;
-        IsDirty = false;
+
+        if (!markDirty)
+        {
+            IsDirty = false;
+        }
     }
 
-    private void ApplySearchSuggestions()
+    private void ApplyBaselineFields()
     {
-        SearchSuggestions.Clear();
+        var previousLanguageIndex = LanguageIndex;
+        var previousStartPageIndex = StartPageIndex;
+        var previousInactivityIndex = InactivityIndex;
+        var previousThemeIndex = ThemeIndex;
+        var previousFontScaleIndex = FontScaleIndex;
+        var previousDataDensityIndex = DataDensityIndex;
+        var previousLogLevelIndex = LogLevelIndex;
+        var previousLogRetentionIndex = LogRetentionIndex;
+        var previousLogExportFolder = LogExportFolder;
 
-        if (string.IsNullOrWhiteSpace(SearchQuery))
+        _isApplyingSnapshot = true;
+
+        LanguageIndex = _baselineLanguageIndex;
+        StartPageIndex = _baselineStartPageIndex;
+        InactivityIndex = _baselineInactivityIndex;
+        ThemeIndex = _baselineThemeIndex;
+        FontScaleIndex = _baselineFontScaleIndex;
+        DataDensityIndex = _baselineDataDensityIndex;
+        LogLevelIndex = _baselineLogLevelIndex;
+        LogRetentionIndex = _baselineLogRetentionIndex;
+        LogExportFolder = _baselineLogExportFolder;
+
+        _isApplyingSnapshot = false;
+
+        NotifyPropertyChanged(nameof(LanguageIndex));
+        NotifyPropertyChanged(nameof(StartPageIndex));
+        NotifyPropertyChanged(nameof(InactivityIndex));
+        NotifyPropertyChanged(nameof(ThemeIndex));
+        NotifyPropertyChanged(nameof(FontScaleIndex));
+        NotifyPropertyChanged(nameof(DataDensityIndex));
+        NotifyPropertyChanged(nameof(LogLevelIndex));
+        NotifyPropertyChanged(nameof(LogRetentionIndex));
+        NotifyPropertyChanged(nameof(LogExportFolder));
+
+        if (previousLanguageIndex == LanguageIndex
+            && previousStartPageIndex == StartPageIndex
+            && previousInactivityIndex == InactivityIndex
+            && previousThemeIndex == ThemeIndex
+            && previousFontScaleIndex == FontScaleIndex
+            && previousDataDensityIndex == DataDensityIndex
+            && previousLogLevelIndex == LogLevelIndex
+            && previousLogRetentionIndex == LogRetentionIndex
+            && string.Equals(previousLogExportFolder, LogExportFolder, StringComparison.Ordinal))
         {
-            IsSearchPopupOpen = false;
-            SelectedSearchSuggestion = null;
-            return;
+            // 綁定未更新時，強制觸發一次全欄位通知，確保 UI 與 Edit Buffer 同步。
+            NotifyPropertyChanged(string.Empty);
         }
 
-        foreach (var suggestion in SectionSuggestions.Where(item => item.Display.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)))
-        {
-            SearchSuggestions.Add(suggestion);
-        }
-
-        SelectedSearchSuggestion = SearchSuggestions.FirstOrDefault();
-        IsSearchPopupOpen = SearchSuggestions.Count > 0;
+        IsDirty = false;
     }
 
     private void ApplyWorkspacesSnapshot()
     {
+        var workspaces = domain.QueryWorkspaces();
         Workspaces.Clear();
-        foreach (var workspace in services.QueryWorkspaces())
+        foreach (var item in workspaces)
         {
-            Workspaces.Add(workspace);
-        }
-    }
-
-    private void ApplyModuleSettingsCardsSnapshot()
-    {
-        ModuleSettingsCards.Clear();
-        foreach (var moduleCard in services.QueryModuleSettingsCards())
-        {
-            ModuleSettingsCards.Add(moduleCard);
+            Workspaces.Add(item);
         }
     }
 
     private void ApplyAboutSnapshot()
     {
-        var about = services.QueryAbout();
+        var about = domain.QueryAbout();
         AboutVersionText = about.VersionText;
         AboutBuildDateText = about.BuildDateText;
         AboutLicenseExpiryText = about.LicenseExpiryText;
     }
 
-    private void OnSettingsChanged(object? sender, EventArgs e)
-        => PostToUi(() =>
+    private void ApplySave()
+    {
+        var snapshot = new SettingsModel
         {
-            ApplySettingsSnapshot(services.QuerySettings(), true);
-            ApplyAboutSnapshot();
-        });
+            LanguageIndex = LanguageIndex,
+            StartPageIndex = StartPageIndex,
+            InactivityIndex = InactivityIndex,
+            ThemeIndex = ThemeIndex,
+            FontScaleIndex = FontScaleIndex,
+            DataDensityIndex = DataDensityIndex,
+            LogLevelIndex = LogLevelIndex,
+            LogRetentionIndex = LogRetentionIndex,
+            LogExportFolder = LogExportFolder,
+        };
 
-    private void OnWorkspacesChanged(object? sender, EventArgs e)
-        => PostToUi(ApplyWorkspacesSnapshot);
+        try
+        {
+            _isSaving = true;
+            domain.SaveSettings(snapshot);
+            IsDirty = false;
 
-    private void OnModulesChanged(object? sender, EventArgs e)
-        => PostToUi(ApplyModuleSettingsCardsSnapshot);
+            notificationRuntime.Request(new NotificationRequest
+            {
+                Title = localizationRuntime.QueryString("Loc_Toast_SettingsSavedTitle"),
+                Message = localizationRuntime.QueryString("Loc_Toast_SettingsSavedBody"),
+                Severity = NotificationSeverity.Success,
+            });
+        }
+        catch (Exception ex)
+        {
+            notificationRuntime.Request(new NotificationRequest
+            {
+                Title = localizationRuntime.QueryString("Loc_Toast_SettingsSaveFailedTitle"),
+                Message = ex.Message,
+                Severity = NotificationSeverity.Error,
+            });
+        }
+        finally
+        {
+            _isSaving = false;
+        }
+    }
 
-    private void OnWorkspacesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        => NotifyPropertyChanged(nameof(ShowWorkspacesEmptyState));
+    private void ApplyActivateWorkspace(string workspaceName)
+    {
+        var normalized = (workspaceName ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return;
+        }
 
-    private void OnModuleSettingsCardsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        => NotifyPropertyChanged(nameof(ShowModulesEmptyState));
+        domain.ActivateWorkspace(normalized);
+    }
 
-    private void PostToUi(Action action)
-        => _synchronizationContext.Post(_ => action(), null);
+    private void ApplyDeleteWorkspace(string workspaceName)
+    {
+        var normalized = (workspaceName ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return;
+        }
+
+        domain.DeleteWorkspace(normalized);
+    }
+
+    private void ApplyExportLogs(string exportDirectoryPath)
+    {
+        var normalized = (exportDirectoryPath ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(normalized))
+        {
+            return;
+        }
+
+        try
+        {
+            var zipPath = domain.ExportLogs(normalized);
+            notificationRuntime.Request(new NotificationRequest
+            {
+                Title = localizationRuntime.QueryString("Loc_Toast_LogsExportedTitle"),
+                Message = localizationRuntime.QueryString("Loc_Toast_LogsExportedBody"),
+                Severity = NotificationSeverity.Success,
+                Action = NotificationAction.RevealInFolder,
+                ActionPath = zipPath,
+            });
+        }
+        catch (Exception ex)
+        {
+            notificationRuntime.Request(new NotificationRequest
+            {
+                Title = localizationRuntime.QueryString("Loc_Toast_LogsExportFailedTitle"),
+                Message = ex.Message,
+                Severity = NotificationSeverity.Error,
+            });
+        }
+    }
+
+    private void ApplySearchSuggestions()
+    {
+        var keyword = (SearchQuery ?? string.Empty).Trim();
+
+        var suggestions = SectionSuggestions
+            .Select(s => new SettingsSearchSuggestionModel
+            {
+                SectionTag = s.Tag,
+                Display = localizationRuntime.QueryString(s.DisplayKey),
+            })
+            .ToArray();
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            suggestions = suggestions
+                .Where(s => s.Display.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+        }
+
+        SearchSuggestions.Clear();
+        foreach (var suggestion in suggestions)
+        {
+            SearchSuggestions.Add(suggestion);
+        }
+
+        IsSearchPopupOpen = SearchSuggestions.Count > 0 && !string.IsNullOrWhiteSpace(keyword);
+    }
 
     private void SetSettingsField<T>(ref T field, T value)
     {
@@ -485,5 +577,60 @@ public sealed class SettingsPageViewModel(SettingsServices services) : ViewModel
         }
 
         IsDirty = true;
+    }
+
+    private static string ResolveLanguageCode(int languageIndex)
+        => languageIndex == 0 ? ZhHantLanguageCode : EnLanguageCode;
+
+    /// <summary>
+    /// 由 View 呼叫：套用目前選取的搜尋建議（將搜尋欄位填入建議文字並關閉彈出層）。
+    /// </summary>
+    public void ApplySelectedSearchSuggestion()
+    {
+        if (SelectedSearchSuggestion is null)
+        {
+            return;
+        }
+
+        SearchQuery = SelectedSearchSuggestion.Display;
+        IsSearchPopupOpen = false;
+    }
+
+    /// <summary>
+    /// 由 View 呼叫：取得目前選取的 section tag。
+    /// </summary>
+    public string QuerySelectedSectionTag()
+        => SelectedSearchSuggestion?.SectionTag ?? string.Empty;
+
+    /// <summary>
+    /// 由 View 呼叫：套用「匯出資料夾」輸入值（僅更新 Edit Buffer，不寫入 INI）。
+    /// </summary>
+    public void ApplyLogExportFolder(string folderPath)
+        => LogExportFolder = folderPath ?? string.Empty;
+
+    /// <summary>
+    /// 由 View 呼叫：立即建立並啟用工作區。
+    /// </summary>
+    public void ApplyCreateWorkspaceNow(string workspaceName, string description)
+    {
+        var name = (workspaceName ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        try
+        {
+            domain.CreateWorkspace(name, (description ?? string.Empty).Trim());
+        }
+        catch (Exception ex)
+        {
+            notificationRuntime.Request(new NotificationRequest
+            {
+                Title = localizationRuntime.QueryString("Loc_Toast_SettingsSaveFailedTitle"),
+                Message = ex.Message,
+                Severity = NotificationSeverity.Error,
+            });
+        }
     }
 }

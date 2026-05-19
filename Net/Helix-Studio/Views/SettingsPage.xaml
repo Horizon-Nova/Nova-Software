@@ -1,8 +1,10 @@
-﻿<UserControl x:Class="Helix_Studio.Views.SettingsPage"
+<UserControl x:Class="Helix_Studio.Views.SettingsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:shell="clr-namespace:Helix_Studio.Components"
              mc:Ignorable="d"
              d:DesignHeight="720" d:DesignWidth="1000"
              FontFamily="Segoe UI, Microsoft JhengHei UI"
@@ -35,8 +37,11 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="12"
-                                   Foreground="{DynamicResource TextTertiary}" VerticalAlignment="Center"/>
+                        <shell:SvgIcon Grid.Column="0"
+                                       Source="/Assets/lucide/search.svg"
+                                       Width="14" Height="14"
+                                       Foreground="{DynamicResource TextTertiary}"
+                                       VerticalAlignment="Center"/>
                         <TextBox x:Name="SettingsSearchBox"
                                  Grid.Column="1"
                                  Background="Transparent" BorderThickness="0"
@@ -109,13 +114,19 @@
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button Style="{DynamicResource GhostButton}" Margin="0,0,8,0" Command="{Binding ReloadCommand}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE72C;" FontFamily="Segoe MDL2 Assets" FontSize="12" VerticalAlignment="Center"/>
+                            <shell:SvgIcon Source="/Assets/lucide/refresh-cw.svg"
+                                           Width="14" Height="14"
+                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                           VerticalAlignment="Center"/>
                             <TextBlock Text="{DynamicResource Loc_Settings_ActionRefresh}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
                     <Button Style="{DynamicResource PrimaryButton}" Command="{Binding SaveCommand}">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="12" VerticalAlignment="Center"/>
+                            <shell:SvgIcon Source="/Assets/lucide/save.svg"
+                                           Width="14" Height="14"
+                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                           VerticalAlignment="Center"/>
                             <TextBlock Text="{DynamicResource Loc_Settings_ActionSaveChanges}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
@@ -132,8 +143,11 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="&#xE7BA;" FontFamily="Segoe MDL2 Assets" FontSize="14"
-                           Foreground="{DynamicResource StatusWarning}" VerticalAlignment="Center"/>
+                <shell:SvgIcon Grid.Column="0"
+                               Source="/Assets/lucide/triangle-alert.svg"
+                               Width="14" Height="14"
+                               Foreground="{DynamicResource StatusWarning}"
+                               VerticalAlignment="Center"/>
                 <TextBlock Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center"
                            FontSize="12" Foreground="{DynamicResource TextPrimary}">
                     <Run Text="{DynamicResource Loc_Settings_UnsavedTitle}" FontWeight="SemiBold"/>
@@ -161,52 +175,55 @@
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="0,8,0,16">
 
-                        <TextBlock Text="GENERAL" Style="{DynamicResource SettingsNavGroupHeader}"/>
+                        <TextBlock Text="{DynamicResource Loc_Settings_NavGroupGeneral}" Style="{DynamicResource SettingsNavGroupHeader}"/>
 
                         <RadioButton Style="{DynamicResource SettingsNavItem}" GroupName="SettingsNav"
                                      IsChecked="True" Tag="General" Checked="SettingsNav_Checked">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="13"
-                                           VerticalAlignment="Center" Width="18"/>
-                                <TextBlock Text="General" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                <TextBlock Text="一般" FontSize="11" Opacity="0.6"
-                                           VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                <shell:SvgIcon Source="/Assets/lucide/settings.svg"
+                                               Width="18" Height="14"
+                                               Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                               VerticalAlignment="Center"/>
+                                <TextBlock Text="{DynamicResource Loc_Settings_SectionGeneral}" VerticalAlignment="Center" Margin="8,0,0,0"/>
                             </StackPanel>
                         </RadioButton>
 
                         <RadioButton Style="{DynamicResource SettingsNavItem}" GroupName="SettingsNav"
                                      Tag="Display" Checked="SettingsNav_Checked">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="&#xE7F4;" FontFamily="Segoe MDL2 Assets" FontSize="13"
-                                           VerticalAlignment="Center" Width="18"/>
-                                <TextBlock Text="Display" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                <TextBlock Text="顯示" FontSize="11" Opacity="0.6"
-                                           VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                <shell:SvgIcon Source="/Assets/lucide/monitor.svg"
+                                               Width="18" Height="14"
+                                               Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                               VerticalAlignment="Center"/>
+                                <TextBlock Text="{DynamicResource Loc_Settings_SectionDisplay}" VerticalAlignment="Center" Margin="8,0,0,0"/>
                             </StackPanel>
                         </RadioButton>
 
                         <RadioButton Style="{DynamicResource SettingsNavItem}" GroupName="SettingsNav"
                                      Tag="Workspaces" Checked="SettingsNav_Checked">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="&#xE81E;" FontFamily="Segoe MDL2 Assets" FontSize="13"
-                                           VerticalAlignment="Center" Width="18"/>
-                                <TextBlock Text="Workspaces" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                <TextBlock Text="工作區" FontSize="11" Opacity="0.6"
-                                           VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                <shell:SvgIcon Source="/Assets/lucide/layers.svg"
+                                               Width="18" Height="14"
+                                               Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                               VerticalAlignment="Center"/>
+                                <TextBlock Text="{DynamicResource Loc_Settings_SectionWorkspaces}" VerticalAlignment="Center" Margin="8,0,0,0"/>
                             </StackPanel>
                         </RadioButton>
 
-                        <TextBlock Text="MODULES" Style="{DynamicResource SettingsNavGroupHeader}"/>
+                        <TextBlock Text="MODULES" Style="{DynamicResource SettingsNavGroupHeader}"
+                                   Visibility="Collapsed"/>
 
                         <ItemsControl ItemsSource="{Binding ModuleSettingsCards}"
-                                      Visibility="{Binding ShowModulesEmptyState, Converter={StaticResource BoolToVisibility}, ConverterParameter=Invert}">
+                                      Visibility="Collapsed">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <RadioButton Style="{DynamicResource SettingsNavItem}" GroupName="SettingsNav"
                                                  Tag="Modules" Checked="SettingsNav_Checked">
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="&#xECAA;" FontFamily="Segoe MDL2 Assets" FontSize="13"
-                                                       VerticalAlignment="Center" Width="18"/>
+                                            <shell:SvgIcon Source="/Assets/lucide/package.svg"
+                                                           Width="18" Height="14"
+                                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                                           VerticalAlignment="Center"/>
                                             <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" Margin="8,0,0,0"
                                                        TextTrimming="CharacterEllipsis"/>
                                         </StackPanel>
@@ -216,29 +233,29 @@
                         </ItemsControl>
                         <TextBlock Text="尚無模組" FontSize="11" Opacity="0.6" Margin="22,0,0,6"
                                    Foreground="{DynamicResource TextOnDarkMuted}"
-                                   Visibility="{Binding ShowModulesEmptyState, Converter={StaticResource BoolToVisibility}}"/>
+                                   Visibility="Collapsed"/>
 
-                        <TextBlock Text="SYSTEM" Style="{DynamicResource SettingsNavGroupHeader}"/>
+                        <TextBlock Text="{DynamicResource Loc_Settings_NavGroupSystem}" Style="{DynamicResource SettingsNavGroupHeader}"/>
 
                         <RadioButton Style="{DynamicResource SettingsNavItem}" GroupName="SettingsNav"
                                      Tag="Log" Checked="SettingsNav_Checked">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="&#xE9F9;" FontFamily="Segoe MDL2 Assets" FontSize="13"
-                                           VerticalAlignment="Center" Width="18"/>
-                                <TextBlock Text="Log" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                <TextBlock Text="日誌" FontSize="11" Opacity="0.6"
-                                           VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                <shell:SvgIcon Source="/Assets/lucide/scroll-text.svg"
+                                               Width="18" Height="14"
+                                               Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                               VerticalAlignment="Center"/>
+                                <TextBlock Text="{DynamicResource Loc_Settings_SectionLog}" VerticalAlignment="Center" Margin="8,0,0,0"/>
                             </StackPanel>
                         </RadioButton>
 
                         <RadioButton Style="{DynamicResource SettingsNavItem}" GroupName="SettingsNav"
                                      Tag="About" Checked="SettingsNav_Checked">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="&#xE946;" FontFamily="Segoe MDL2 Assets" FontSize="13"
-                                           VerticalAlignment="Center" Width="18"/>
-                                <TextBlock Text="About" VerticalAlignment="Center" Margin="8,0,0,0"/>
-                                <TextBlock Text="關於" FontSize="11" Opacity="0.6"
-                                           VerticalAlignment="Center" Margin="6,0,0,0"/>
+                                <shell:SvgIcon Source="/Assets/lucide/info.svg"
+                                               Width="18" Height="14"
+                                               Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
+                                               VerticalAlignment="Center"/>
+                                <TextBlock Text="{DynamicResource Loc_Settings_SectionAbout}" VerticalAlignment="Center" Margin="8,0,0,0"/>
                             </StackPanel>
                         </RadioButton>
 
@@ -400,62 +417,67 @@
                                             <TextBlock Text="{DynamicResource Loc_Settings_DataDensityDesc}"
                                                        Style="{DynamicResource SettingsDescription}"/>
                                         </StackPanel>
-                                        <Border Grid.Column="1" BorderBrush="{DynamicResource BorderMedium}"
-                                                BorderThickness="1" CornerRadius="3" VerticalAlignment="Center">
+                                        <Border Grid.Column="1"
+                                                BorderBrush="{DynamicResource BorderMedium}"
+                                                BorderThickness="1"
+                                                CornerRadius="3"
+                                                VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal">
-                                                <Border Tag="0"
-                                                        CornerRadius="2,0,0,2" Padding="14,6"
-                                                        Cursor="Hand" MouseLeftButtonUp="DataDensity_Click">
-                                                    <Border.Style>
-                                                        <Style TargetType="Border">
-                                                            <Setter Property="Background" Value="{DynamicResource SurfaceSubtle}"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding DataDensityIndex}" Value="0">
-                                                                    <Setter Property="Background" Value="{DynamicResource AccentPrimary}"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Border.Style>
-                                                    <TextBlock Text="{DynamicResource Loc_Settings_DataDensityComfortable}" FontSize="12" FontWeight="SemiBold">
-                                                        <TextBlock.Style>
-                                                            <Style TargetType="TextBlock">
-                                                                <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding DataDensityIndex}" Value="0">
-                                                                        <Setter Property="Foreground" Value="{DynamicResource TextOnDark}"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </TextBlock.Style>
-                                                    </TextBlock>
-                                                </Border>
-                                                <Border Tag="1"
-                                                        Padding="14,6"
-                                                        BorderBrush="{DynamicResource BorderMedium}" BorderThickness="1,0,0,0"
-                                                        Cursor="Hand" MouseLeftButtonUp="DataDensity_Click">
-                                                    <Border.Style>
-                                                        <Style TargetType="Border">
-                                                            <Setter Property="Background" Value="{DynamicResource SurfaceSubtle}"/>
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding DataDensityIndex}" Value="1">
-                                                                    <Setter Property="Background" Value="{DynamicResource AccentPrimary}"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Border.Style>
-                                                    <TextBlock Text="{DynamicResource Loc_Settings_DataDensityCompact}" FontSize="12">
-                                                        <TextBlock.Style>
-                                                            <Style TargetType="TextBlock">
-                                                                <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding DataDensityIndex}" Value="1">
-                                                                        <Setter Property="Foreground" Value="{DynamicResource TextOnDark}"/>
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </TextBlock.Style>
-                                                    </TextBlock>
-                                                </Border>
+                                                <RadioButton GroupName="DataDensity"
+                                                             IsChecked="{Binding DataDensityIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IntEqualsToBoolean}, ConverterParameter=0}"
+                                                             Padding="14,6"
+                                                             BorderThickness="0"
+                                                             Foreground="{DynamicResource TextPrimary}"
+                                                             Cursor="Hand">
+                                                    <RadioButton.Template>
+                                                        <ControlTemplate TargetType="RadioButton">
+                                                            <Border x:Name="Bd"
+                                                                    Background="{DynamicResource SurfaceSubtle}"
+                                                                    CornerRadius="2,0,0,2"
+                                                                    Padding="{TemplateBinding Padding}">
+                                                                <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsChecked" Value="True">
+                                                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentPrimary}"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource TextOnDark}"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </RadioButton.Template>
+                                                    <TextBlock Text="{DynamicResource Loc_Settings_DataDensityComfortable}"
+                                                               FontSize="12"
+                                                               FontWeight="SemiBold"
+                                                               Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                                </RadioButton>
+                                                <RadioButton GroupName="DataDensity"
+                                                             IsChecked="{Binding DataDensityIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource IntEqualsToBoolean}, ConverterParameter=1}"
+                                                             Padding="14,6"
+                                                             BorderThickness="0"
+                                                             Foreground="{DynamicResource TextPrimary}"
+                                                             Cursor="Hand">
+                                                    <RadioButton.Template>
+                                                        <ControlTemplate TargetType="RadioButton">
+                                                            <Border x:Name="Bd"
+                                                                    Background="{DynamicResource SurfaceSubtle}"
+                                                                    BorderBrush="{DynamicResource BorderMedium}"
+                                                                    BorderThickness="1,0,0,0"
+                                                                    CornerRadius="0,2,2,0"
+                                                                    Padding="{TemplateBinding Padding}">
+                                                                <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsChecked" Value="True">
+                                                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource AccentPrimary}"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource TextOnDark}"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </RadioButton.Template>
+                                                    <TextBlock Text="{DynamicResource Loc_Settings_DataDensityCompact}"
+                                                               FontSize="12"
+                                                               Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"/>
+                                                </RadioButton>
                                             </StackPanel>
                                         </Border>
                                     </Grid>
@@ -476,6 +498,29 @@
                             <TextBlock Text="每個工作區可指派不同的模組組合。切換工作區時，Shell 會載入對應的模組。"
                                        FontSize="12" Foreground="{DynamicResource TextSecondary}" Margin="0,4,0,0"/>
                         </StackPanel>
+
+                        <Border Style="{DynamicResource Card}" Margin="0,12,0,12">
+                            <Border Padding="22,18">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,24,0">
+                                        <TextBlock Text="{DynamicResource Loc_Settings_WorkspaceCreateTitle}"
+                                                   Style="{DynamicResource SettingsLabel}"/>
+                                        <TextBlock Text="{DynamicResource Loc_Settings_WorkspaceCreateDescription}"
+                                                   Style="{DynamicResource SettingsDescription}"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1"
+                                            Style="{DynamicResource PrimaryButton}"
+                                            VerticalAlignment="Center"
+                                            Click="CreateWorkspace_Click">
+                                        <TextBlock Text="{DynamicResource Loc_Settings_WorkspaceCreateButton}"/>
+                                    </Button>
+                                </Grid>
+                            </Border>
+                        </Border>
 
                         <ItemsControl ItemsSource="{Binding Workspaces}" Margin="0,0,0,8">
                             <ItemsControl.ItemTemplate>
@@ -527,8 +572,10 @@
                                                         </Style>
                                                     </Button.Style>
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="&#xE8FB;" FontFamily="Segoe MDL2 Assets" FontSize="12"
-                                                                   VerticalAlignment="Center"/>
+                                                        <shell:SvgIcon Source="/Assets/lucide/check.svg"
+                                                                       Width="14" Height="14"
+                                                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                                       VerticalAlignment="Center"/>
                                                         <TextBlock Text="Activate" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Button>
@@ -537,8 +584,10 @@
                                                         Command="{Binding DataContext.DeleteWorkspaceCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                         CommandParameter="{Binding Name}">
                                                     <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="&#xE74D;" FontFamily="Segoe MDL2 Assets" FontSize="12"
-                                                                   VerticalAlignment="Center"/>
+                                                        <shell:SvgIcon Source="/Assets/lucide/trash-2.svg"
+                                                                       Width="14" Height="14"
+                                                                       Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                                       VerticalAlignment="Center"/>
                                                         <TextBlock Text="Delete" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                     </StackPanel>
                                                 </Button>
@@ -553,9 +602,10 @@
                                 Style="{DynamicResource Card}" Margin="0,0,0,40"
                                 Visibility="{Binding ShowWorkspacesEmptyState, Converter={StaticResource BoolToVisibility}}">
                             <StackPanel Margin="24,32" HorizontalAlignment="Center">
-                                <TextBlock Text="&#xE81E;" FontFamily="Segoe MDL2 Assets" FontSize="36"
-                                           Foreground="{DynamicResource TextTertiary}"
-                                           HorizontalAlignment="Center"/>
+                                <shell:SvgIcon Source="/Assets/lucide/layers.svg"
+                                               Width="36" Height="36"
+                                               Foreground="{DynamicResource TextTertiary}"
+                                               HorizontalAlignment="Center"/>
                                 <TextBlock Text="目前尚無工作區" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource TextSecondary}"
                                            HorizontalAlignment="Center" Margin="0,12,0,4"/>
@@ -566,7 +616,8 @@
                         </Border>
                     </StackPanel>
 
-                    <StackPanel x:Name="SectionModules">
+                    <StackPanel x:Name="SectionModules"
+                                Visibility="Collapsed">
                         <StackPanel Margin="0,0,0,8">
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="Modules" FontSize="20" FontWeight="SemiBold"
@@ -635,14 +686,15 @@
                                                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                                                             </DataTrigger>
                                                                         </Style.Triggers>
-                                                                    </Style>
-                                                                </Image.Style>
-                                                            </Image>
-                                                            <TextBlock Text="&#xECAA;" FontFamily="Segoe MDL2 Assets" FontSize="16"
-                                                                       HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                       Foreground="{DynamicResource AccentPrimary}">
-                                                                <TextBlock.Style>
-                                                                    <Style TargetType="TextBlock">
+                                                            </Style>
+                                                        </Image.Style>
+                                                    </Image>
+                                                            <shell:SvgIcon Source="/Assets/lucide/package.svg"
+                                                                           Width="16" Height="16"
+                                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                           Foreground="{DynamicResource AccentPrimary}">
+                                                                <shell:SvgIcon.Style>
+                                                                    <Style TargetType="shell:SvgIcon">
                                                                         <Setter Property="Visibility" Value="Collapsed"/>
                                                                         <Style.Triggers>
                                                                             <DataTrigger Binding="{Binding HasIcon}" Value="False">
@@ -650,8 +702,8 @@
                                                                             </DataTrigger>
                                                                         </Style.Triggers>
                                                                     </Style>
-                                                                </TextBlock.Style>
-                                                            </TextBlock>
+                                                                </shell:SvgIcon.Style>
+                                                            </shell:SvgIcon>
                                                         </Grid>
                                                     </Border>
 
@@ -685,16 +737,17 @@
                                                     </StackPanel>
 
                                                     <!-- 展開指示箭頭 -->
-                                                    <TextBlock Grid.Column="2"
-                                                               Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="11"
-                                                               VerticalAlignment="Center" Margin="12,0,0,0"
-                                                               Foreground="{DynamicResource TextTertiary}"
-                                                               RenderTransformOrigin="0.5,0.5">
-                                                        <TextBlock.RenderTransform>
+                                                    <shell:SvgIcon Grid.Column="2"
+                                                                   Source="/Assets/lucide/chevron-down.svg"
+                                                                   Width="14" Height="14"
+                                                                   VerticalAlignment="Center" Margin="12,0,0,0"
+                                                                   Foreground="{DynamicResource TextTertiary}"
+                                                                   RenderTransformOrigin="0.5,0.5">
+                                                        <shell:SvgIcon.RenderTransform>
                                                             <RotateTransform/>
-                                                        </TextBlock.RenderTransform>
-                                                        <TextBlock.Style>
-                                                            <Style TargetType="TextBlock">
+                                                        </shell:SvgIcon.RenderTransform>
+                                                        <shell:SvgIcon.Style>
+                                                            <Style TargetType="shell:SvgIcon">
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding IsChecked, ElementName=ModuleExpandToggle}" Value="True">
                                                                         <Setter Property="RenderTransform">
@@ -705,8 +758,8 @@
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
-                                                        </TextBlock.Style>
-                                                    </TextBlock>
+                                                        </shell:SvgIcon.Style>
+                                                    </shell:SvgIcon>
                                                 </Grid>
                                             </ToggleButton>
 
@@ -774,11 +827,12 @@
                         </ItemsControl>
 
                         <Border Style="{DynamicResource Card}" Margin="0,0,0,40"
-                                Visibility="{Binding ShowModulesEmptyState, Converter={StaticResource BoolToVisibility}}">
+                                Visibility="Collapsed">
                             <StackPanel Margin="24,32" HorizontalAlignment="Center">
-                                <TextBlock Text="&#xECAA;" FontFamily="Segoe MDL2 Assets" FontSize="36"
-                                           Foreground="{DynamicResource TextTertiary}"
-                                           HorizontalAlignment="Center"/>
+                                <shell:SvgIcon Source="/Assets/lucide/package.svg"
+                                               Width="36" Height="36"
+                                               Foreground="{DynamicResource TextTertiary}"
+                                               HorizontalAlignment="Center"/>
                                 <TextBlock Text="尚未安裝任何模組" FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource TextSecondary}"
                                            HorizontalAlignment="Center" Margin="0,12,0,4"/>
@@ -811,20 +865,16 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" Margin="0,0,24,0">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="Log level" Style="{DynamicResource SettingsLabel}"/>
-                                                <TextBlock Text="記錄等級" Style="{DynamicResource SettingsLabelZh}"/>
-                                            </StackPanel>
-                                            <TextBlock Text="Higher verbosity helps diagnose issues but increases file size."
-                                                       Style="{DynamicResource SettingsDescription}"/>
+                                            <TextBlock Text="{DynamicResource Loc_Settings_LogLevelLabel}" Style="{DynamicResource SettingsLabel}"/>
+                                            <TextBlock Text="{DynamicResource Loc_Settings_LogLevelDesc}" Style="{DynamicResource SettingsDescription}"/>
                                         </StackPanel>
                                         <ComboBox x:Name="CbLogLevel" Grid.Column="1" Width="160"
                                                   VerticalAlignment="Center"
                                                   SelectedIndex="{Binding LogLevelIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                            <ComboBoxItem Content="Information"/>
-                                            <ComboBoxItem Content="Warning"/>
-                                            <ComboBoxItem Content="Error"/>
-                                            <ComboBoxItem Content="Debug"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Settings_LogLevelInformation}"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Settings_LogLevelWarning}"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Settings_LogLevelError}"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Settings_LogLevelDebug}"/>
                                         </ComboBox>
                                     </Grid>
                                 </Border>
@@ -836,20 +886,16 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" Margin="0,0,24,0">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="Log retention" Style="{DynamicResource SettingsLabel}"/>
-                                                <TextBlock Text="保留天數" Style="{DynamicResource SettingsLabelZh}"/>
-                                            </StackPanel>
-                                            <TextBlock Text="Log files older than this period will be deleted automatically."
-                                                       Style="{DynamicResource SettingsDescription}"/>
+                                            <TextBlock Text="{DynamicResource Loc_Settings_LogRetentionLabel}" Style="{DynamicResource SettingsLabel}"/>
+                                            <TextBlock Text="{DynamicResource Loc_Settings_LogRetentionDesc}" Style="{DynamicResource SettingsDescription}"/>
                                         </StackPanel>
                                         <ComboBox x:Name="CbLogRetention" Grid.Column="1" Width="160"
                                                   VerticalAlignment="Center"
                                                   SelectedIndex="{Binding LogRetentionIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                                            <ComboBoxItem Content="7 days"/>
-                                            <ComboBoxItem Content="30 days"/>
-                                            <ComboBoxItem Content="90 days"/>
-                                            <ComboBoxItem Content="180 days"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Settings_LogRetention7Days}"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Settings_LogRetention30Days}"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Settings_LogRetention90Days}"/>
+                                            <ComboBoxItem Content="{DynamicResource Loc_Settings_LogRetention180Days}"/>
                                         </ComboBox>
                                     </Grid>
                                 </Border>
@@ -861,12 +907,8 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" Margin="0,0,24,0">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="Log export folder" Style="{DynamicResource SettingsLabel}"/>
-                                                <TextBlock Text="匯出資料夾" Style="{DynamicResource SettingsLabelZh}"/>
-                                            </StackPanel>
-                                            <TextBlock Text="Default folder used when exporting or downloading logs."
-                                                       Style="{DynamicResource SettingsDescription}"/>
+                                            <TextBlock Text="{DynamicResource Loc_Settings_LogExportFolderLabel}" Style="{DynamicResource SettingsLabel}"/>
+                                            <TextBlock Text="{DynamicResource Loc_Settings_LogExportFolderDesc}" Style="{DynamicResource SettingsDescription}"/>
                                         </StackPanel>
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                             <TextBox x:Name="TbLogFolder" Width="260" IsReadOnly="True"
@@ -875,9 +917,11 @@
                                             <Button Style="{DynamicResource GhostButton}" Margin="8,0,0,0"
                                                     Click="BrowseLogFolder_Click">
                                                 <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="&#xE838;" FontFamily="Segoe MDL2 Assets" FontSize="12"
-                                                               VerticalAlignment="Center"/>
-                                                    <TextBlock Text="Browse" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                    <shell:SvgIcon Source="/Assets/lucide/folder-open.svg"
+                                                                   Width="14" Height="14"
+                                                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                                   VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{DynamicResource Loc_Settings_LogExportBrowse}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </Button>
                                         </StackPanel>
@@ -891,21 +935,19 @@
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <StackPanel Grid.Column="0" Margin="0,0,24,0">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="Download logs" Style="{DynamicResource SettingsLabel}"/>
-                                                <TextBlock Text="下載日誌" Style="{DynamicResource SettingsLabelZh}"/>
-                                            </StackPanel>
-                                            <TextBlock Text="Package all current log files into a .zip for sharing with the development team."
-                                                       Style="{DynamicResource SettingsDescription}"/>
+                                            <TextBlock Text="{DynamicResource Loc_Settings_LogDownloadLabel}" Style="{DynamicResource SettingsLabel}"/>
+                                            <TextBlock Text="{DynamicResource Loc_Settings_LogDownloadDesc}" Style="{DynamicResource SettingsDescription}"/>
                                         </StackPanel>
                                         <Button Grid.Column="1" Style="{DynamicResource GhostButton}"
                                                 VerticalAlignment="Center"
                                                 Command="{Binding ExportLogsCommand}"
                                                 CommandParameter="{Binding LogExportFolder}">
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="&#xE896;" FontFamily="Segoe MDL2 Assets" FontSize="12"
-                                                           VerticalAlignment="Center"/>
-                                                <TextBlock Text="Download .zip" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                                                <shell:SvgIcon Source="/Assets/lucide/download.svg"
+                                                               Width="14" Height="14"
+                                                               Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                               VerticalAlignment="Center"/>
+                                                <TextBlock Text="{DynamicResource Loc_Settings_LogDownloadZip}" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                             </StackPanel>
                                         </Button>
                                     </Grid>
@@ -1038,8 +1080,10 @@
                                             VerticalAlignment="Center"
                                             Command="{Binding OpenLegalNoticesCommand}">
                                         <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="&#xE8A5;" FontFamily="Segoe MDL2 Assets" FontSize="12"
-                                                       VerticalAlignment="Center"/>
+                                            <shell:SvgIcon Source="/Assets/lucide/external-link.svg"
+                                                           Width="14" Height="14"
+                                                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
+                                                           VerticalAlignment="Center"/>
                                             <TextBlock Text="Open" Margin="6,0,0,0" VerticalAlignment="Center"/>
                                         </StackPanel>
                                     </Button>
@@ -1052,5 +1096,8 @@
                 </StackPanel>
             </ScrollViewer>
         </Grid>
+
+        <shell:InputModalDialog x:Name="WorkspaceCreateDialog"
+                                Grid.RowSpan="3"/>
     </Grid>
 </UserControl>

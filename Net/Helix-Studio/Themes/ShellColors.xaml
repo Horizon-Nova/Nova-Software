@@ -12,6 +12,8 @@
     <SolidColorBrush x:Key="SurfaceSidebarNested" Color="#ECEEF2"/>
     <SolidColorBrush x:Key="SurfaceStatusBar"     Color="#0F4C81"/>
 
+    <SolidColorBrush x:Key="SkeletonBase"        Color="#E6EAF2"/>
+
     <SolidColorBrush x:Key="TextPrimary"     Color="#1A1F2C"/>
     <SolidColorBrush x:Key="TextSecondary"   Color="#5A6576"/>
     <SolidColorBrush x:Key="TextTertiary"    Color="#8A94A6"/>
@@ -28,7 +30,7 @@
 
     <SolidColorBrush x:Key="StatusSuccess"      Color="#2E7D4F"/>
     <SolidColorBrush x:Key="StatusSuccessSoft"  Color="#E3F0E8"/>
-    <SolidColorBrush x:Key="StatusWarning"      Color="#C77700"/>
+    <SolidColorBrush x:Key="StatusWarning"      Color="#C88400"/>
     <SolidColorBrush x:Key="StatusWarningSoft"  Color="#FAEFD9"/>
     <SolidColorBrush x:Key="StatusDanger"       Color="#B3261E"/>
     <SolidColorBrush x:Key="StatusDangerSoft"   Color="#F8DEDB"/>

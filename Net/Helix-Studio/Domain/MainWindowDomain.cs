@@ -1,66 +1,143 @@
 using System;
 using System.Collections.Generic;
-using Helix_Studio.Core;
+using System.Linq;
+using Helix_Studio.Data.Repositories;
 using Helix_Studio.Model;
 
 namespace Helix_Studio.Domain;
 
 /// <summary>
-/// MainWindow 的業務入口，提供工作區、模組與主設定狀態的查詢與切換。
+/// 主視窗領域邏輯。
 /// </summary>
-public sealed class MainWindowDomain(IniCore iniCore, WorkspacesCore workspacesCore, ModulesCore modulesCore)
+public sealed class MainWindowDomain(
+    IniRepository iniRepository,
+    WorkspacesRepository workspacesRepository,
+    ModulesRepository modulesRepository)
 {
     private const string MainSection = "Main";
+    private const string SettingsSection = "Settings";
+    private const string DefaultHomePageId = "overview";
+
+    private static readonly IReadOnlyDictionary<int, TimeSpan> InactivityTimeoutByIndex =
+        new Dictionary<int, TimeSpan>
+        {
+            [1] = TimeSpan.FromMinutes(5),
+            [2] = TimeSpan.FromMinutes(15),
+            [3] = TimeSpan.FromMinutes(30),
+            [4] = TimeSpan.FromHours(1),
+        };
 
     /// <summary>
-    /// 轉發工作區資料夾的 I/O 變更通知。
-    /// </summary>
-    public event EventHandler? WorkspacesChanged
-    {
-        add => workspacesCore.Changed += value;
-        remove => workspacesCore.Changed -= value;
-    }
-
-    /// <summary>
-    /// 轉發模組資料夾的 I/O 變更通知。
-    /// </summary>
-    public event EventHandler? ModulesChanged
-    {
-        add => modulesCore.Changed += value;
-        remove => modulesCore.Changed -= value;
-    }
-
-    /// <summary>
-    /// 轉發主設定 INI 的 I/O 變更通知。
+    /// 設定檔變更事件。
     /// </summary>
     public event EventHandler? StateChanged
     {
-        add => iniCore.Changed += value;
-        remove => iniCore.Changed -= value;
+        add => iniRepository.Changed += value;
+        remove => iniRepository.Changed -= value;
     }
 
     /// <summary>
-    /// 查詢目前可用的工作區名稱清單。
+    /// 工作區目錄變更事件。
+    /// </summary>
+    public event EventHandler? WorkspacesChanged
+    {
+        add => workspacesRepository.Changed += value;
+        remove => workspacesRepository.Changed -= value;
+    }
+
+    /// <summary>
+    /// 模組目錄變更事件。
+    /// </summary>
+    public event EventHandler? ModulesChanged
+    {
+        add => modulesRepository.Changed += value;
+        remove => modulesRepository.Changed -= value;
+    }
+
+    /// <summary>
+    /// 查詢主視窗標題。
+    /// </summary>
+    public string QueryWindowTitle() => "Helix Studio";
+
+    /// <summary>
+    /// 查詢工作區名稱清單。
     /// </summary>
     public IReadOnlyList<string> QueryWorkspaces()
-        => workspacesCore.QueryWorkspaces();
+        => workspacesRepository.QueryWorkspaceNames();
 
     /// <summary>
-    /// 查詢目前主設定指定的工作區名稱。
+    /// 查詢工作區描述。
+    /// </summary>
+    public string QueryWorkspaceDescription(string workspaceName)
+        => workspacesRepository.QueryWorkspaceDescription(workspaceName);
+
+    /// <summary>
+    /// 查詢使用中的工作區名稱。
     /// </summary>
     public string QueryActiveWorkspaceName()
-        => iniCore.QuerySnapshot<MainModel>(MainSection).Workspace ?? string.Empty;
+        => iniRepository.QuerySnapshot<MainModel>(MainSection).Workspace ?? string.Empty;
 
     /// <summary>
-    /// 查詢目前工作區下的模組清單。
+    /// 查詢使用中的工作區描述。
+    /// </summary>
+    public string QueryActiveWorkspaceDescription()
+    {
+        var active = QueryActiveWorkspaceName();
+        return string.IsNullOrWhiteSpace(active)
+            ? string.Empty
+            : workspacesRepository.QueryWorkspaceDescription(active);
+    }
+
+    /// <summary>
+    /// 查詢目前工作區的模組清單。
     /// </summary>
     public IReadOnlyList<ModuleModel> QueryModules()
-        => modulesCore.QueryModules();
+        => modulesRepository.QueryModules();
 
     /// <summary>
-    /// 啟用指定工作區並寫回主設定。
+    /// 切換使用中的工作區。
     /// </summary>
-    /// <param name="workspaceName">欲啟用的工作區名稱。</param>
     public void ActivateWorkspace(string workspaceName)
-        => iniCore.SaveSnapshot(MainSection, new MainModel { Workspace = workspaceName });
+        => ActivateWorkspace(workspaceName, QueryWorkspaceDescription(workspaceName));
+
+    /// <summary>
+    /// 切換使用中的工作區並寫入描述。
+    /// </summary>
+    public void ActivateWorkspace(string workspaceName, string workspaceDescription)
+        => iniRepository.SaveValues(MainSection, new Dictionary<string, string?>
+        {
+            [nameof(MainModel.Workspace)] = workspaceName,
+            [nameof(MainModel.WorkspaceDescription)] = workspaceDescription,
+        });
+
+    public string ResolveStartupPageId()
+    {
+        var settings = iniRepository.QuerySnapshot<SettingsModel>(SettingsSection);
+        var lastVisited = settings.LastVisitedPageTag ?? string.Empty;
+
+        return settings.StartPageIndex == 1 && !string.IsNullOrWhiteSpace(lastVisited)
+            ? lastVisited
+            : DefaultHomePageId;
+    }
+
+    public void SaveLastVisitedPageId(string pageId)
+    {
+        var normalized = string.IsNullOrWhiteSpace(pageId) ? string.Empty : pageId;
+        var existing = iniRepository.QuerySnapshot<SettingsModel>(SettingsSection).LastVisitedPageTag ?? string.Empty;
+        if (string.Equals(existing, normalized, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        iniRepository.SaveValues(SettingsSection, new Dictionary<string, string?>
+        {
+            [nameof(SettingsModel.LastVisitedPageTag)] = normalized,
+        });
+    }
+
+    public TimeSpan? QueryInactivityTimeout()
+    {
+        var index = iniRepository.QuerySnapshot<SettingsModel>(SettingsSection).InactivityIndex;
+        return InactivityTimeoutByIndex.TryGetValue(index, out var timeout) ? timeout : null;
+    }
 }

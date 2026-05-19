@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mdxaml="clr-namespace:MdXaml;assembly=MdXaml"
+             xmlns:shell="clr-namespace:Helix_Studio.Components"
              mc:Ignorable="d"
              d:DesignHeight="400"
              d:DesignWidth="700"
@@ -15,11 +16,10 @@
 
         <StackPanel Orientation="Horizontal"
                     Margin="0,0,0,16">
-            <TextBlock Text="&#xE8A5;"
-                       FontFamily="Segoe MDL2 Assets"
-                       FontSize="10"
-                       Foreground="{DynamicResource TextTertiary}"
-                       VerticalAlignment="Center" />
+            <shell:SvgIcon Source="/Assets/lucide/scroll-text.svg"
+                           Width="12" Height="12"
+                           Foreground="{DynamicResource TextTertiary}"
+                           VerticalAlignment="Center" />
             <TextBlock Text="README"
                        Margin="6,0,0,0"
                        FontSize="8"

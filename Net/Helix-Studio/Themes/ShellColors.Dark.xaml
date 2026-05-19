@@ -12,9 +12,11 @@
     <SolidColorBrush x:Key="SurfaceSidebarNested" Color="#0E1622"/>
     <SolidColorBrush x:Key="SurfaceStatusBar"     Color="#0F4C81"/>
 
+    <SolidColorBrush x:Key="SkeletonBase"        Color="#1B2433"/>
+
     <SolidColorBrush x:Key="TextPrimary"     Color="#E8ECF2"/>
     <SolidColorBrush x:Key="TextSecondary"   Color="#B9C1D0"/>
-    <SolidColorBrush x:Key="TextTertiary"    Color="#B9C1D0"/>
+    <SolidColorBrush x:Key="TextTertiary"    Color="#7A8499"/>
     <SolidColorBrush x:Key="TextOnDark"      Color="#E8ECF2"/>
     <SolidColorBrush x:Key="TextOnDarkMuted" Color="#A3AEC3"/>
 
@@ -34,10 +36,8 @@
     <SolidColorBrush x:Key="StatusDangerSoft"   Color="#2A0F10"/>
     <SolidColorBrush x:Key="StatusDangerBorder" Color="#5A2A2A"/>
 
-    <SolidColorBrush x:Key="OverlayScrim" Color="#99000000"/>
+    <SolidColorBrush x:Key="OverlayScrim" Color="#66000000"/>
 
-    <SolidColorBrush x:Key="BrandDeep"   Color="#0A1628"/>
-    <SolidColorBrush x:Key="BrandMid"    Color="#12243D"/>
     <SolidColorBrush x:Key="BrandAccent" Color="#1E4470"/>
 
 </ResourceDictionary>

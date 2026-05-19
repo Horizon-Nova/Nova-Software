@@ -17,5 +17,6 @@ public partial class LockWindow : Window
 
     private void Unlock_Click(object sender, RoutedEventArgs e)
     {
+        Close();
     }
 }

@@ -2,16 +2,19 @@ using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Threading;
+using Helix_Studio.AppHost;
+using Helix_Studio.Domain;
 using Helix_Studio.Model;
-using Helix_Studio.Services;
 using Helix_Studio.ViewModels.Base;
 
 namespace Helix_Studio.ViewModels;
 
 /// <summary>
-/// 概覽頁面的 UI 狀態機。
+/// 概覽頁 ViewModel。
 /// </summary>
-public sealed class OverviewPageViewModel(OverviewServices services) : ViewModelBase, IDisposable
+public sealed class OverviewPageViewModel(
+    OverviewDomain domain,
+    LocalizationRuntime localizationRuntime) : ViewModelBase, IDisposable
 {
     private SynchronizationContext _synchronizationContext = new();
     private bool _isInitialized;
@@ -28,118 +31,76 @@ public sealed class OverviewPageViewModel(OverviewServices services) : ViewModel
     private string _buildVersionText = string.Empty;
     private string _dataFolderPath = string.Empty;
 
-    /// <summary>
-    /// 機器名稱。
-    /// </summary>
     public string MachineName
     {
         get => _machineName;
         private set => SetField(ref _machineName, value);
     }
 
-    /// <summary>
-    /// 副標題文字。
-    /// </summary>
     public string SubtitleText
     {
         get => _subtitleText;
         private set => SetField(ref _subtitleText, value);
     }
 
-    /// <summary>
-    /// 作業系統短資訊。
-    /// </summary>
     public string OsInfoShort
     {
         get => _osInfoShort;
         private set => SetField(ref _osInfoShort, value);
     }
 
-    /// <summary>
-    /// 作業系統完整資訊。
-    /// </summary>
     public string OsInfoFull
     {
         get => _osInfoFull;
         private set => SetField(ref _osInfoFull, value);
     }
 
-    /// <summary>
-    /// 開機時間文字。
-    /// </summary>
     public string UptimeText
     {
         get => _uptimeText;
         private set => SetField(ref _uptimeText, value);
     }
 
-    /// <summary>
-    /// 目前工作區名稱。
-    /// </summary>
     public string WorkspaceName
     {
         get => _workspaceName;
         private set => SetField(ref _workspaceName, value);
     }
 
-    /// <summary>
-    /// 目前工作區描述。
-    /// </summary>
     public string WorkspaceDescription
     {
         get => _workspaceDescription;
         private set => SetField(ref _workspaceDescription, value);
     }
 
-    /// <summary>
-    /// 模組數量文字。
-    /// </summary>
     public string ModuleCountText
     {
         get => _moduleCountText;
         private set => SetField(ref _moduleCountText, value);
     }
 
-    /// <summary>
-    /// 模組狀態文字。
-    /// </summary>
     public string ModuleStatusText
     {
         get => _moduleStatusText;
         private set => SetField(ref _moduleStatusText, value);
     }
 
-    /// <summary>
-    /// 建置版本文字。
-    /// </summary>
     public string BuildVersionText
     {
         get => _buildVersionText;
         private set => SetField(ref _buildVersionText, value);
     }
 
-    /// <summary>
-    /// 資料資料夾路徑。
-    /// </summary>
     public string DataFolderPath
     {
         get => _dataFolderPath;
         private set => SetField(ref _dataFolderPath, value);
     }
 
-    /// <summary>
-    /// 模組清單。
-    /// </summary>
     public ObservableCollection<OverviewModuleItemModel> Modules { get; } = [];
 
-    /// <summary>
-    /// 是否有模組可顯示。
-    /// </summary>
     public bool HasModules => Modules.Count > 0;
 
-    /// <summary>
-    /// 初始化概覽頁面的 I/O 訂閱與初始快照。
-    /// </summary>
     internal void ApplyViewLoaded()
     {
         if (_isInitialized)
@@ -148,15 +109,14 @@ public sealed class OverviewPageViewModel(OverviewServices services) : ViewModel
         }
 
         _synchronizationContext = SynchronizationContext.Current ?? new SynchronizationContext();
-        services.Changed += OnChanged;
+        domain.Changed += OnChanged;
         Modules.CollectionChanged += OnModulesChanged;
-        ApplySnapshot(services.QueryOverview());
+
+        SubtitleText = localizationRuntime.QueryString("Loc_Overview_Subtitle");
+        ApplySnapshot(domain.QueryOverview());
         _isInitialized = true;
     }
 
-    /// <summary>
-    /// 釋放概覽頁面的事件訂閱。
-    /// </summary>
     public void Dispose()
     {
         if (_isDisposed)
@@ -166,7 +126,7 @@ public sealed class OverviewPageViewModel(OverviewServices services) : ViewModel
 
         if (_isInitialized)
         {
-            services.Changed -= OnChanged;
+            domain.Changed -= OnChanged;
             Modules.CollectionChanged -= OnModulesChanged;
         }
 
@@ -174,7 +134,7 @@ public sealed class OverviewPageViewModel(OverviewServices services) : ViewModel
     }
 
     private void OnChanged(object? sender, EventArgs e)
-        => PostToUi(() => ApplySnapshot(services.QueryOverview()));
+        => PostToUi(() => ApplySnapshot(domain.QueryOverview()));
 
     private void OnModulesChanged(object? sender, NotifyCollectionChangedEventArgs e)
         => NotifyPropertyChanged(nameof(HasModules));
@@ -185,15 +145,27 @@ public sealed class OverviewPageViewModel(OverviewServices services) : ViewModel
     private void ApplySnapshot(OverviewModel snapshot)
     {
         MachineName = snapshot.MachineName;
-        SubtitleText = snapshot.SubtitleText;
         OsInfoShort = snapshot.OsInfoShort;
         OsInfoFull = snapshot.OsInfoFull;
-        UptimeText = snapshot.UptimeText;
-        WorkspaceName = snapshot.WorkspaceName;
-        WorkspaceDescription = snapshot.WorkspaceDescription;
+        UptimeText = localizationRuntime.Format("Loc_Overview_Uptime", snapshot.UptimeText);
+
+        WorkspaceName = string.IsNullOrWhiteSpace(snapshot.WorkspaceName)
+            ? localizationRuntime.QueryString("Loc_Common_Unknown")
+            : snapshot.WorkspaceName;
+
+        WorkspaceDescription = string.IsNullOrWhiteSpace(snapshot.WorkspaceDescription)
+            ? localizationRuntime.QueryString("Loc_Overview_WorkspaceNotSelected")
+            : snapshot.WorkspaceDescription;
+
         ModuleCountText = snapshot.ModuleCountText;
-        ModuleStatusText = snapshot.ModuleStatusText;
-        BuildVersionText = snapshot.BuildVersionText;
+        ModuleStatusText = snapshot.Modules.Count > 0
+            ? localizationRuntime.QueryString("Loc_Overview_ModulesLoaded")
+            : localizationRuntime.QueryString("Loc_Overview_ModulesEmpty");
+
+        BuildVersionText = string.IsNullOrWhiteSpace(snapshot.BuildVersionText)
+            ? localizationRuntime.QueryString("Loc_Common_Unknown")
+            : snapshot.BuildVersionText;
+
         DataFolderPath = snapshot.DataFolderPath;
 
         Modules.Clear();
@@ -201,6 +173,7 @@ public sealed class OverviewPageViewModel(OverviewServices services) : ViewModel
         {
             Modules.Add(module);
         }
+
+        NotifyPropertyChanged(nameof(HasModules));
     }
 }
-

@@ -4,8 +4,8 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Threading;
 using System.Windows.Input;
+using Helix_Studio.Domain;
 using Helix_Studio.Model;
-using Helix_Studio.Services;
 using Helix_Studio.ViewModels.Base;
 
 namespace Helix_Studio.ViewModels;
@@ -13,7 +13,7 @@ namespace Helix_Studio.ViewModels;
 /// <summary>
 /// 模組頁面的 UI 狀態機。
 /// </summary>
-public sealed class ModulesPageViewModel(ModulesServices services) : ViewModelBase, IDisposable
+public sealed class ModulesPageViewModel(ModulesDomain domain) : ViewModelBase, IDisposable
 {
     private SynchronizationContext _synchronizationContext = new();
     private RelayCommand? _rescanCommand;
@@ -132,7 +132,7 @@ public sealed class ModulesPageViewModel(ModulesServices services) : ViewModelBa
         }
 
         _synchronizationContext = SynchronizationContext.Current ?? new SynchronizationContext();
-        services.Changed += OnChanged;
+        domain.Changed += OnChanged;
         Items.CollectionChanged += OnItemsChanged;
         ApplySnapshot();
         _isInitialized = true;
@@ -144,7 +144,7 @@ public sealed class ModulesPageViewModel(ModulesServices services) : ViewModelBa
     /// <param name="sourceDirectoryPath">來源資料夾路徑。</param>
     internal void ImportModule(string sourceDirectoryPath)
     {
-        var imported = services.ImportModule(sourceDirectoryPath);
+        var imported = domain.ImportModule(sourceDirectoryPath);
         ApplySnapshot(imported.Id);
     }
 
@@ -169,7 +169,7 @@ public sealed class ModulesPageViewModel(ModulesServices services) : ViewModelBa
 
         if (_isInitialized)
         {
-            services.Changed -= OnChanged;
+            domain.Changed -= OnChanged;
             Items.CollectionChanged -= OnItemsChanged;
         }
 
@@ -190,9 +190,9 @@ public sealed class ModulesPageViewModel(ModulesServices services) : ViewModelBa
 
     private void ApplySnapshot(string? preferSelectModuleId = null)
     {
-        ModulesDirectoryPath = services.QueryModulesDirectoryPath();
+        ModulesDirectoryPath = domain.QueryModulesDirectoryPath();
 
-        var modules = services.QueryModules();
+        var modules = domain.QueryModules();
         Items.Clear();
         foreach (var module in modules)
         {
@@ -218,7 +218,7 @@ public sealed class ModulesPageViewModel(ModulesServices services) : ViewModelBa
             return;
         }
 
-        services.DisableModule(SelectedItem.Id);
+        domain.DisableModule(SelectedItem.Id);
     }
 
     private void ApplyUninstall()
@@ -230,7 +230,7 @@ public sealed class ModulesPageViewModel(ModulesServices services) : ViewModelBa
 
         var installedFolderPath = SelectedItem.InstalledFolderPath;
         SelectedItem = null;
-        services.UninstallModule(installedFolderPath);
+        domain.UninstallModule(installedFolderPath);
     }
 
     private void ApplyOpen()
