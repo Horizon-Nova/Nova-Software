@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="ExternalModules.DeploymentTool.Components.DeployedCard"
+<UserControl x:Class="ExternalModules.DeploymentTool.Components.DeployedCard"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Name="Root">

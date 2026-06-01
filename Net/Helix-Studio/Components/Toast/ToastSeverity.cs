@@ -1,4 +1,4 @@
-﻿namespace Helix_Studio.Components;
+namespace Helix_Studio.Components;
 
 /// <summary>Toast 通知之嚴重程度分類。</summary>
 public enum ToastSeverity

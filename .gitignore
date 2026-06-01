@@ -1,72 +1,260 @@
-# 排除 Visual Studio 和 VS Code 的暫存檔案與設定
+### OS - Windows ###
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+### OS - macOS ###
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+### OS - Linux ###
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+### VisualStudio ###
 .vs/
-.vscode/
-
-# 排除編譯輸出的二進位檔案
-bin/
-obj/
-
-# 排除本地配置檔案
 *.suo
 *.user
 *.userosscache
 *.sln.docstates
+*.rsuser
 
-# 排除進階設定檔案
-*.csproj.nuget.dgspec.json
-*.csproj.nuget.g.props
-*.csproj.nuget.g.targets
+### VSCode ###
+.vscode/
+*.code-workspace
 
-# 排除其他暫存檔案
-*.tmp
-*.log
-*.vsidx
-*.cache
+### JetBrains ###
+.idea/
+*.iml
+*.iws
+*.ipr
+.idea_modules/
+
+### Vim ###
+*.swp
+*.swo
+.netrwhist
+Session.vim
+
+### Emacs ###
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+
+### SublimeText ###
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+
+### Eclipse ###
+.project
+.classpath
+.settings/
+.loadpath
+
+### NetBeans ###
+nbproject/private/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+### DotNet ###
+bin/
+obj/
+.nuget/
+*.nupkg
+*.snupkg
+*.nuget.dgspec.json
+*.nuget.g.props
+*.nuget.g.targets
+project.assets.json
+project.nuget.cache
+project.lock.json
+restore.lock.json
+packages/
+StyleCopReport.xml
+_ReSharper*/
+*.DotSettings.user
+
+### Java ###
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+target/
+.gradle/
+build/
+!gradle-wrapper.jar
+.gradletasknamecache
+
+### Python ###
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+dist/
+*.egg-info/
+*.egg
+.tox/
+.nox/
+.coverage
+.coverage.*
+.pytest_cache/
+.hypothesis/
+.mypy_cache/
+.venv/
+venv/
+env/
+ENV/
+
+### Node ###
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.eslintcache
+*.tsbuildinfo
+.next/
+.nuxt/
+dist/
+.cache/
+.parcel-cache/
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+### Go ###
+*.test
+*.out
+vendor/
+
+### Rust ###
+target/
+**/*.rs.bk
+
+### Ruby ###
+*.gem
+*.rbc
+.bundle/
+vendor/bundle
+
+### PHP ###
+vendor/
+composer.phar
+.phpunit.result.cache
+.php-cs-fixer.cache
+
+### Swift ###
+*.xcworkspace
+xcuserdata/
+DerivedData/
+
+### Terraform ###
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+
+### Docker ###
+docker-compose.override.yml
+
+### Binary ###
 *.exe
 *.dll
 *.pdb
+*.so
+*.dylib
+*.o
+*.a
+*.lib
+
+### Archives ###
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.gz
+*.bz2
+*.xz
+*.iso
+*.dmg
+*.pkg
+*.deb
+*.rpm
+
+### Temp ###
+*.tmp
+*.temp
+*.log
+*.vsidx
+*.cache
+*.lscache
 *.db
 *.lock
-*.lscache
+*.bak
+*.orig
+*.rej
 
-# NuGet 相關 (允許 `packages/`，但忽略還原時的 cache 和 log)
-# 排除 NuGet 還原的中繼文件
-.nuget/
-packages/**/*.nupkg
-packages/**/*.snupkg
-packages/**/*.sha512
-packages/**/project.assets.json
-packages/**/project.nuget.cache
-packages/**/project.lock.json
-packages/**/restore.lock.json
-
-# 允許 NuGet 套件
-!packages/
-!packages/**/*.dll
-!packages/**/*.exe
-!packages/**/*.pdb
-
-# 排除所有 ONNX 模型
+### AI ###
 *.onnx
-
-# 排除 tokenizer 相關檔案
+*.pt
+*.pth
+*.h5
+*.pkl
 tokenizer.json
 tokenizer_config.json
 vocab.json
 merges.txt
 special_tokens_map.json
 
-# 排除資料夾
-HNB/Areas/Backoffice/storage/
+### Secrets ###
+.env
+.env.*
+.env.local
+.env.production
+!.env.example
+!.env.sample
+*.env
+*.secret
+*_secret*
+*_private*
+*.pem
+*.key
+*.p12
+*.pfx
+*.credentials
+credentials.json
+service-account*.json
+secrets.json
+local.settings.json
+appsettings.json
+appsettings.Production.json
 
-Sites/
-
-QdrantEmbedding
-
-# 臨時備份資料夾
-Net/BK/
-
-# Node.js
-npm-debug.log
-yarn-debug.log
-yarn-error.log
+### Skill ###
+.agents/
+AGENTS.md

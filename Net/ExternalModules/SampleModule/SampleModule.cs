@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using HorizonNova.HelixStudio.ModuleSdk;
 using HorizonNova.SampleModule.Views;
 

@@ -1,4 +1,4 @@
-﻿// ── Module identity (read by HN-Studio shell via assembly attributes) ──────
+// ── Module identity (read by HN-Studio shell via assembly attributes) ──────
 // These attributes replace the old module.json approach.
 // The shell uses MetadataLoadContext to read them without executing module code.
 using HorizonNova.HelixStudio.ModuleSdk;

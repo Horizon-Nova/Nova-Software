@@ -1,4 +1,4 @@
-﻿using NetToolTestArea.Services;
+using NetToolTestArea.Services;
 using NetToolTestArea.Utility;
 
 namespace NetToolTestArea.Core

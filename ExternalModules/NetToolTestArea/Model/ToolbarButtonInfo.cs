@@ -1,4 +1,4 @@
-﻿namespace NetToolTestArea.Model
+namespace NetToolTestArea.Model
 {
     public class ToolbarButtonInfo
     {
