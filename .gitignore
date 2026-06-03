@@ -258,3 +258,4 @@ appsettings.Production.json
 ### Skill ###
 .agents/
 AGENTS.md
+docs/
