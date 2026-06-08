@@ -10,8 +10,7 @@
              TextOptions.TextFormattingMode="Display"
              TextOptions.TextRenderingMode="ClearType"
              UseLayoutRounding="True"
-             SnapsToDevicePixels="True"
-             >
+             SnapsToDevicePixels="True">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto"
                   Background="{DynamicResource SurfaceBase}">
@@ -135,7 +134,7 @@
 
                         <StackPanel Grid.Row="0">
                             <TextBlock Text="System Information" Style="{DynamicResource SectionTitle}"/>
-                            <TextBlock Text="本機執行環境詳情"
+                            <TextBlock Text="本機執行與作業資訊"
                                        Style="{DynamicResource SectionSubtitle}"/>
                         </StackPanel>
 
@@ -209,7 +208,7 @@
 
                         <StackPanel Grid.Row="0">
                             <TextBlock Text="Quick Actions" Style="{DynamicResource SectionTitle}"/>
-                            <TextBlock Text="常用操作"
+                            <TextBlock Text="常用入口"
                                        Style="{DynamicResource SectionSubtitle}"/>
                         </StackPanel>
 
@@ -229,7 +228,7 @@
                                     <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
                                         <TextBlock Text="Settings" FontSize="13" FontWeight="SemiBold"
                                                    Foreground="{DynamicResource TextPrimary}"/>
-                                        <TextBlock Text="語言、主題、工作區管理" FontSize="11"
+                                        <TextBlock Text="語言、主題、工作區與日誌設定" FontSize="11"
                                                    Foreground="{DynamicResource TextTertiary}"/>
                                     </StackPanel>
                                 </StackPanel>
@@ -249,7 +248,7 @@
                                     <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
                                         <TextBlock Text="Manage Workspaces" FontSize="13" FontWeight="SemiBold"
                                                    Foreground="{DynamicResource TextPrimary}"/>
-                                        <TextBlock Text="新增、切換或刪除工作區" FontSize="11"
+                                        <TextBlock Text="新增、切換與維護工作區" FontSize="11"
                                                    Foreground="{DynamicResource TextTertiary}"/>
                                     </StackPanel>
                                 </StackPanel>
@@ -269,7 +268,7 @@
                                     <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
                                         <TextBlock Text="Modules" FontSize="13" FontWeight="SemiBold"
                                                    Foreground="{DynamicResource TextPrimary}"/>
-                                        <TextBlock Text="擴充清單與模組目錄" FontSize="11"
+                                        <TextBlock Text="瀏覽並開啟已載入模組" FontSize="11"
                                                    Foreground="{DynamicResource TextTertiary}"/>
                                     </StackPanel>
                                 </StackPanel>
@@ -288,7 +287,7 @@
                                     <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
                                         <TextBlock Text="Event Log" FontSize="13" FontWeight="SemiBold"
                                                    Foreground="{DynamicResource TextPrimary}"/>
-                                        <TextBlock Text="查看系統活動與錯誤記錄" FontSize="11"
+                                        <TextBlock Text="查看系統與模組事件記錄" FontSize="11"
                                                    Foreground="{DynamicResource TextTertiary}"/>
                                     </StackPanel>
                                 </StackPanel>
@@ -360,25 +359,25 @@
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
-                                                </Image.Style>
-                                            </Image>
-                                            <shell:SvgIcon Source="/Assets/lucide/package.svg"
-                                                           Width="16" Height="16"
-                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                           Foreground="{DynamicResource AccentPrimary}">
-                                                <shell:SvgIcon.Style>
-                                                    <Style TargetType="shell:SvgIcon">
-                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding HasIcon}" Value="False">
-                                                                <Setter Property="Visibility" Value="Visible"/>
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </shell:SvgIcon.Style>
-                                            </shell:SvgIcon>
-                                        </Grid>
-                                    </Border>
+                                                    </Image.Style>
+                                                </Image>
+                                                <shell:SvgIcon Source="/Assets/lucide/package.svg"
+                                                               Width="16" Height="16"
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                               Foreground="{DynamicResource AccentPrimary}">
+                                                    <shell:SvgIcon.Style>
+                                                        <Style TargetType="shell:SvgIcon">
+                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding HasIcon}" Value="False">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </shell:SvgIcon.Style>
+                                                </shell:SvgIcon>
+                                            </Grid>
+                                        </Border>
 
                                         <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
                                             <StackPanel Orientation="Horizontal">
@@ -438,4 +437,3 @@
         </StackPanel>
     </ScrollViewer>
 </UserControl>
-

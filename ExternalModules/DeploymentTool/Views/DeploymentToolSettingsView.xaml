@@ -37,9 +37,9 @@
                            Text="Linux 模板"
                            Style="{DynamicResource ShellSettingsRowTitleStyle}"/>
                 <ComboBox Grid.Column="1"
-                          x:Name="TemplateComboBox"
                           Style="{DynamicResource ShellSettingsComboBoxStyle}"
-                          SelectionChanged="TemplateComboBox_OnSelectionChanged"/>
+                          ItemsSource="{Binding LinuxTemplateOptions}"
+                          SelectedItem="{Binding SelectedLinuxTemplate}"/>
             </Grid>
 
             <Grid Grid.Row="1" Style="{StaticResource DeploymentSettingsRowStyle}">
@@ -52,9 +52,9 @@
                            Text="預設 vCPU"
                            Style="{DynamicResource ShellSettingsRowTitleStyle}"/>
                 <ComboBox Grid.Column="1"
-                          x:Name="DefaultCpuComboBox"
                           Style="{DynamicResource ShellSettingsComboBoxStyle}"
-                          SelectionChanged="DefaultCpuComboBox_OnSelectionChanged"/>
+                          ItemsSource="{Binding DefaultCpuOptions}"
+                          SelectedItem="{Binding SelectedDefaultCpu}"/>
             </Grid>
 
             <Grid Grid.Row="2" Style="{StaticResource DeploymentSettingsRowStyle}">
@@ -67,9 +67,9 @@
                            Text="預設 RAM (MB)"
                            Style="{DynamicResource ShellSettingsRowTitleStyle}"/>
                 <ComboBox Grid.Column="1"
-                          x:Name="DefaultMemoryComboBox"
                           Style="{DynamicResource ShellSettingsComboBoxStyle}"
-                          SelectionChanged="DefaultMemoryComboBox_OnSelectionChanged"/>
+                          ItemsSource="{Binding DefaultMemoryOptions}"
+                          SelectedItem="{Binding SelectedDefaultMemory}"/>
             </Grid>
 
             <Grid Grid.Row="3" Style="{StaticResource DeploymentSettingsRowStyle}">
@@ -82,9 +82,9 @@
                            Text="Docker 模式"
                            Style="{DynamicResource ShellSettingsRowTitleStyle}"/>
                 <ComboBox Grid.Column="1"
-                          x:Name="DockerModeComboBox"
                           Style="{DynamicResource ShellSettingsComboBoxStyle}"
-                          SelectionChanged="DockerModeComboBox_OnSelectionChanged"/>
+                          ItemsSource="{Binding DockerModeOptions}"
+                          SelectedItem="{Binding SelectedDockerMode}"/>
             </Grid>
 
             <Grid Grid.Row="4" Style="{StaticResource DeploymentSettingsRowStyle}">
@@ -97,9 +97,8 @@
                            Text="專案工作目錄"
                            Style="{DynamicResource ShellSettingsRowTitleStyle}"/>
                 <TextBox Grid.Column="1"
-                         x:Name="WorkspaceTextBox"
                          Style="{DynamicResource ShellSettingsTextBoxStyle}"
-                         LostKeyboardFocus="WorkspaceTextBox_OnLostKeyboardFocus"/>
+                         Text="{Binding WorkspaceDirectory, UpdateSourceTrigger=LostFocus}"/>
             </Grid>
 
             <Grid Grid.Row="5">
@@ -112,17 +111,15 @@
                            Text="建立後自動啟動部署"
                            Style="{DynamicResource ShellSettingsRowTitleStyle}"/>
                 <CheckBox Grid.Column="1"
-                          x:Name="AutoStartCheckBox"
                           Content="建立部署專案後直接帶入下一步"
                           Foreground="{DynamicResource ShellForegroundBrush}"
-                          Checked="AutoStartCheckBox_OnChanged"
-                          Unchecked="AutoStartCheckBox_OnChanged"/>
+                          IsChecked="{Binding IsAutoStartEnabled}"/>
             </Grid>
         </Grid>
 
-        <TextBlock x:Name="StatusTextBlock"
-                   Margin="0,14,0,0"
+        <TextBlock Margin="0,14,0,0"
                    TextWrapping="Wrap"
-                   Foreground="{DynamicResource ShellMutedForegroundBrush}"/>
+                   Foreground="{DynamicResource ShellMutedForegroundBrush}"
+                   Text="{Binding StatusText}"/>
     </StackPanel>
 </UserControl>

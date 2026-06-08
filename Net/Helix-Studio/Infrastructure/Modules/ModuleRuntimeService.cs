@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Text;
 using System.Text.Json;
 using System.Windows;
@@ -35,7 +36,7 @@ internal sealed class ModuleRuntimeService(
 
         foreach (var handle in _loadedModules.Values)
         {
-            handle.Module.Dispose();
+            handle.Dispose();
         }
 
         _loadedModules.Clear();
@@ -98,11 +99,6 @@ internal sealed class ModuleRuntimeService(
     {
         var activeWorkspaceName = ResolveActiveWorkspaceName();
         var cacheKey = $"{activeWorkspaceName}|{moduleId}";
-        if (_loadedModules.TryGetValue(cacheKey, out var existing))
-        {
-            return existing;
-        }
-
         var moduleMetadata = modulesRepository.QueryModules()
             .FirstOrDefault(module => string.Equals(module.Id, moduleId, StringComparison.OrdinalIgnoreCase))
             ?? throw new InvalidOperationException($"找不到模組：{moduleId}");
@@ -118,6 +114,25 @@ internal sealed class ModuleRuntimeService(
         // 導致 Application.LoadComponent 拋出「無法識別資源」。
         // 解法：metadata 掃描結束後、runtime 組件載入前，先執行雙次 GC 強制回收 ghost。
         GC.Collect(2, GCCollectionMode.Forced, blocking: true);
+        if (_loadedModules.TryGetValue(cacheKey, out var existing))
+        {
+            var sourceDllTimestampUtc = File.GetLastWriteTimeUtc(moduleMetadata.DllPath);
+            if (existing.Matches(moduleMetadata.FolderPath, moduleMetadata.DllPath, sourceDllTimestampUtc))
+            {
+                return existing;
+            }
+
+            if (string.Equals(_activeModuleCacheKey, cacheKey, StringComparison.OrdinalIgnoreCase))
+            {
+                existing.Module.OnDeactivated();
+                _activeModuleCacheKey = null;
+            }
+
+            existing.Dispose();
+            _loadedModules.Remove(cacheKey);
+            eventLogRepository.Record(EventLogLevel.Info, moduleId, "偵測到模組檔案已變更，已清除舊的執行個體並重新載入。");
+        }
+
         GC.WaitForPendingFinalizers();
         GC.Collect(2, GCCollectionMode.Forced, blocking: true);
 
@@ -126,8 +141,8 @@ internal sealed class ModuleRuntimeService(
             moduleMetadata.DllPath,
             moduleMetadata.Id,
             "runtime");
-        var assembly = Assembly.LoadFrom(stagedDllPath);
-        EnsureWpfAssemblyResolve(assembly);
+        var loadContext = new ModuleAssemblyLoadContext(stagedDllPath);
+        var assembly = loadContext.LoadFromAssemblyPath(stagedDllPath);
         var moduleType = QueryModuleType(assembly)
             ?? throw new InvalidOperationException($"模組缺少可載入入口：{moduleMetadata.DisplayName}");
 
@@ -149,7 +164,15 @@ internal sealed class ModuleRuntimeService(
             notificationRuntime,
             eventLogRepository);
 
-        var loaded = new LoadedModuleHandle(cacheKey, moduleId, module, context);
+        var loaded = new LoadedModuleHandle(
+            cacheKey,
+            moduleId,
+            moduleMetadata.FolderPath,
+            moduleMetadata.DllPath,
+            File.GetLastWriteTimeUtc(moduleMetadata.DllPath),
+            loadContext,
+            module,
+            context);
         _loadedModules[cacheKey] = loaded;
         eventLogRepository.Record(EventLogLevel.Info, moduleId, "模組已載入");
         return loaded;
@@ -167,28 +190,6 @@ internal sealed class ModuleRuntimeService(
         var moduleStateDirectoryPath = Path.Combine(workspaceDirectoryPath, ModuleStateDirectoryName, moduleId);
         Directory.CreateDirectory(moduleStateDirectoryPath);
         return moduleStateDirectoryPath;
-    }
-
-    private static readonly Dictionary<string, Assembly> _runtimeAssemblies = new(StringComparer.OrdinalIgnoreCase);
-
-    private static void EnsureWpfAssemblyResolve(Assembly assembly)
-    {
-        var name = assembly.GetName().Name;
-        if (string.IsNullOrEmpty(name) || _runtimeAssemblies.ContainsKey(name))
-            return;
-
-        _runtimeAssemblies[name] = assembly;
-
-        // WPF resolves BAML assembly via Assembly.Load(name) which may pick up a stale
-        // metadata-ALC version still alive in the AppDomain. This handler guarantees
-        // WPF always uses the runtime assembly for pack:// resource lookup.
-        AppDomain.CurrentDomain.AssemblyResolve += (_, args) =>
-        {
-            var requested = new AssemblyName(args.Name).Name;
-            return !string.IsNullOrEmpty(requested) && _runtimeAssemblies.TryGetValue(requested, out var asm)
-                ? asm
-                : null;
-        };
     }
 
     private static Type? QueryModuleType(Assembly assembly)
@@ -210,12 +211,29 @@ internal sealed class ModuleRuntimeService(
     private sealed record LoadedModuleHandle(
         string CacheKey,
         string ModuleId,
+        string SourceFolderPath,
+        string SourceDllPath,
+        DateTime SourceDllLastWriteTimeUtc,
+        ModuleAssemblyLoadContext LoadContext,
         IModule Module,
-        ModuleShellContext Context)
+        ModuleShellContext Context) : IDisposable
     {
         public FrameworkElement? MainView { get; set; }
 
         public FrameworkElement? SettingsView { get; set; }
+
+        public bool Matches(string sourceFolderPath, string sourceDllPath, DateTime sourceDllLastWriteTimeUtc)
+            => string.Equals(SourceFolderPath, sourceFolderPath, StringComparison.OrdinalIgnoreCase)
+               && string.Equals(SourceDllPath, sourceDllPath, StringComparison.OrdinalIgnoreCase)
+               && SourceDllLastWriteTimeUtc == sourceDllLastWriteTimeUtc;
+
+        public void Dispose()
+        {
+            MainView = null;
+            SettingsView = null;
+            Module.Dispose();
+            LoadContext.Unload();
+        }
     }
 
     private sealed class ModuleShellContext(

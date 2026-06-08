@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -23,6 +24,31 @@ public partial class InSpecToolSettingsPage : UserControl
         _viewModel = viewModel;
         InitializeComponent();
         DataContext = _viewModel;
+        UnlockKeyBox.Password = string.Empty;
+        _viewModel.PropertyChanged += ApplyViewModelPropertyChanged;
+    }
+
+    private void ApplyViewModelPropertyChanged(object? sender, PropertyChangedEventArgs eventArgs)
+    {
+        if (eventArgs.PropertyName != nameof(InSpecToolSettingsPageViewModel.UnlockKeyInput))
+        {
+            return;
+        }
+
+        if (UnlockKeyBox.Password != _viewModel.UnlockKeyInput)
+        {
+            UnlockKeyBox.Password = _viewModel.UnlockKeyInput;
+        }
+    }
+
+    private void ApplyUnlockKeyPasswordChanged(object sender, RoutedEventArgs eventArgs)
+    {
+        if (_viewModel.UnlockKeyInput == UnlockKeyBox.Password)
+        {
+            return;
+        }
+
+        _viewModel.UnlockKeyInput = UnlockKeyBox.Password;
     }
 
     private void ApplySearchDirectoryBrowse(object sender, RoutedEventArgs eventArgs)

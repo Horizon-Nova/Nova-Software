@@ -12,6 +12,9 @@ namespace Helix_Studio.Views.Converters;
 /// </summary>
 public sealed class DynamicResourceProxy : Freezable
 {
+    /// <summary>
+    /// 動態資源值的相依屬性。
+    /// </summary>
     public static readonly DependencyProperty ValueProperty =
         DependencyProperty.Register(
             nameof(Value),
@@ -19,12 +22,17 @@ public sealed class DynamicResourceProxy : Freezable
             typeof(DynamicResourceProxy),
             new PropertyMetadata(null));
 
+    /// <summary>
+    /// 目前承載的動態資源值。
+    /// </summary>
     public object? Value
     {
         get => GetValue(ValueProperty);
         set => SetValue(ValueProperty, value);
     }
 
+    /// <summary>
+    /// 建立新的 Proxy 執行個體。
+    /// </summary>
     protected override Freezable CreateInstanceCore() => new DynamicResourceProxy();
 }
-

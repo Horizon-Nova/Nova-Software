@@ -1,8 +1,9 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Windows;
 using System.Windows.Input;
+using ExternalModules.InSpecTool.App.Runtime;
 using ExternalModules.InSpecTool.Model;
-using ExternalModules.InSpecTool.Services;
 using ExternalModules.InSpecTool.ViewModels.Base;
 
 namespace ExternalModules.InSpecTool.ViewModels;
@@ -12,15 +13,18 @@ namespace ExternalModules.InSpecTool.ViewModels;
 /// </summary>
 internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
 {
-    private readonly InSpecToolServices _services;
+    private readonly InSpecToolRuntime _services;
     private CancellationTokenSource? _barcodeRefreshCancellation;
     private InSpecToolConfigurationModel _configuration = new();
     private string _barcodeText = string.Empty;
     private string _automationStatusText = "自動監控：待模組啟用";
     private string _fileListTitleText = "檔案結果";
     private string _fileListPlaceholderText = string.Empty;
+    private string _licenseStatusText = "模組授權驗證中。";
     private bool _isBusy;
     private bool _isDirty;
+    private bool _isLicenseValid;
+    private bool _isPromptingForLicense;
     private InSpecPreviewResultModel? _selectedResultModel;
     private int _searchVersion;
 
@@ -28,7 +32,7 @@ internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
     /// 建立主頁 ViewModel。
     /// </summary>
     /// <param name="services">服務層實例。</param>
-    public InSpecToolPageViewModel(InSpecToolServices services)
+    public InSpecToolPageViewModel(InSpecToolRuntime services)
     {
         _services = services;
         FieldModels = [];
@@ -37,6 +41,7 @@ internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
         ApplyRefreshQueryCommand = new RelayCommand(ApplyRefreshQuery);
         OpenSelectedFileCommand = new RelayCommand(ApplyOpenSelectedFile, ValidateCanOpenSelectedFile);
         _services.AutoInputRequested += ApplyAutoInputRequested;
+        RefreshLicenseState(showSuccessMessage: false);
     }
 
     /// <summary>
@@ -134,6 +139,43 @@ internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
     }
 
     /// <summary>
+    /// 模組授權狀態文字。
+    /// </summary>
+    public string LicenseStatusText
+    {
+        get => _licenseStatusText;
+        private set => SetProperty(ref _licenseStatusText, value);
+    }
+
+    /// <summary>
+    /// 目前模組授權是否有效。
+    /// </summary>
+    public bool IsLicenseValid
+    {
+        get => _isLicenseValid;
+        private set
+        {
+            if (!SetProperty(ref _isLicenseValid, value))
+            {
+                return;
+            }
+
+            RaisePropertyChanged(nameof(IsLicenseMissing));
+            RaisePropertyChanged(nameof(IsMainContentEnabled));
+        }
+    }
+
+    /// <summary>
+    /// 目前模組授權是否缺失。
+    /// </summary>
+    public bool IsLicenseMissing => !IsLicenseValid;
+
+    /// <summary>
+    /// 主內容是否可用。
+    /// </summary>
+    public bool IsMainContentEnabled => IsLicenseValid;
+
+    /// <summary>
     /// 目前選取的檔案結果。
     /// </summary>
     public InSpecPreviewResultModel? SelectedResultModel
@@ -171,6 +213,11 @@ internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
     public event EventHandler<InSpecValuePromptRequestModel>? ValuePromptRequested;
 
     /// <summary>
+    /// 要求 View 顯示授權輸入對話框時引發。
+    /// </summary>
+    public event EventHandler<InSpecLicensePromptRequestModel>? LicensePromptRequested;
+
+    /// <summary>
     /// 要求 View 顯示訊息對話框時引發。
     /// </summary>
     public event EventHandler<InSpecMessageRequestModel>? MessageRequested;
@@ -183,7 +230,9 @@ internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
         _configuration = _services.QueryConfiguration();
         _services.ActivateFileBridge();
         _services.ApplyAutomationConfiguration(_configuration);
+        RefreshLicenseState(showSuccessMessage: false);
         AutomationStatusText = _services.ResolveAutomationStatusText(_configuration);
+        ApplyLicensePromptIfNeeded();
         _ = ApplyBarcodeRefreshAsync();
     }
 
@@ -194,6 +243,7 @@ internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
     {
         _services.ApplyAutomationConfiguration(new InSpecToolConfigurationModel { EnableAutoMonitoring = false });
         _services.DeactivateFileBridge();
+        ApplyLicenseLockedState();
         AutomationStatusText = _services.ResolveAutomationStatusText(_configuration);
     }
 
@@ -207,6 +257,74 @@ internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
         _barcodeRefreshCancellation?.Dispose();
     }
 
+    private void RefreshLicenseState(bool showSuccessMessage)
+    {
+        var storedLicenseKey = _services.QueryModuleLicenseKey();
+        var verification = _services.VerifyModuleLicenseKey(storedLicenseKey.Trim());
+        IsLicenseValid = verification.IsValid;
+
+        if (verification.IsValid)
+        {
+            LicenseStatusText = showSuccessMessage ? "模組授權已通過驗證。" : "模組授權有效。";
+            FileListPlaceholderText = string.Empty;
+            return;
+        }
+
+        LicenseStatusText = string.IsNullOrWhiteSpace(verification.ErrorMessage)
+            ? "模組授權無效，請重新輸入金鑰。"
+            : verification.ErrorMessage;
+        ApplyLicenseLockedState();
+    }
+
+    private void ApplyLicenseLockedState()
+    {
+        IsLicenseValid = false;
+        ResultModels.Clear();
+        _services.UpdateCurrentTargetPath(null);
+        FileListTitleText = "檔案結果";
+        FileListPlaceholderText = "請先在模組主頁輸入有效的模組金鑰。";
+        RaisePropertyChanged(nameof(IsFileListPlaceholderVisible));
+    }
+
+    private void ApplyLicensePromptIfNeeded()
+    {
+        if (IsLicenseValid || _isPromptingForLicense)
+        {
+            return;
+        }
+
+        _isPromptingForLicense = true;
+        LicensePromptRequested?.Invoke(this, new InSpecLicensePromptRequestModel
+        {
+            StatusText = LicenseStatusText,
+            ApplySubmittedLicenseKey = ApplySubmittedLicenseKey
+        });
+    }
+
+    private void ApplySubmittedLicenseKey(string? licenseKey)
+    {
+        _isPromptingForLicense = false;
+        if (string.IsNullOrWhiteSpace(licenseKey))
+        {
+            LicenseStatusText = "模組授權未通過，功能維持鎖定。";
+            ApplyLicenseLockedState();
+            return;
+        }
+
+        IsBusy = true;
+        var saveResult = _services.SaveModuleLicenseKey(licenseKey.Trim());
+        IsBusy = false;
+
+        if (!saveResult.IsSuccess)
+        {
+            LicenseStatusText = $"模組授權儲存失敗：{saveResult.DetailText}";
+            ApplyLicenseLockedState();
+            return;
+        }
+
+        RefreshLicenseState(showSuccessMessage: true);
+    }
+
     private void ApplyClearBarcode()
     {
         BarcodeText = string.Empty;
@@ -215,7 +333,7 @@ internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
     private async void ApplyRefreshQuery()
     {
         _services.DeleteFileQueryIndex();
-        await ApplyBarcodeRefreshAsync().ConfigureAwait(false);
+        await ApplyBarcodeRefreshAsync();
     }
 
     private void ApplyBarcodeRefreshDebounce()
@@ -229,8 +347,8 @@ internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
         {
             try
             {
-                await Task.Delay(Math.Max(50, _configuration.BarcodeDebounceMs), cancellationToken).ConfigureAwait(false);
-                await ApplyBarcodeRefreshAsync().ConfigureAwait(false);
+                await Task.Delay(Math.Max(50, _configuration.BarcodeDebounceMs), cancellationToken);
+                await Application.Current.Dispatcher.InvokeAsync(ApplyBarcodeRefreshAsync);
             }
             catch (TaskCanceledException)
             {
@@ -242,26 +360,20 @@ internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
     {
         var parseResult = _services.QueryBarcodeParseResult(BarcodeText, _configuration.FieldDefinitions);
         ApplyFieldModels(parseResult);
-        await ApplyResultRefreshAsync(parseResult).ConfigureAwait(false);
+        await ApplyResultRefreshAsync(parseResult);
     }
 
     private async Task ApplyFieldRefreshAsync()
     {
         BarcodeText = _services.ResolveBarcodeText(FieldModels, _configuration.FieldDefinitions);
-        await ApplyResultRefreshAsync(null).ConfigureAwait(false);
+        await ApplyResultRefreshAsync(null);
     }
 
     private void ApplyFieldModels(InSpecBarcodeParseResultModel parseResult)
     {
-        foreach (var fieldModel in FieldModels)
-        {
-            fieldModel.PropertyChanged -= ApplyFieldModelPropertyChanged;
-        }
-
         FieldModels.Clear();
         foreach (var fieldModel in _services.QueryPreviewFieldModels(parseResult, _configuration.FieldDefinitions))
         {
-            fieldModel.PropertyChanged += ApplyFieldModelPropertyChanged;
             FieldModels.Add(fieldModel);
         }
     }
@@ -291,7 +403,7 @@ internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
 
         IsBusy = true;
         FileListTitleText = _services.ResolveFileListTitleText(true);
-        var queryResult = await Task.Run(() => _services.QueryResults(fieldSnapshot, _configuration)).ConfigureAwait(false);
+        var queryResult = await Task.Run(() => _services.QueryResults(fieldSnapshot, _configuration));
         if (searchVersion != _searchVersion)
         {
             return;
@@ -309,17 +421,6 @@ internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
         IsBusy = false;
         IsDirty = false;
         RaisePropertyChanged(nameof(IsFileListPlaceholderVisible));
-    }
-
-    private async void ApplyFieldModelPropertyChanged(object? sender, PropertyChangedEventArgs eventArgs)
-    {
-        if (eventArgs.PropertyName != nameof(InSpecPreviewFieldModel.Value))
-        {
-            return;
-        }
-
-        IsDirty = true;
-        await ApplyFieldRefreshAsync().ConfigureAwait(false);
     }
 
     private bool ValidateCanOpenSelectedFile(object? parameter)
@@ -416,6 +517,22 @@ internal sealed class InSpecValuePromptRequestModel
 }
 
 /// <summary>
+/// 模組授權輸入對話框請求模型。
+/// </summary>
+internal sealed class InSpecLicensePromptRequestModel
+{
+    /// <summary>
+    /// 驗證狀態文字。
+    /// </summary>
+    public string StatusText { get; init; } = string.Empty;
+
+    /// <summary>
+    /// 對話框確認後要套用的授權值。
+    /// </summary>
+    public Action<string?> ApplySubmittedLicenseKey { get; init; } = _ => { };
+}
+
+/// <summary>
 /// 訊息對話框請求模型。
 /// </summary>
 internal sealed class InSpecMessageRequestModel
@@ -483,3 +600,7 @@ internal enum InSpecMessageLevel
     /// </summary>
     Error
 }
+
+
+
+

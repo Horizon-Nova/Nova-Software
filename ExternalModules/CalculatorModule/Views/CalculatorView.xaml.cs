@@ -1,14 +1,24 @@
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using ExternalModules.CalculatorModule.Core;
-using HN_Studio.ModuleSdk;
+using ExternalModules.CalculatorModule.Domain.Calculator;
+using HorizonNova.HelixStudio.ModuleSdk;
 
 namespace ExternalModules.CalculatorModule.Views;
 
 public partial class CalculatorView : UserControl
 {
-    private HnModuleContext? _hostContext;
-    private readonly CalculatorEngine _engine = new();
+    private static readonly Dictionary<string, Action<CalculatorDomain>> FunctionActions = new()
+    {
+        ["C"]  = d => d.ApplyClear(),
+        ["CE"] = d => d.ApplyClearEntry(),
+        ["⌫"]  = d => d.ApplyBackspace(),
+        ["±"]  = d => d.ApplySignToggle(),
+        ["%"]  = d => d.ApplyPercent(),
+    };
+
+    private IShellContext? _hostContext;
+    private readonly CalculatorDomain _domain = new();
 
     public CalculatorView()
     {
@@ -16,12 +26,12 @@ public partial class CalculatorView : UserControl
         SyncDisplay();
     }
 
-    internal void ApplyHostContext(HnModuleContext context)
+    internal void ApplyHostContext(IShellContext context)
     {
         _hostContext = context;
 
         var decimalPlaces = context.Settings.QueryInt32("decimalPlaces", 8);
-        _engine.SetDecimalPlaces(decimalPlaces);
+        _domain.ApplyDecimalPlaces(decimalPlaces);
 
         var showHistory = context.Settings.QueryBoolean("showHistory", true);
         ApplyHistoryVisibility(showHistory);
@@ -36,12 +46,12 @@ public partial class CalculatorView : UserControl
     {
         if (show)
         {
-            HistoryColumn.Width = new GridLength(160);
+            HistoryColumn.Width = new System.Windows.GridLength(160);
             HistoryPanel.Visibility = Visibility.Visible;
         }
         else
         {
-            HistoryColumn.Width = new GridLength(0);
+            HistoryColumn.Width = new System.Windows.GridLength(0);
             HistoryPanel.Visibility = Visibility.Collapsed;
         }
     }
@@ -53,13 +63,13 @@ public partial class CalculatorView : UserControl
             return;
         }
 
-        _engine.InputDigit(button.Content?.ToString() ?? "0");
+        _domain.ApplyDigit(button.Content?.ToString() ?? "0");
         SyncDisplay();
     }
 
     private void DecimalButton_OnClick(object sender, RoutedEventArgs eventArgs)
     {
-        _engine.InputDecimal();
+        _domain.ApplyDecimalSeparator();
         SyncDisplay();
     }
 
@@ -70,20 +80,13 @@ public partial class CalculatorView : UserControl
             return;
         }
 
-        var operatorSymbol = button.Content?.ToString() ?? "+";
-
-        if (operatorSymbol == "÷")
-        {
-            operatorSymbol = "÷";
-        }
-
-        _engine.InputOperator(operatorSymbol);
+        _domain.ApplyOperator(button.Content?.ToString() ?? "+");
         SyncDisplay();
     }
 
     private void EqualsButton_OnClick(object sender, RoutedEventArgs eventArgs)
     {
-        var expression = _engine.Evaluate();
+        var expression = _domain.CalculateExpression();
         SyncDisplay();
         ExpressionText.Text = expression;
 
@@ -100,31 +103,23 @@ public partial class CalculatorView : UserControl
             return;
         }
 
-        switch (button.Content?.ToString())
+        var key = button.Content?.ToString() ?? string.Empty;
+        if (!FunctionActions.TryGetValue(key, out var action))
         {
-            case "C":
-                _engine.Clear();
-                ExpressionText.Text = string.Empty;
-                break;
-            case "CE":
-                _engine.ClearEntry();
-                break;
-            case "⌫":
-                _engine.Backspace();
-                break;
-            case "±":
-                _engine.ToggleSign();
-                break;
-            case "%":
-                _engine.Percent();
-                break;
+            return;
         }
 
+        action(_domain);
         SyncDisplay();
+
+        if (key == "C")
+        {
+            ExpressionText.Text = string.Empty;
+        }
     }
 
     private void SyncDisplay()
     {
-        DisplayText.Text = _engine.CurrentDisplay;
+        DisplayText.Text = _domain.CurrentDisplay;
     }
 }

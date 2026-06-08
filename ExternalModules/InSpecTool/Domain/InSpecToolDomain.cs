@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using ExternalModules.InSpecTool.Model;
@@ -10,6 +9,16 @@ namespace ExternalModules.InSpecTool.Domain;
 /// </summary>
 internal sealed class InSpecToolDomain
 {
+    private static readonly FixedFieldTemplate[] FixedFieldTemplates =
+    [
+        new("Part Number", "part number", true, InSpecFieldDefinitionModel.DirectInputTargetMode),
+        new("Lot Number", "lot number", true, InSpecFieldDefinitionModel.DirectInputTargetMode),
+        new("Press", "press", true, InSpecFieldDefinitionModel.PromptConfirmationTargetMode),
+        new("Machine", "machine", true, InSpecFieldDefinitionModel.DirectInputTargetMode),
+        new("Manufacture Date", "manufacture date", true, InSpecFieldDefinitionModel.DirectInputTargetMode),
+        new("Expiration Date", "expiration date", true, InSpecFieldDefinitionModel.DirectInputTargetMode)
+    ];
+
     private static readonly string[][] PartNumberKeywordSets =
     [
         ["part", "number"],
@@ -61,11 +70,10 @@ internal sealed class InSpecToolDomain
             };
         }
 
-        var hasLeadingSeparator = false;
-        if (cleanedBarcode.StartsWith('|'))
+        var hasLeadingSeparator = cleanedBarcode.StartsWith('|');
+        if (hasLeadingSeparator)
         {
-            hasLeadingSeparator = true;
-            cleanedBarcode = cleanedBarcode[1..];
+            cleanedBarcode = cleanedBarcode.TrimStart('|');
         }
 
         if (cleanedBarcode.Contains('_'))
@@ -81,7 +89,7 @@ internal sealed class InSpecToolDomain
             };
         }
 
-        var parts = cleanedBarcode.Split('|', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var parts = cleanedBarcode.Split('|', StringSplitOptions.TrimEntries);
         for (var index = 0; index < Math.Min(parts.Length, fieldDefinitions.Count); index++)
         {
             fieldValues[index] = QueryIsPartNumberField(fieldDefinitions[index].Name, fieldDefinitions[index].Keyword)
@@ -149,20 +157,26 @@ internal sealed class InSpecToolDomain
     /// <returns>組合後的條碼字串。</returns>
     public string ResolveBarcodeText(IEnumerable<InSpecPreviewFieldModel> fieldModels, IReadOnlyList<InSpecFieldDefinitionModel> fieldDefinitions)
     {
-        var fieldValueMap = fieldModels.ToDictionary(fieldModel => fieldModel.Label, fieldModel => fieldModel.Value, StringComparer.OrdinalIgnoreCase);
-        var parts = new List<string>();
-
-        foreach (var fieldDefinition in fieldDefinitions)
+        var orderedFieldDefinitions = fieldDefinitions.ToArray();
+        if (orderedFieldDefinitions.Length == 0)
         {
-            if (!fieldValueMap.TryGetValue(fieldDefinition.Name, out var value) || string.IsNullOrWhiteSpace(value))
-            {
-                continue;
-            }
-
-            parts.Add(value.Trim());
+            return string.Empty;
         }
 
-        return parts.Count == 0 ? string.Empty : $"|{string.Join("|", parts)}|";
+        var fieldValueMap = fieldModels.ToDictionary(fieldModel => fieldModel.Label, fieldModel => fieldModel.Value, StringComparer.OrdinalIgnoreCase);
+        var parts = orderedFieldDefinitions
+            .Select(fieldDefinition =>
+            {
+                if (!fieldValueMap.TryGetValue(fieldDefinition.Name, out var value))
+                {
+                    return string.Empty;
+                }
+
+                return value?.Trim() ?? string.Empty;
+            })
+            .ToArray();
+
+        return $"|{string.Join("|", parts)}|";
     }
 
     /// <summary>
@@ -177,7 +191,7 @@ internal sealed class InSpecToolDomain
             ? QueryJsonFieldDefinitions(source)
             : QueryLegacyFieldDefinitions(source);
 
-        return fieldDefinitions.Count == 0 ? QueryDefaultFieldDefinitions() : fieldDefinitions;
+        return NormalizeFixedFieldDefinitions(fieldDefinitions);
     }
 
     /// <summary>
@@ -421,7 +435,8 @@ internal sealed class InSpecToolDomain
                 name = fieldRow.Name.Trim(),
                 keyword = string.IsNullOrWhiteSpace(fieldRow.Keyword) ? fieldRow.Name.Trim() : fieldRow.Keyword.Trim(),
                 targetMode = ResolveTargetMode(fieldRow.TargetMode),
-                isEditable = fieldRow.IsEditable
+                isEditable = fieldRow.IsEditable,
+                isLocked = fieldRow.IsLocked
             })
             .ToArray();
 
@@ -433,16 +448,15 @@ internal sealed class InSpecToolDomain
     /// </summary>
     /// <param name="fieldDefinitions">欄位定義集合。</param>
     /// <returns>設定頁欄位結構列集合。</returns>
-    public ObservableCollection<InSpecSettingsFieldRowModel> QuerySettingsFieldRows(IReadOnlyList<InSpecFieldDefinitionModel> fieldDefinitions)
-    {
-        return new ObservableCollection<InSpecSettingsFieldRowModel>(fieldDefinitions.Select(fieldDefinition => new InSpecSettingsFieldRowModel
-        {
-            Name = fieldDefinition.Name,
-            Keyword = fieldDefinition.Keyword,
-            TargetMode = ResolveTargetMode(fieldDefinition.TargetMode),
-            IsEditable = fieldDefinition.IsEditable
-        }));
-    }
+    public IReadOnlyList<InSpecSettingsFieldRowModel> QuerySettingsFieldRows(IReadOnlyList<InSpecFieldDefinitionModel> fieldDefinitions)
+        => fieldDefinitions.Select(fieldDefinition => new InSpecSettingsFieldRowModel
+            {
+                Name = fieldDefinition.Name,
+                Keyword = fieldDefinition.Keyword,
+                TargetMode = ResolveTargetMode(fieldDefinition.TargetMode),
+                IsEditable = fieldDefinition.IsEditable,
+                IsLocked = fieldDefinition.IsLocked
+            }).ToArray();
 
     /// <summary>
     /// 建立新的設定頁欄位結構列。
@@ -453,7 +467,8 @@ internal sealed class InSpecToolDomain
         return new InSpecSettingsFieldRowModel
         {
             TargetMode = InSpecFieldDefinitionModel.DirectInputTargetMode,
-            IsEditable = true
+            IsEditable = true,
+            IsLocked = false
         };
     }
 
@@ -507,7 +522,8 @@ internal sealed class InSpecToolDomain
                     Name = name,
                     Keyword = QueryJsonString(element, "keyword", name),
                     TargetMode = ResolveTargetMode(QueryJsonString(element, "targetMode", InSpecFieldDefinitionModel.DirectInputTargetMode)),
-                    IsEditable = QueryJsonBoolean(element, "isEditable", true)
+                    IsEditable = QueryJsonBoolean(element, "isEditable", true),
+                    IsLocked = QueryJsonBoolean(element, "isLocked", false)
                 });
             }
 
@@ -529,7 +545,7 @@ internal sealed class InSpecToolDomain
         var fieldDefinitions = new List<InSpecFieldDefinitionModel>();
         foreach (var segment in rawSchema.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
-            var parts = segment.Split(',', 3, StringSplitOptions.TrimEntries);
+            var parts = segment.Split(',', 4, StringSplitOptions.TrimEntries);
             if (parts.Length == 0 || string.IsNullOrWhiteSpace(parts[0]))
             {
                 continue;
@@ -542,16 +558,57 @@ internal sealed class InSpecToolDomain
             }
 
             var targetMode = ResolveTargetMode(parts.Length > 2 ? parts[2] : InSpecFieldDefinitionModel.DirectInputTargetMode);
+            var isLocked = false;
+            if (parts.Length > 3 && bool.TryParse(parts[3], out var parsedLocked))
+            {
+                isLocked = parsedLocked;
+            }
             fieldDefinitions.Add(new InSpecFieldDefinitionModel
             {
                 Name = parts[0],
                 Keyword = parts[0],
                 IsEditable = isEditable,
-                TargetMode = targetMode
+                TargetMode = targetMode,
+                IsLocked = isLocked
             });
         }
 
         return fieldDefinitions;
+    }
+
+    private IReadOnlyList<InSpecFieldDefinitionModel> NormalizeFixedFieldDefinitions(IReadOnlyList<InSpecFieldDefinitionModel> sourceDefinitions)
+    {
+        var normalizedDefinitions = new List<InSpecFieldDefinitionModel>(FixedFieldTemplates.Length);
+        for (var index = 0; index < FixedFieldTemplates.Length; index++)
+        {
+            var template = FixedFieldTemplates[index];
+            var sourceDefinition = QueryMatchingFixedField(sourceDefinitions, template, index);
+            normalizedDefinitions.Add(new InSpecFieldDefinitionModel
+            {
+                Name = template.Name,
+                Keyword = template.Keyword,
+                IsEditable = sourceDefinition?.IsEditable ?? template.IsEditable,
+                TargetMode = ResolveTargetMode(sourceDefinition?.TargetMode ?? template.TargetMode),
+                IsLocked = true
+            });
+        }
+
+        return normalizedDefinitions;
+    }
+
+    private InSpecFieldDefinitionModel? QueryMatchingFixedField(
+        IReadOnlyList<InSpecFieldDefinitionModel> sourceDefinitions,
+        FixedFieldTemplate template,
+        int index)
+    {
+        if (index < sourceDefinitions.Count)
+        {
+            return sourceDefinitions[index];
+        }
+
+        return sourceDefinitions.FirstOrDefault(sourceDefinition =>
+            string.Equals(sourceDefinition.Name, template.Name, StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(sourceDefinition.Keyword, template.Keyword, StringComparison.OrdinalIgnoreCase));
     }
 
     private IReadOnlyList<InSpecFieldDefinitionModel> QueryDefaultFieldDefinitions()
@@ -699,4 +756,10 @@ internal sealed class InSpecToolDomain
 
         return false;
     }
+
+    private sealed record FixedFieldTemplate(
+        string Name,
+        string Keyword,
+        bool IsEditable,
+        string TargetMode);
 }

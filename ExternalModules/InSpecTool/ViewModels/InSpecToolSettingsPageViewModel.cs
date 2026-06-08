@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows;
 using System.Windows.Input;
 using ExternalModules.InSpecTool.App.Runtime;
 using ExternalModules.InSpecTool.Model;
@@ -7,9 +8,16 @@ using ExternalModules.InSpecTool.ViewModels.Base;
 
 namespace ExternalModules.InSpecTool.ViewModels;
 
-internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
+internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase, IDisposable
 {
+    private const double UnlockWindowMinutes = 3;
+
     private readonly InSpecToolRuntime _services;
+    private readonly System.Timers.Timer _unlockTimer = new(TimeSpan.FromMinutes(UnlockWindowMinutes).TotalMilliseconds)
+    {
+        AutoReset = false
+    };
+
     private bool _isBusy;
     private bool _isDirty;
     private bool _isLoading;
@@ -23,11 +31,13 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
     private string _backupSavePath = string.Empty;
     private string _moduleLicenseKey = string.Empty;
     private bool _isFieldSchemaLocked = true;
+    private string _unlockStatusText = "欄位設定已鎖定。";
 
     public InSpecToolSettingsPageViewModel(InSpecToolRuntime services)
     {
         _services = services;
         FieldRows = [];
+        _unlockTimer.Elapsed += ApplyUnlockExpired;
 
         var optionModel = _services.QuerySettingsOptionModel();
         ScanIntervalOptions = optionModel.ScanIntervalOptions;
@@ -176,8 +186,30 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
     public string ModuleLicenseKey
     {
         get => _moduleLicenseKey;
-        set => SetProperty(ref _moduleLicenseKey, value ?? string.Empty);
+        set
+        {
+            if (!SetProperty(ref _moduleLicenseKey, value ?? string.Empty))
+            {
+                return;
+            }
+
+            RaisePropertyChanged(nameof(UnlockKeyInput));
+        }
     }
+
+    public string UnlockKeyInput
+    {
+        get => _moduleLicenseKey;
+        set => ModuleLicenseKey = value;
+    }
+
+    public string UnlockStatusText
+    {
+        get => _unlockStatusText;
+        private set => SetProperty(ref _unlockStatusText, value ?? string.Empty);
+    }
+
+    public string LockStateText => IsFieldSchemaLocked ? "欄位設定已鎖定。" : "欄位設定已解鎖。";
 
     public bool IsFieldSchemaLocked
     {
@@ -187,6 +219,7 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
             if (SetProperty(ref _isFieldSchemaLocked, value))
             {
                 RaisePropertyChanged(nameof(IsFieldSchemaUnlocked));
+                RaisePropertyChanged(nameof(LockStateText));
                 RaisePropertyChanged(nameof(LicenseStatusText));
                 RelayCommand.ApplyInvalidate();
             }
@@ -209,6 +242,8 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
 
     public ICommand ApplyModuleLicenseKeyCommand { get; }
 
+    public ICommand ApplyUnlockCommand => ApplyModuleLicenseKeyCommand;
+
     public ICommand ApplySearchDirectoryDialogCommand { get; }
 
     public ICommand ApplySystemLogDirectoryDialogCommand { get; }
@@ -230,7 +265,7 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
             _searchDirectory = snapshot.SearchDirectory;
             _systemLogDirectory = snapshot.SystemLogDirectory;
             _backupSavePath = snapshot.BackupSavePath;
-            _moduleLicenseKey = _services.QueryModuleLicenseKey();
+            _moduleLicenseKey = string.Empty;
 
             RaisePropertyChanged(nameof(ScanIntervalMs));
             RaisePropertyChanged(nameof(MonitorIntervalMs));
@@ -240,6 +275,7 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
             RaisePropertyChanged(nameof(SystemLogDirectory));
             RaisePropertyChanged(nameof(BackupSavePath));
             RaisePropertyChanged(nameof(ModuleLicenseKey));
+            RaisePropertyChanged(nameof(UnlockKeyInput));
 
             FieldRows.Clear();
             foreach (var fieldRow in snapshot.FieldRows)
@@ -247,8 +283,10 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
                 FieldRows.Add(InSpecSettingsFieldRowItemViewModel.Create(fieldRow));
             }
 
-            IsFieldSchemaLocked = !_services.ValidateStoredModuleLicense();
-            StatusText = BuildFieldSchemaStatusText(IsFieldSchemaLocked);
+            _unlockTimer.Stop();
+            IsFieldSchemaLocked = true;
+            StatusText = BuildFieldSchemaStatusText(isLocked: true);
+            UnlockStatusText = BuildUnlockStatusText(isLocked: true);
             IsDirty = false;
         }
         finally
@@ -256,6 +294,12 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
             IsBusy = false;
             _isLoading = false;
         }
+    }
+
+    public void Dispose()
+    {
+        _unlockTimer.Elapsed -= ApplyUnlockExpired;
+        _unlockTimer.Dispose();
     }
 
     private void ApplyAddFieldRow()
@@ -272,7 +316,7 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
     {
         if (IsFieldSchemaLocked)
         {
-            StatusText = "固定欄位結構需要有效模組授權才能儲存行為設定。";
+            StatusText = "固定欄位結構目前鎖定，請先在右側完成暫時解鎖。";
             return;
         }
 
@@ -299,18 +343,26 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
         }
 
         IsBusy = true;
-        var key = ModuleLicenseKey.Trim();
-        var saveResult = _services.SaveModuleLicenseKey(key);
+        var verification = _services.VerifyModuleLicenseKey(ModuleLicenseKey.Trim());
         IsBusy = false;
+        ModuleLicenseKey = string.Empty;
 
-        if (!saveResult.IsSuccess)
+        if (!verification.IsValid)
         {
-            StatusText = $"模組授權儲存失敗：{saveResult.DetailText}";
+            _unlockTimer.Stop();
+            IsFieldSchemaLocked = true;
+            StatusText = string.IsNullOrWhiteSpace(verification.ErrorMessage)
+                ? "敏感欄位解鎖失敗：輸入的模組金鑰無效。"
+                : $"敏感欄位解鎖失敗：{verification.ErrorMessage}";
+            UnlockStatusText = BuildUnlockStatusText(isLocked: true);
             return;
         }
 
-        IsFieldSchemaLocked = !_services.ValidateStoredModuleLicense();
-        StatusText = BuildFieldSchemaStatusText(IsFieldSchemaLocked);
+        _unlockTimer.Stop();
+        _unlockTimer.Start();
+        IsFieldSchemaLocked = false;
+        StatusText = BuildFieldSchemaStatusText(isLocked: false);
+        UnlockStatusText = BuildUnlockStatusText(isLocked: false);
     }
 
     private void ApplySearchDirectoryDialog(object? parameter)
@@ -381,6 +433,21 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
 
     private static string BuildFieldSchemaStatusText(bool isLocked)
         => isLocked
-            ? "固定欄位結構需要有效模組授權才能調整行為設定。"
+            ? "固定欄位結構目前鎖定，請在右側輸入有效模組金鑰暫時解鎖。"
             : "固定欄位結構已載入，目前只允許調整欄位行為設定。";
+
+    private static string BuildUnlockStatusText(bool isLocked)
+        => isLocked
+            ? "欄位設定已鎖定。"
+            : $"欄位設定已解鎖，將於 {UnlockWindowMinutes:0} 分鐘後自動重新上鎖。";
+
+    private void ApplyUnlockExpired(object? sender, System.Timers.ElapsedEventArgs eventArgs)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            IsFieldSchemaLocked = true;
+            StatusText = BuildFieldSchemaStatusText(isLocked: true);
+            UnlockStatusText = BuildUnlockStatusText(isLocked: true);
+        });
+    }
 }

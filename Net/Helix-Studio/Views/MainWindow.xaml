@@ -6,6 +6,7 @@
         xmlns:shell="clr-namespace:Helix_Studio.Components"
         xmlns:conv="clr-namespace:Helix_Studio.Views.Converters"
         xmlns:notify="clr-namespace:Helix_Studio.Model.Notifications"
+        xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
         mc:Ignorable="d"
         Title="{DynamicResource Loc_AppTitle}"
         Icon="/Assets/image/AppLogo.ico"
@@ -230,7 +231,8 @@
                                         <Button Background="Transparent"
                                                 BorderThickness="0"
                                                 Padding="14,8"
-                                                Cursor="Hand">
+                                                Cursor="Hand"
+                                                Command="{Binding OpenWorkspaceSettingsCommand}">
                                             <StackPanel Orientation="Horizontal">
                                                 <shell:SvgIcon IconSize="12"
                                                                Source="/Assets/lucide/settings.svg"
@@ -351,6 +353,34 @@
                                                VerticalAlignment="Center"/>
                                 </StackPanel>
                             </RadioButton>
+
+                            <TextBlock Text="{DynamicResource Loc_Shell_NavModulesSection}"
+                                       FontSize="10"
+                                       FontWeight="Bold"
+                                       Foreground="{DynamicResource TextOnDarkMuted}"
+                                       Margin="22,20,22,6"
+                                       Visibility="{Binding ShowModuleNavigation, Converter={StaticResource BoolToVisibility}}"/>
+
+                            <ItemsControl ItemsSource="{Binding ModuleNavigationItems}"
+                                          Visibility="{Binding ShowModuleNavigation, Converter={StaticResource BoolToVisibility}}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <RadioButton Style="{DynamicResource NavButton}"
+                                                     GroupName="ShellNav"
+                                                     Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                     CommandParameter="{Binding NavigationId}"
+                                                     IsChecked="{Binding IsActive, Mode=OneWay}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <shell:SvgIcon IconSize="14" Source="/Assets/lucide/package.svg"/>
+                                                <TextBlock Text="{Binding DisplayName}"
+                                                           Margin="14,0,0,0"
+                                                           VerticalAlignment="Center"
+                                                           TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                        </RadioButton>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
@@ -438,53 +468,15 @@
                                        FontSize="11"
                                        Foreground="{DynamicResource TextTertiary}"
                                        Opacity="0.5"/>
-                            <TextBlock FontSize="11"
+                            <TextBlock Text="{Binding CurrentSectionTitle}"
+                                       FontSize="11"
                                        FontWeight="SemiBold"
-                                       Foreground="{DynamicResource TextSecondary}">
-                                <TextBlock.Style>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="Text" Value="" />
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding CurrentNavId}" Value="overview">
-                                                <Setter Property="Text" Value="{DynamicResource Loc_ShellTab_Home}" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding CurrentNavId}" Value="eventlog">
-                                                <Setter Property="Text" Value="{DynamicResource Loc_Activity_EventLog}" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding CurrentNavId}" Value="modules">
-                                                <Setter Property="Text" Value="{DynamicResource Loc_Activity_Modules}" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding CurrentNavId}" Value="settings">
-                                                <Setter Property="Text" Value="{DynamicResource Loc_Activity_Settings}" />
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBlock.Style>
-                            </TextBlock>
+                                       Foreground="{DynamicResource TextSecondary}"/>
                         </StackPanel>
-                        <TextBlock FontSize="18"
+                        <TextBlock Text="{Binding CurrentPageTitle}"
+                                   FontSize="18"
                                    FontWeight="SemiBold"
-                                   Foreground="{DynamicResource TextPrimary}">
-                            <TextBlock.Style>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="Text" Value="" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding CurrentNavId}" Value="overview">
-                                            <Setter Property="Text" Value="{DynamicResource Loc_ShellTab_Home}" />
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding CurrentNavId}" Value="eventlog">
-                                            <Setter Property="Text" Value="{DynamicResource Loc_Activity_EventLog}" />
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding CurrentNavId}" Value="modules">
-                                            <Setter Property="Text" Value="{DynamicResource Loc_Activity_Modules}" />
-                                        </DataTrigger>
-                                        <DataTrigger Binding="{Binding CurrentNavId}" Value="settings">
-                                            <Setter Property="Text" Value="{DynamicResource Loc_Activity_Settings}" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </TextBlock.Style>
-                        </TextBlock>
+                                   Foreground="{DynamicResource TextPrimary}"/>
                     </StackPanel>
 
                     <Border Grid.Column="1"
@@ -522,7 +514,8 @@
                                     Background="Transparent"
                                     BorderThickness="0"
                                     Cursor="Hand"
-                                    ToolTip="{DynamicResource Loc_Shell_Tooltip_Notifications}">
+                                    ToolTip="{DynamicResource Loc_Shell_Tooltip_Notifications}"
+                                    Command="{Binding OpenNotificationsCommand}">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
                                         <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="3">
@@ -563,7 +556,8 @@
                                 BorderThickness="0"
                                 Margin="2,0,0,0"
                                 Cursor="Hand"
-                                ToolTip="{DynamicResource Loc_Shell_Tooltip_Help}">
+                                ToolTip="{DynamicResource Loc_Shell_Tooltip_Help}"
+                                Command="{Binding OpenHelpCommand}">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
                                     <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="3">
@@ -689,6 +683,127 @@
                         </Grid>
                     </StackPanel>
                 </ScrollViewer>
+
+                <Grid x:Name="ModuleSettingsDrawerOverlay"
+                      Visibility="Collapsed"
+                      Panel.ZIndex="30">
+                    <Border Background="{DynamicResource OverlayScrim}"
+                            MouseDown="ModuleSettingsDrawerScrim_MouseDown"/>
+
+                    <Border x:Name="ModuleSettingsDrawerPanel"
+                            Width="540"
+                            HorizontalAlignment="Right"
+                            Background="{DynamicResource SurfaceRaised}"
+                            BorderBrush="{DynamicResource BorderLight}"
+                            BorderThickness="1,0,0,0">
+                        <Border.RenderTransform>
+                            <TranslateTransform x:Name="ModuleSettingsDrawerTransform" X="540"/>
+                        </Border.RenderTransform>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <primitives:Thumb Grid.Column="0"
+                                              HorizontalAlignment="Stretch"
+                                              Cursor="SizeWE"
+                                              DragDelta="ModuleSettingsDrawerResizeThumb_DragDelta">
+                                <primitives:Thumb.Template>
+                                    <ControlTemplate TargetType="{x:Type primitives:Thumb}">
+                                        <Border x:Name="Grip" Background="Transparent">
+                                            <Border Width="2"
+                                                    HorizontalAlignment="Center"
+                                                    Background="{DynamicResource BorderLight}"
+                                                    CornerRadius="1"
+                                                    Opacity="0.75"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Grip" Property="Background" Value="{DynamicResource AccentSoft}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </primitives:Thumb.Template>
+                            </primitives:Thumb>
+
+                            <Grid Grid.Column="1">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <Border Grid.Row="0"
+                                    Background="{DynamicResource SurfaceSubtle}"
+                                    BorderBrush="{DynamicResource BorderLight}"
+                                    BorderThickness="0,0,0,1"
+                                    Padding="18,16,14,14">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="模組設定"
+                                                   FontSize="11"
+                                                   FontWeight="Bold"
+                                                   Foreground="{DynamicResource TextTertiary}"
+                                                   Margin="0,0,0,4"/>
+                                        <TextBlock x:Name="ModuleSettingsDrawerTitle"
+                                                   Text="設定"
+                                                   FontSize="17"
+                                                   FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextPrimary}"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock x:Name="ModuleSettingsDrawerSubtitle"
+                                                   Text="設定面板"
+                                                   FontSize="11"
+                                                   Foreground="{DynamicResource TextTertiary}"
+                                                   Margin="0,4,0,0"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                    </StackPanel>
+
+                                    <Button Grid.Column="1"
+                                            Width="32"
+                                            Height="32"
+                                            Background="Transparent"
+                                            BorderThickness="0"
+                                            Cursor="Hand"
+                                            ToolTip="關閉設定"
+                                            Click="ModuleSettingsDrawerCloseButton_Click">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="Bd"
+                                                        Background="{TemplateBinding Background}"
+                                                        CornerRadius="3">
+                                                    <shell:SvgIcon IconSize="14"
+                                                                   Source="/Assets/lucide/x.svg"
+                                                                   Foreground="{DynamicResource TextSecondary}"
+                                                                   HorizontalAlignment="Center"
+                                                                   VerticalAlignment="Center"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SurfaceSubtle}"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+                                </Grid>
+                            </Border>
+
+                            <ScrollViewer Grid.Row="1"
+                                          VerticalScrollBarVisibility="Auto"
+                                          Padding="20">
+                                <ContentControl x:Name="ModuleSettingsDrawerContentHost"/>
+                            </ScrollViewer>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </Grid>
             </Grid>
         </Grid>
 

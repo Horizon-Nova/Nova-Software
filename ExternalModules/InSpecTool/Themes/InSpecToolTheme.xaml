@@ -40,6 +40,16 @@
         <Setter Property="FontSize"                Value="12"/>
     </Style>
 
+    <Style x:Key="InSpecBasePasswordFieldStyle" TargetType="PasswordBox">
+        <Setter Property="Background"              Value="{DynamicResource SurfaceRaised}"/>
+        <Setter Property="BorderBrush"             Value="{DynamicResource BorderMedium}"/>
+        <Setter Property="BorderThickness"         Value="1"/>
+        <Setter Property="Foreground"              Value="{DynamicResource TextPrimary}"/>
+        <Setter Property="Padding"                 Value="8,5"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="FontSize"                Value="12"/>
+    </Style>
+
     <Style x:Key="InSpecJavaTextFieldStyle" TargetType="TextBox"
            BasedOn="{StaticResource InSpecBaseTextFieldStyle}">
         <Setter Property="Padding" Value="8,6"/>

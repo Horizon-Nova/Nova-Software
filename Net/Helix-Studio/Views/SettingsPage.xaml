@@ -600,7 +600,7 @@
 
                         <Border x:Name="WorkspaceEmptyState"
                                 Style="{DynamicResource Card}" Margin="0,0,0,40"
-                                Visibility="{Binding ShowWorkspacesEmptyState, Converter={StaticResource BoolToVisibility}}">
+                                Visibility="Collapsed">
                             <StackPanel Margin="24,32" HorizontalAlignment="Center">
                                 <shell:SvgIcon Source="/Assets/lucide/layers.svg"
                                                Width="36" Height="36"

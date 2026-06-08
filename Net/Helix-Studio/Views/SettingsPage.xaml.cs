@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Helix_Studio.AppHost;
+using Helix_Studio.AppRuntime;
 using Helix_Studio.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Win32;
@@ -39,6 +39,19 @@ public partial class SettingsPage : UserControl
             ["Log"] = SectionLog,
             ["About"] = SectionAbout,
         };
+    }
+
+    /// <summary>
+    /// Scrolls the settings view to the requested section tag.
+    /// </summary>
+    public void ApplySectionTag(string sectionTag)
+    {
+        if (string.IsNullOrWhiteSpace(sectionTag))
+        {
+            return;
+        }
+
+        Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, new Action(() => ScrollToSection(sectionTag)));
     }
 
     private void SettingsSearchBox_KeyDown(object sender, KeyEventArgs e)

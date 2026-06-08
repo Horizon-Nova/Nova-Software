@@ -1,44 +1,32 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
-using Helix_Studio.Utils;
+using System.Threading;
+using Helix_Studio.Infrastructure.Paths;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 
 namespace Helix_Studio.Data.Repositories;
 
 /// <summary>
-/// INI 存取入口（Repository）。
-///
-/// 職責：
-/// - 以 <c>Microsoft.Extensions.Configuration</c> 讀取 INI（啟用 <c>reloadOnChange</c>）。
-/// - 提供快照查詢 <see cref="QuerySnapshot{TSnapshot}"/>。
-/// - 提供鍵值寫入 <see cref="SaveValues"/>（寫入後主動 Reload，並觸發 <see cref="Changed"/>）。
-///
-/// 重要限制：
-/// - 本類別只負責 I/O 與變更通知；不包含 UI 套用或渲染刷新邏輯。
-/// - UI 套用（主題/語系/縮放/密度等）由 AppHost Runtime（例如 <c>AppearanceRuntime</c>）訂閱 <see cref="Changed"/> 後自行處理。
+/// INI 設定檔 Repository。
 /// </summary>
 public sealed class IniRepository : IDisposable
 {
-    [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern bool WritePrivateProfileString(
-        string section,
-        string key,
-        string value,
-        string filePath);
-
     private readonly string _iniFilePath;
     private readonly IConfigurationRoot _configuration;
     private readonly IDisposable _reloadSubscription;
     private readonly object _writeSync = new();
     private bool _suppressChanged;
+
+    private static readonly UTF8Encoding Utf8BomEncoding = new(encoderShouldEmitUTF8Identifier: true);
+    private static readonly UTF8Encoding StrictUtf8Encoding = new(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+    private static readonly TimeSpan ReplaceRetryDelay = TimeSpan.FromMilliseconds(40);
+    private const int ReplaceRetryCount = 5;
 
     private static readonly IReadOnlyDictionary<Type, Func<string, object>> Parsers =
         new Dictionary<Type, Func<string, object>>
@@ -51,19 +39,17 @@ public sealed class IniRepository : IDisposable
         };
 
     /// <summary>
-    /// INI 內容變動通知。
+    /// 設定變更事件。
     /// </summary>
     public event EventHandler? Changed;
 
     /// <summary>
-    /// 建立 INI Repository。
+    /// 建立設定 Repository。
     /// </summary>
-    /// <param name="iniFilePath">
-    /// INI 檔案路徑；若為 <see langword="null"/>，則使用 <see cref="AppPathHelper.QueryConfigFilePath"/>。
-    /// </param>
+    /// <param name="iniFilePath">設定檔路徑，未提供時使用預設 App Home Root 設定檔。</param>
     public IniRepository(string? iniFilePath = null)
     {
-        _iniFilePath = iniFilePath ?? AppPathHelper.QueryConfigFilePath();
+        _iniFilePath = iniFilePath ?? AppPathProvider.QueryConfigFilePath();
         Directory.CreateDirectory(Path.GetDirectoryName(_iniFilePath)!);
 
         using var _ = new FileStream(_iniFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
@@ -112,55 +98,60 @@ public sealed class IniRepository : IDisposable
     {
         try
         {
-            using var stream = new FileStream(iniFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
-            if (stream.Length == 0)
-            {
-                WriteUtf16LeBom(stream);
-                return;
-            }
-
-            var bom = new byte[3];
-            var read = stream.Read(bom, 0, bom.Length);
-            stream.Position = 0;
-
-            var isUtf8Bom = read >= 3 && bom[0] == 0xEF && bom[1] == 0xBB && bom[2] == 0xBF;
-            if (!isUtf8Bom)
-            {
-                return;
-            }
-
-            using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, leaveOpen: true);
-            var text = reader.ReadToEnd();
-            stream.SetLength(0);
-            WriteUtf16LeBom(stream);
-
-            using var writer = new StreamWriter(stream, new UnicodeEncoding(bigEndian: false, byteOrderMark: false));
-            writer.Write(text);
+            var text = ReadIniText(iniFilePath);
+            File.WriteAllText(iniFilePath, text, Utf8BomEncoding);
         }
         catch (IOException)
         {
-            // INI 可能正被其他程序使用；此處不強制改寫，避免造成額外 I/O 競態。
+            // 若設定檔暫時被占用，交由後續讀取或寫入流程重試。
         }
     }
 
-    private static void WriteUtf16LeBom(Stream stream)
+    private static string ReadIniText(string iniFilePath)
     {
-        stream.WriteByte(0xFF);
-        stream.WriteByte(0xFE);
-        stream.Flush();
+        var bytes = File.ReadAllBytes(iniFilePath);
+        if (bytes.Length == 0)
+        {
+            return string.Empty;
+        }
+
+        if (HasUtf8Bom(bytes))
+        {
+            return Encoding.UTF8.GetString(bytes, 3, bytes.Length - 3);
+        }
+
+        if (HasUtf16LeBom(bytes))
+        {
+            return Encoding.Unicode.GetString(bytes, 2, bytes.Length - 2);
+        }
+
+        if (HasUtf16BeBom(bytes))
+        {
+            return Encoding.BigEndianUnicode.GetString(bytes, 2, bytes.Length - 2);
+        }
+
+        try
+        {
+            return StrictUtf8Encoding.GetString(bytes);
+        }
+        catch (DecoderFallbackException)
+        {
+            return Encoding.Default.GetString(bytes);
+        }
     }
 
     private static void NormalizeIniFile(string iniFilePath)
     {
-        using var inputStream = new FileStream(iniFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-        using var reader = new StreamReader(inputStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
-        var text = reader.ReadToEnd();
+        var document = ParseIniDocument(ReadIniText(iniFilePath));
+        WriteIniDocument(iniFilePath, document.SectionOrder, document.KeyOrderBySection, document.ValuesBySection);
+    }
 
+    private static IniDocument ParseIniDocument(string text)
+    {
         var lines = text.Replace("\r\n", "\n").Replace('\r', '\n').Split('\n');
         var sectionOrder = new List<string>();
         var keyOrderBySection = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
         var valuesBySection = new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
-
         var currentSection = string.Empty;
 
         foreach (var rawLine in lines)
@@ -179,13 +170,7 @@ public sealed class IniRepository : IDisposable
                     continue;
                 }
 
-                if (!valuesBySection.ContainsKey(currentSection))
-                {
-                    valuesBySection[currentSection] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                    keyOrderBySection[currentSection] = new List<string>();
-                    sectionOrder.Add(currentSection);
-                }
-
+                EnsureSection(currentSection, sectionOrder, keyOrderBySection, valuesBySection);
                 continue;
             }
 
@@ -207,15 +192,42 @@ public sealed class IniRepository : IDisposable
             }
 
             var value = equalsIndex == line.Length - 1 ? string.Empty : line[(equalsIndex + 1)..].Trim();
-            var values = valuesBySection[currentSection];
-            if (!values.ContainsKey(key))
+            var sectionValues = valuesBySection[currentSection];
+            if (!sectionValues.ContainsKey(key))
             {
                 keyOrderBySection[currentSection].Add(key);
             }
 
-            values[key] = value;
+            sectionValues[key] = value;
         }
 
+        return new IniDocument(sectionOrder, keyOrderBySection, valuesBySection);
+    }
+
+    private static void SaveIniValues(string iniFilePath, string section, IReadOnlyDictionary<string, string?> values)
+    {
+        var document = ParseIniDocument(File.Exists(iniFilePath) ? ReadIniText(iniFilePath) : string.Empty);
+        EnsureSection(section, document.SectionOrder, document.KeyOrderBySection, document.ValuesBySection);
+
+        foreach (var entry in values)
+        {
+            if (!document.ValuesBySection[section].ContainsKey(entry.Key))
+            {
+                document.KeyOrderBySection[section].Add(entry.Key);
+            }
+
+            document.ValuesBySection[section][entry.Key] = entry.Value ?? string.Empty;
+        }
+
+        WriteIniDocument(iniFilePath, document.SectionOrder, document.KeyOrderBySection, document.ValuesBySection);
+    }
+
+    private static void WriteIniDocument(
+        string iniFilePath,
+        IReadOnlyList<string> sectionOrder,
+        IReadOnlyDictionary<string, List<string>> keyOrderBySection,
+        IReadOnlyDictionary<string, Dictionary<string, string>> valuesBySection)
+    {
         var builder = new StringBuilder();
         for (var sectionIndex = 0; sectionIndex < sectionOrder.Count; sectionIndex++)
         {
@@ -235,30 +247,111 @@ public sealed class IniRepository : IDisposable
             }
         }
 
+        var content = builder.ToString();
         var directoryPath = Path.GetDirectoryName(iniFilePath) ?? string.Empty;
-        var tempFilePath = Path.Combine(directoryPath, Path.GetFileName(iniFilePath) + ".tmp");
+        var tempFilePath = Path.Combine(
+            directoryPath,
+            $"{Path.GetFileName(iniFilePath)}.{Guid.NewGuid():N}.tmp");
 
-        using (var outputStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.ReadWrite))
-        using (var writer = new StreamWriter(outputStream, new UnicodeEncoding(bigEndian: false, byteOrderMark: true)))
-        {
-            writer.Write(builder.ToString());
-        }
+        WriteFileWithSharedRead(tempFilePath, content);
 
         try
         {
-            File.Replace(tempFilePath, iniFilePath, destinationBackupFileName: null, ignoreMetadataErrors: true);
+            ReplaceIniFile(tempFilePath, iniFilePath, content);
         }
-        catch (FileNotFoundException)
+        finally
         {
-            File.Move(tempFilePath, iniFilePath, overwrite: true);
+            TryDeleteTemporaryFile(tempFilePath);
         }
     }
 
+    private static void ReplaceIniFile(string tempFilePath, string iniFilePath, string content)
+    {
+        for (var attempt = 0; attempt < ReplaceRetryCount; attempt++)
+        {
+            try
+            {
+                File.Replace(tempFilePath, iniFilePath, destinationBackupFileName: null, ignoreMetadataErrors: true);
+                return;
+            }
+            catch (FileNotFoundException)
+            {
+                File.Move(tempFilePath, iniFilePath, overwrite: true);
+                return;
+            }
+            catch (IOException) when (attempt < ReplaceRetryCount - 1)
+            {
+                Thread.Sleep(ReplaceRetryDelay);
+            }
+            catch (UnauthorizedAccessException) when (attempt < ReplaceRetryCount - 1)
+            {
+                Thread.Sleep(ReplaceRetryDelay);
+            }
+        }
+
+        // 高頻切換時 reload watcher 可能短暫鎖住目標檔，改用共享寫入避免整個宿主因設定寫檔失敗而退出。
+        WriteFileWithSharedRead(iniFilePath, content);
+    }
+
+    private static void WriteFileWithSharedRead(string path, string content)
+    {
+        using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
+        using var writer = new StreamWriter(stream, Utf8BomEncoding);
+        writer.Write(content);
+    }
+
+    private static void TryDeleteTemporaryFile(string tempFilePath)
+    {
+        try
+        {
+            if (File.Exists(tempFilePath))
+            {
+                File.Delete(tempFilePath);
+            }
+        }
+        catch (IOException)
+        {
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
+    }
+
+    private static void EnsureSection(
+        string section,
+        ICollection<string> sectionOrder,
+        IDictionary<string, List<string>> keyOrderBySection,
+        IDictionary<string, Dictionary<string, string>> valuesBySection)
+    {
+        if (valuesBySection.ContainsKey(section))
+        {
+            return;
+        }
+
+        valuesBySection[section] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        keyOrderBySection[section] = new List<string>();
+        sectionOrder.Add(section);
+    }
+
+    private static bool HasUtf8Bom(byte[] bytes)
+        => bytes.Length >= 3
+           && bytes[0] == 0xEF
+           && bytes[1] == 0xBB
+           && bytes[2] == 0xBF;
+
+    private static bool HasUtf16LeBom(byte[] bytes)
+        => bytes.Length >= 2
+           && bytes[0] == 0xFF
+           && bytes[1] == 0xFE;
+
+    private static bool HasUtf16BeBom(byte[] bytes)
+        => bytes.Length >= 2
+           && bytes[0] == 0xFE
+           && bytes[1] == 0xFF;
+
     /// <summary>
-    /// 查詢指定 INI section 的設定快照。
+    /// 讀取指定 section 的設定快照。
     /// </summary>
-    /// <typeparam name="TSnapshot">快照型別（僅支援可寫入的 public 屬性）。</typeparam>
-    /// <param name="section">INI section 名稱。</param>
     public TSnapshot QuerySnapshot<TSnapshot>(string section)
         where TSnapshot : class, new()
     {
@@ -275,15 +368,8 @@ public sealed class IniRepository : IDisposable
     }
 
     /// <summary>
-    /// 寫入指定 section 的鍵值。
-    ///
-    /// 行為：
-    /// - 寫入完成後會呼叫 <c>Reload()</c> 更新 Configuration 快取。
-    /// - 最後一定會觸發 <see cref="Changed"/>，作為「INI 已變更」的唯一通知來源。
+    /// 寫入指定 section 的設定值。
     /// </summary>
-    /// <param name="section">INI section 名稱。</param>
-    /// <param name="values">要寫入的 key/value。</param>
-    /// <exception cref="Win32Exception">寫入失敗時拋出（由 Win32 last error 轉換）。</exception>
     public void SaveValues(string section, IReadOnlyDictionary<string, string?> values)
     {
         lock (_writeSync)
@@ -292,14 +378,7 @@ public sealed class IniRepository : IDisposable
             try
             {
                 EnsureIniFileEncoding(_iniFilePath);
-
-                foreach (var entry in values)
-                {
-                    if (!WritePrivateProfileString(section, entry.Key, entry.Value ?? string.Empty, _iniFilePath))
-                    {
-                        throw new Win32Exception(Marshal.GetLastWin32Error());
-                    }
-                }
+                SaveIniValues(_iniFilePath, section, values);
 
                 try
                 {
@@ -329,5 +408,9 @@ public sealed class IniRepository : IDisposable
     /// 釋放 Reload Token 訂閱。
     /// </summary>
     public void Dispose() => _reloadSubscription.Dispose();
-}
 
+    private sealed record IniDocument(
+        List<string> SectionOrder,
+        Dictionary<string, List<string>> KeyOrderBySection,
+        Dictionary<string, Dictionary<string, string>> ValuesBySection);
+}

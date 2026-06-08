@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.IO.IsolatedStorage;
@@ -30,6 +30,8 @@ internal sealed class InSpecToolInfrastructure
     private static readonly string BridgeBaseDirectory = @"C:\InSpecTool";
     private static readonly string BridgeInputFilePath = Path.Combine(BridgeBaseDirectory, "Input.txt");
     private static readonly string BridgeLegacyCurrentTargetFilePath = Path.Combine(BridgeBaseDirectory, ".current_target.txt");
+    private static readonly Encoding Utf16LeBomEncoding = new UnicodeEncoding(bigEndian: false, byteOrderMark: true);
+    private static readonly Encoding Utf16LeNoBomEncoding = new UnicodeEncoding(bigEndian: false, byteOrderMark: false);
     private static readonly string[] ConfirmButtonTexts = ["OK", "確定"];
     private static readonly string[] PlaybackMenuCandidates = ["playback", "auto measure", "自動量測"];
     private static readonly string[] RunMenuCandidates = ["run", "執行"];
@@ -290,6 +292,12 @@ internal sealed class InSpecToolInfrastructure
         if (!File.Exists(resultModel.FilePath))
         {
             throw new FileNotFoundException("找不到指定的 InSpec 檔案。", resultModel.FilePath);
+        }
+
+        var fileInfo = new FileInfo(resultModel.FilePath);
+        if (fileInfo.Length <= 2)
+        {
+            throw new InvalidDataException($"InSpec 檔案內容無效，無法開啟：{resultModel.FilePath}");
         }
 
         try
@@ -606,8 +614,8 @@ internal sealed class InSpecToolInfrastructure
                 return;
             }
 
-            var contentBytes = ResolveBridgeContentBytes(inputBytes);
-            if (contentBytes.Length == 0)
+            var contentText = ResolveBridgeContentText(inputBytes);
+            if (string.IsNullOrEmpty(contentText))
             {
                 await File.WriteAllBytesAsync(BridgeInputFilePath, []).ConfigureAwait(false);
                 return;
@@ -616,10 +624,12 @@ internal sealed class InSpecToolInfrastructure
             var targetPath = QueryCurrentTargetPath();
             if (string.IsNullOrWhiteSpace(targetPath))
             {
+                _writeLog?.Invoke("同步 InSpec 橋接輸入檔時未設定目標檔路徑，略過寫入。", LogLevel.Warning);
                 return;
             }
 
-            await AppendContentToTargetFileAsync(targetPath, contentBytes).ConfigureAwait(false);
+            await AppendContentToTargetFileAsync(targetPath, contentText).ConfigureAwait(false);
+            _writeLog?.Invoke($"已寫入 InSpec 目標檔：{targetPath}", LogLevel.Information);
             await File.WriteAllBytesAsync(BridgeInputFilePath, []).ConfigureAwait(false);
         }
         catch (IOException exception)
@@ -659,7 +669,7 @@ internal sealed class InSpecToolInfrastructure
         }
     }
 
-    private async Task AppendContentToTargetFileAsync(string targetPath, byte[] contentBytes)
+    private async Task AppendContentToTargetFileAsync(string targetPath, string contentText)
     {
         var parentDirectory = Path.GetDirectoryName(targetPath);
         if (!string.IsNullOrWhiteSpace(parentDirectory))
@@ -667,18 +677,27 @@ internal sealed class InSpecToolInfrastructure
             Directory.CreateDirectory(parentDirectory);
         }
 
+        var isNewFile = !File.Exists(targetPath) || new FileInfo(targetPath).Length == 0;
+        var encoding = isNewFile ? Utf16LeBomEncoding : Utf16LeNoBomEncoding;
         await using var stream = new FileStream(targetPath, FileMode.Append, FileAccess.Write, FileShare.Read);
-        await stream.WriteAsync(contentBytes).ConfigureAwait(false);
+        using var writer = new StreamWriter(stream, encoding);
+        await writer.WriteAsync(contentText).ConfigureAwait(false);
+        await writer.FlushAsync().ConfigureAwait(false);
     }
 
-    private byte[] ResolveBridgeContentBytes(byte[] bytes)
+    private string ResolveBridgeContentText(byte[] bytes)
     {
         if (bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE)
         {
-            return bytes[2..];
+            return Encoding.Unicode.GetString(bytes, 2, bytes.Length - 2);
         }
 
-        return bytes;
+        if (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+        {
+            return Encoding.UTF8.GetString(bytes, 3, bytes.Length - 3);
+        }
+
+        return Encoding.UTF8.GetString(bytes);
     }
 
     private string QueryCurrentTargetPath()

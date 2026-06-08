@@ -5,7 +5,7 @@ using System.IO.Compression;
 using System.Linq;
 using Helix_Studio.Data.Repositories;
 using Helix_Studio.Model;
-using Helix_Studio.Utils;
+using Helix_Studio.Infrastructure.Paths;
 
 namespace Helix_Studio.Domain;
 
@@ -78,7 +78,7 @@ public sealed class EventLogDomain(
 
         Directory.CreateDirectory(exportDirectoryPath);
 
-        var logDirectoryPath = AppPathHelper.QueryLogsDirectory();
+        var logDirectoryPath = AppPathProvider.QueryLogsDirectory();
         var archiveFileName = $"Helix-Studio-Logs-{DateTime.Now:yyyyMMdd-HHmmss}.zip";
         var archiveFilePath = Path.Combine(exportDirectoryPath, archiveFileName);
         File.Delete(archiveFilePath);

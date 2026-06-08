@@ -2,7 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Threading;
-using Helix_Studio.AppHost;
+using Helix_Studio.AppRuntime;
 using Helix_Studio.Domain;
 using Helix_Studio.Model;
 using Helix_Studio.ViewModels.Base;
@@ -31,74 +31,113 @@ public sealed class OverviewPageViewModel(
     private string _buildVersionText = string.Empty;
     private string _dataFolderPath = string.Empty;
 
+    /// <summary>
+    /// 目前裝置名稱。
+    /// </summary>
     public string MachineName
     {
         get => _machineName;
         private set => SetField(ref _machineName, value);
     }
 
+    /// <summary>
+    /// 概覽副標題文字。
+    /// </summary>
     public string SubtitleText
     {
         get => _subtitleText;
         private set => SetField(ref _subtitleText, value);
     }
 
+    /// <summary>
+    /// 作業系統簡短資訊。
+    /// </summary>
     public string OsInfoShort
     {
         get => _osInfoShort;
         private set => SetField(ref _osInfoShort, value);
     }
 
+    /// <summary>
+    /// 作業系統完整資訊。
+    /// </summary>
     public string OsInfoFull
     {
         get => _osInfoFull;
         private set => SetField(ref _osInfoFull, value);
     }
 
+    /// <summary>
+    /// 系統運作時間文字。
+    /// </summary>
     public string UptimeText
     {
         get => _uptimeText;
         private set => SetField(ref _uptimeText, value);
     }
 
+    /// <summary>
+    /// 目前工作區名稱。
+    /// </summary>
     public string WorkspaceName
     {
         get => _workspaceName;
         private set => SetField(ref _workspaceName, value);
     }
 
+    /// <summary>
+    /// 目前工作區描述。
+    /// </summary>
     public string WorkspaceDescription
     {
         get => _workspaceDescription;
         private set => SetField(ref _workspaceDescription, value);
     }
 
+    /// <summary>
+    /// 模組數量文字。
+    /// </summary>
     public string ModuleCountText
     {
         get => _moduleCountText;
         private set => SetField(ref _moduleCountText, value);
     }
 
+    /// <summary>
+    /// 模組狀態摘要文字。
+    /// </summary>
     public string ModuleStatusText
     {
         get => _moduleStatusText;
         private set => SetField(ref _moduleStatusText, value);
     }
 
+    /// <summary>
+    /// 建置版本文字。
+    /// </summary>
     public string BuildVersionText
     {
         get => _buildVersionText;
         private set => SetField(ref _buildVersionText, value);
     }
 
+    /// <summary>
+    /// App Home Root 路徑文字。
+    /// </summary>
     public string DataFolderPath
     {
         get => _dataFolderPath;
         private set => SetField(ref _dataFolderPath, value);
     }
 
+    /// <summary>
+    /// 概覽頁模組清單。
+    /// </summary>
     public ObservableCollection<OverviewModuleItemModel> Modules { get; } = [];
 
+    /// <summary>
+    /// 是否存在可顯示的模組。
+    /// </summary>
     public bool HasModules => Modules.Count > 0;
 
     internal void ApplyViewLoaded()
@@ -117,6 +156,9 @@ public sealed class OverviewPageViewModel(
         _isInitialized = true;
     }
 
+    /// <summary>
+    /// 釋放事件訂閱與 ViewModel 資源。
+    /// </summary>
     public void Dispose()
     {
         if (_isDisposed)

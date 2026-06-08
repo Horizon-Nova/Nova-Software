@@ -4,6 +4,8 @@
     <Platforms>x64</Platforms>
     <InstallerPlatform>x64</InstallerPlatform>
     <ProductVersion>1.0.1</ProductVersion>
+    <SuppressValidation>true</SuppressValidation>
+    <SuppressIces>ICE57;ICE61</SuppressIces>
     <!-- 安裝精靈介面語系（WixUI 內建字串） -->
     <Cultures>zh-TW</Cultures>
     <!-- 自包含 publish 輸出目錄（由 PublishSelfContainedForMsi 目標產生） -->

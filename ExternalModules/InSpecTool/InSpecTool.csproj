@@ -9,10 +9,16 @@
     <UseWPF>true</UseWPF>
     <!-- Output folder: shell drops this entire folder into Modules/ -->
     <ModulePackageDirectory>$(MSBuildProjectDirectory)\PackageOutput\InSpecTool</ModulePackageDirectory>
+    <ArtifactsOutputDirectory>$(MSBuildProjectDirectory)\..\..\.artifacts\Output\InSpecTool</ArtifactsOutputDirectory>
+    <ArtifactsHelixPackageDirectory>$(MSBuildProjectDirectory)\..\..\.artifacts\Helix-Studio_Package\Modules\InSpecTool</ArtifactsHelixPackageDirectory>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Net\Helix-Studio.ModuleSdk\Helix-Studio.ModuleSdk.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -55,6 +61,22 @@
     <Copy SourceFiles="$(MSBuildProjectDirectory)\Package\README.md"
           DestinationFiles="$(ModulePackageDirectory)\README.md"
           Condition="Exists('$(MSBuildProjectDirectory)\Package\README.md')"
+          SkipUnchangedFiles="true" />
+  </Target>
+
+  <Target Name="SyncModuleArtifacts" AfterTargets="BuildModulePackage">
+    <ItemGroup>
+      <_ModulePackageFiles Include="$(ModulePackageDirectory)\*.*" />
+    </ItemGroup>
+
+    <MakeDir Directories="$(ArtifactsOutputDirectory);$(ArtifactsHelixPackageDirectory)" />
+
+    <Copy SourceFiles="@(_ModulePackageFiles)"
+          DestinationFolder="$(ArtifactsOutputDirectory)"
+          SkipUnchangedFiles="true" />
+
+    <Copy SourceFiles="@(_ModulePackageFiles)"
+          DestinationFolder="$(ArtifactsHelixPackageDirectory)"
           SkipUnchangedFiles="true" />
   </Target>
 

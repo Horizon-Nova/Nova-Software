@@ -164,17 +164,17 @@
             </Grid>
 
             <StackPanel Grid.Row="1" Margin="40,28,40,0" VerticalAlignment="Top">
-                <TextBlock x:Name="ActivationTitleText" Text="{Binding ActivationTitleText}" FontSize="22" FontWeight="SemiBold"
+                <TextBlock x:Name="ActivationTitleText" Text="{Binding ActivationTitleText, Mode=OneWay}" FontSize="22" FontWeight="SemiBold"
                            Foreground="{StaticResource TextPrimary}"/>
                 <TextBlock FontSize="13" Foreground="{StaticResource TextSecondary}"
                            Margin="0,6,0,0" LineHeight="20" TextWrapping="Wrap">
-                    <Run x:Name="ActivationDescriptionText" Text="{Binding ActivationDescriptionText}"/>
+                    <Run x:Name="ActivationDescriptionText" Text="{Binding ActivationDescriptionText, Mode=OneWay}"/>
                 </TextBlock>
 
                 <StackPanel Margin="0,28,0,0">
                     <Grid Margin="0,0,0,8">
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                            <TextBlock x:Name="LicenseKeyLabelText" Text="{Binding LicenseKeyLabelText}" FontSize="12" FontWeight="SemiBold"
+                            <TextBlock x:Name="LicenseKeyLabelText" Text="{Binding LicenseKeyLabelText, Mode=OneWay}" FontSize="12" FontWeight="SemiBold"
                                        Foreground="{StaticResource TextPrimary}"/>
                             <TextBlock x:Name="LicenseKeyLabelZhText" Text="授權金鑰" FontSize="11" Foreground="{StaticResource TextTertiary}"
                                        Margin="6,0,0,0" VerticalAlignment="Center"
@@ -185,9 +185,9 @@
                              Style="{StaticResource LicenseKeyInput}" Padding="4,0,0,0"
                              Text="{Binding LicenseKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                     <TextBlock FontSize="11" Foreground="{StaticResource TextTertiary}" Margin="0,8,0,0">
-                        <Run x:Name="LicenseFormatPrefixText" Text="{Binding LicenseFormatPrefixText}"/>
+                        <Run x:Name="LicenseFormatPrefixText" Text="{Binding LicenseFormatPrefixText, Mode=OneWay}"/>
                         <Run Text="  ·  "/>
-                        <Run x:Name="LicenseFormatHintText" Text="{Binding LicenseFormatHintText}"/>
+                        <Run x:Name="LicenseFormatHintText" Text="{Binding LicenseFormatHintText, Mode=OneWay}"/>
                     </TextBlock>
                 </StackPanel>
 
@@ -208,20 +208,20 @@
                         </Border>
                         <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock x:Name="DeviceBindingPrefixText" Text="{Binding DeviceBindingPrefixText}" FontSize="12"
+                                <TextBlock x:Name="DeviceBindingPrefixText" Text="{Binding DeviceBindingPrefixText, Mode=OneWay}" FontSize="12"
                                            Foreground="{StaticResource TextSecondary}"/>
-                                <TextBlock x:Name="BoundDeviceText" Text="{Binding BoundDeviceName}" FontSize="12" FontWeight="SemiBold"
+                                <TextBlock x:Name="BoundDeviceText" Text="{Binding BoundDeviceName, Mode=OneWay}" FontSize="12" FontWeight="SemiBold"
                                            FontFamily="Consolas, Cascadia Mono"
                                            Foreground="{StaticResource TextPrimary}" Margin="5,0,0,0"/>
                             </StackPanel>
                             <TextBlock FontSize="11" Foreground="{StaticResource TextTertiary}" Margin="0,2,0,0">
-                                <Run x:Name="FingerprintPrefixText" Text="{Binding FingerprintPrefixText}"/>
-                                <Run x:Name="FingerprintText" Text="{Binding FingerprintText}" FontFamily="Consolas, Cascadia Mono"/>
+                                <Run x:Name="FingerprintPrefixText" Text="{Binding FingerprintPrefixText, Mode=OneWay}"/>
+                                <Run x:Name="FingerprintText" Text="{Binding FingerprintText, Mode=OneWay}" FontFamily="Consolas, Cascadia Mono"/>
                                 <Run Text="  ·  "/>
-                                <Run x:Name="RebindingHintText" Text="{Binding RebindingHintText}"/>
+                                <Run x:Name="RebindingHintText" Text="{Binding RebindingHintText, Mode=OneWay}"/>
                             </TextBlock>
                         </StackPanel>
-                        <TextBlock x:Name="CopyDeviceInfoText" Grid.Column="2" Text="{Binding CopyDeviceInfoText}" FontSize="11" FontWeight="SemiBold"
+                        <TextBlock x:Name="CopyDeviceInfoText" Grid.Column="2" Text="{Binding CopyDeviceInfoText, Mode=OneWay}" FontSize="11" FontWeight="SemiBold"
                                    Foreground="{StaticResource AccentPrimary}" VerticalAlignment="Center" Cursor="Hand" MouseLeftButtonUp="CopyDeviceInfoText_MouseLeftButtonUp"/>
                     </Grid>
                 </Border>
@@ -231,13 +231,13 @@
                               IsChecked="{Binding AgreeToTerms, Mode=TwoWay}"/>
                     <TextBlock TextWrapping="Wrap" FontSize="12"
                                Foreground="{StaticResource TextSecondary}" Margin="10,0,0,0" LineHeight="18">
-                        <Run x:Name="AgreementPrefixText" Text="{Binding AgreementPrefixText}"/>
+                        <Run x:Name="AgreementPrefixText" Text="{Binding AgreementPrefixText, Mode=OneWay}"/>
                         <Hyperlink Foreground="{StaticResource AccentPrimary}" TextDecorations="None" Click="EnterpriseAgreement_Click">
-                            <Run x:Name="EnterpriseAgreementText" Text="{Binding EnterpriseAgreementText}"/>
+                            <Run x:Name="EnterpriseAgreementText" Text="{Binding EnterpriseAgreementText, Mode=OneWay}"/>
                         </Hyperlink>
-                        <Run x:Name="AgreementAndText" Text="{Binding AgreementAndText}"/>
+                        <Run x:Name="AgreementAndText" Text="{Binding AgreementAndText, Mode=OneWay}"/>
                         <Hyperlink Foreground="{StaticResource AccentPrimary}" TextDecorations="None" Click="DataProcessingTerms_Click">
-                            <Run x:Name="DataProcessingTermsText" Text="{Binding DataProcessingTermsText}"/>
+                            <Run x:Name="DataProcessingTermsText" Text="{Binding DataProcessingTermsText, Mode=OneWay}"/>
                         </Hyperlink>
                         <Run Text="."/>
                     </TextBlock>
@@ -257,20 +257,20 @@
                                        VerticalAlignment="Center"/>
                         <TextBlock FontSize="11" Foreground="{StaticResource TextSecondary}"
                                    Margin="6,0,0,0" VerticalAlignment="Center">
-                            <Run x:Name="NeedHelpText" Text="{Binding NeedHelpText}"/>
+                            <Run x:Name="NeedHelpText" Text="{Binding NeedHelpText, Mode=OneWay}"/>
                             <Hyperlink Foreground="{StaticResource AccentPrimary}" TextDecorations="None" Click="ContactAdministrator_Click">
-                                <Run x:Name="ContactAdministratorText" Text="{Binding ContactAdministratorText}"/>
+                                <Run x:Name="ContactAdministratorText" Text="{Binding ContactAdministratorText, Mode=OneWay}"/>
                             </Hyperlink>
                         </TextBlock>
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
                         <Button x:Name="CancelButton"   Style="{StaticResource GhostButton}"
-                                Content="{Binding CancelButtonText}" Margin="0,0,10,0"
+                                Content="{Binding CancelButtonText, Mode=OneWay}" Margin="0,0,10,0"
                                 Command="{Binding CancelCommand}"/>
                         <Button x:Name="ActivateButton" Style="{StaticResource PrimaryButton}"
                                 Command="{Binding ActivateCommand}">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock x:Name="ActivateButtonText" Text="{Binding ActivateButtonText}" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="ActivateButtonText" Text="{Binding ActivateButtonText, Mode=OneWay}" VerticalAlignment="Center"/>
                                 <shell:SvgIcon Source="/Assets/lucide/arrow-right.svg"
                                                Width="12" Height="12"
                                                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
@@ -300,18 +300,18 @@
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal" Margin="0,0,16,0">
                         <Ellipse Width="7" Height="7" Fill="#4ADE80" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="StatusModeText" Text="{Binding StatusModeText}" FontSize="11"
+                        <TextBlock x:Name="StatusModeText" Text="{Binding StatusModeText, Mode=OneWay}" FontSize="11"
                                    Foreground="White" Margin="6,0,0,0" VerticalAlignment="Center"/>
                     </StackPanel>
                     <Border Background="#1A5A95" Width="1" Height="14" Margin="0,0,16,0"/>
-                    <TextBlock x:Name="StatusSecurityText" Text="{Binding StatusSecurityText}" FontSize="11"
+                    <TextBlock x:Name="StatusSecurityText" Text="{Binding StatusSecurityText, Mode=OneWay}" FontSize="11"
                                Foreground="White" Opacity="0.85" VerticalAlignment="Center"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <TextBlock x:Name="StatusDeviceText" Text="{Binding StatusDeviceText}" FontSize="11"
+                    <TextBlock x:Name="StatusDeviceText" Text="{Binding StatusDeviceText, Mode=OneWay}" FontSize="11"
                                Foreground="White" Opacity="0.85" VerticalAlignment="Center" Margin="0,0,16,0"/>
                     <Border Background="#1A5A95" Width="1" Height="14" Margin="0,0,16,0"/>
-                    <TextBlock x:Name="StatusBuildText" Text="{Binding StatusBuildText}" FontSize="11"
+                    <TextBlock x:Name="StatusBuildText" Text="{Binding StatusBuildText, Mode=OneWay}" FontSize="11"
                                Foreground="White" Opacity="0.85" VerticalAlignment="Center"/>
                 </StackPanel>
             </Grid>

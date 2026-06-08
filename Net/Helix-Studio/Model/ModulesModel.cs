@@ -16,13 +16,13 @@ public enum ModuleHealth
     Warning,
 
     /// <summary>
-    /// 錯誤。
+    /// 故障。
     /// </summary>
     Faulted,
 }
 
 /// <summary>
-/// 模組資訊模型。
+/// 模組中繼資料。
 /// </summary>
 public sealed record ModuleModel
 {
@@ -42,17 +42,17 @@ public sealed record ModuleModel
     public string Version { get; init; } = string.Empty;
 
     /// <summary>
-    /// 作者。
+    /// 開發者名稱。
     /// </summary>
     public string Author { get; init; } = string.Empty;
 
     /// <summary>
-    /// 描述。
+    /// 模組描述。
     /// </summary>
     public string Description { get; init; } = string.Empty;
 
     /// <summary>
-    /// 需求主程式最低版本。
+    /// 最低主機版本。
     /// </summary>
     public string MinHostVersion { get; init; } = string.Empty;
 
@@ -62,7 +62,7 @@ public sealed record ModuleModel
     public string FolderPath { get; init; } = string.Empty;
 
     /// <summary>
-    /// DLL 路徑。
+    /// 模組 DLL 路徑。
     /// </summary>
     public string DllPath { get; init; } = string.Empty;
 
@@ -70,10 +70,25 @@ public sealed record ModuleModel
     /// 是否需要授權。
     /// </summary>
     public bool RequiresLicense { get; init; }
+
+    /// <summary>
+    /// 是否可被主機載入。
+    /// </summary>
+    public bool IsLoadable { get; init; }
+
+    /// <summary>
+    /// 是否為啟用狀態。
+    /// </summary>
+    public bool IsEnabled { get; init; } = true;
+
+    /// <summary>
+    /// 是否提供設定頁。
+    /// </summary>
+    public bool HasSettings { get; init; }
 }
 
 /// <summary>
-/// 已安裝模組清單項目模型。
+/// Modules 頁使用的已安裝模組項目。
 /// </summary>
 public sealed record ModulesInstalledItemModel
 {
@@ -93,24 +108,29 @@ public sealed record ModulesInstalledItemModel
     public string Version { get; init; } = string.Empty;
 
     /// <summary>
-    /// 作者。
+    /// 開發者名稱。
     /// </summary>
     public string Author { get; init; } = string.Empty;
 
     /// <summary>
-    /// 描述。
+    /// 模組描述。
     /// </summary>
     public string Description { get; init; } = string.Empty;
 
     /// <summary>
-    /// 需求主程式最低版本。
+    /// 最低主機版本。
     /// </summary>
     public string MinHostVersion { get; init; } = string.Empty;
 
     /// <summary>
-    /// 安裝位置資料夾。
+    /// 已安裝模組資料夾。
     /// </summary>
     public string InstalledFolderPath { get; init; } = string.Empty;
+
+    /// <summary>
+    /// 模組 DLL 路徑。
+    /// </summary>
+    public string DllPath { get; init; } = string.Empty;
 
     /// <summary>
     /// 狀態文字。
@@ -118,7 +138,7 @@ public sealed record ModulesInstalledItemModel
     public string StatusText { get; init; } = string.Empty;
 
     /// <summary>
-    /// 圖示位元組。
+    /// 模組圖示資料。
     /// </summary>
     public byte[]? Icon { get; init; }
 
@@ -126,5 +146,19 @@ public sealed record ModulesInstalledItemModel
     /// README 內容。
     /// </summary>
     public string ReadmeText { get; init; } = string.Empty;
-}
 
+    /// <summary>
+    /// 是否可被主機載入。
+    /// </summary>
+    public bool IsLoadable { get; init; }
+
+    /// <summary>
+    /// 是否為啟用狀態。
+    /// </summary>
+    public bool IsEnabled { get; init; } = true;
+
+    /// <summary>
+    /// 是否提供設定頁。
+    /// </summary>
+    public bool HasSettings { get; init; }
+}

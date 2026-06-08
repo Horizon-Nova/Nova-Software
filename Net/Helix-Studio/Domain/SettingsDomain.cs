@@ -7,17 +7,16 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using Helix_Studio.Data.Repositories;
+using Helix_Studio.Infrastructure.Licensing;
+using Helix_Studio.Infrastructure.Paths;
 using Helix_Studio.Model;
-using Helix_Studio.Utils;
 
 namespace Helix_Studio.Domain;
 
 /// <summary>
-/// 設定 Domain（提供設定頁所需資料與操作）。
+/// 管理設定頁的資料讀寫、工作區操作與關於資訊。
 /// </summary>
-public sealed class SettingsDomain(
-    IniRepository iniRepository,
-    WorkspacesRepository workspacesRepository)
+public sealed class SettingsDomain
 {
     private const string MainSection = "Main";
     private const string SettingsSection = "Settings";
@@ -32,13 +31,30 @@ public sealed class SettingsDomain(
             [4] = TimeSpan.FromHours(1),
         };
 
+    private readonly IniRepository _iniRepository;
+    private readonly WorkspacesRepository _workspacesRepository;
+    private readonly IApplicationLicenseService _applicationLicenseService;
+
     /// <summary>
-    /// 設定值變更事件。
+    /// 建立設定 Domain。
+    /// </summary>
+    public SettingsDomain(
+        IniRepository iniRepository,
+        WorkspacesRepository workspacesRepository,
+        IApplicationLicenseService applicationLicenseService)
+    {
+        _iniRepository = iniRepository;
+        _workspacesRepository = workspacesRepository;
+        _applicationLicenseService = applicationLicenseService;
+    }
+
+    /// <summary>
+    /// 設定變更事件。
     /// </summary>
     public event EventHandler? SettingsChanged
     {
-        add => iniRepository.Changed += value;
-        remove => iniRepository.Changed -= value;
+        add => _iniRepository.Changed += value;
+        remove => _iniRepository.Changed -= value;
     }
 
     /// <summary>
@@ -46,24 +62,24 @@ public sealed class SettingsDomain(
     /// </summary>
     public event EventHandler? WorkspacesChanged
     {
-        add => workspacesRepository.Changed += value;
-        remove => workspacesRepository.Changed -= value;
+        add => _workspacesRepository.Changed += value;
+        remove => _workspacesRepository.Changed -= value;
     }
 
     /// <summary>
-    /// 查詢設定快照。
+    /// 讀取設定快照。
     /// </summary>
     public SettingsModel QuerySettings()
-        => iniRepository.QuerySnapshot<SettingsModel>(SettingsSection);
+        => _iniRepository.QuerySnapshot<SettingsModel>(SettingsSection);
 
     /// <summary>
     /// 儲存設定快照。
     /// </summary>
     public void SaveSettings(SettingsModel settings)
-        => iniRepository.SaveValues(SettingsSection, ResolveValues(settings));
+        => _iniRepository.SaveValues(SettingsSection, ResolveValues(settings));
 
     /// <summary>
-    /// 依閮剖???身摰??援 Home ?澆???撠汗隢??
+    /// 解析啟動後要進入的首頁識別碼。
     /// </summary>
     public string ResolveStartupPageId()
     {
@@ -76,26 +92,25 @@ public sealed class SettingsDomain(
     }
 
     /// <summary>
-    /// 儲存最後一次瀏覽的頁面代號（供「上次瀏覽頁面」啟動選項使用）。
+    /// 寫回最後瀏覽頁面識別碼。
     /// </summary>
-    /// <param name="pageId">頁面代號。</param>
     public void SaveLastVisitedPageId(string pageId)
     {
         var normalized = string.IsNullOrWhiteSpace(pageId) ? string.Empty : pageId;
-        var existing = iniRepository.QuerySnapshot<SettingsModel>(SettingsSection).LastVisitedPageTag ?? string.Empty;
+        var existing = _iniRepository.QuerySnapshot<SettingsModel>(SettingsSection).LastVisitedPageTag ?? string.Empty;
         if (string.Equals(existing, normalized, StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
 
-        iniRepository.SaveValues(SettingsSection, new Dictionary<string, string?>
+        _iniRepository.SaveValues(SettingsSection, new Dictionary<string, string?>
         {
             [nameof(SettingsModel.LastVisitedPageTag)] = normalized,
         });
     }
 
     /// <summary>
-    /// 解析閒置鎖定等待時間；回傳 <see langword="null"/> 代表停用。
+    /// 依設定值解析閒置鎖定時間；未設定時回傳 <see langword="null"/>。
     /// </summary>
     public TimeSpan? QueryInactivityTimeout()
     {
@@ -104,14 +119,14 @@ public sealed class SettingsDomain(
     }
 
     /// <summary>
-    /// 查詢工作區清單（供設定頁顯示）。
+    /// 查詢設定頁顯示的工作區清單。
     /// </summary>
     public IReadOnlyList<SettingsWorkspaceItemModel> QueryWorkspaces()
     {
         var activeWorkspaceName = QueryActiveWorkspaceName();
-        var root = workspacesRepository.QueryWorkspacesDirectoryPath();
+        var root = _workspacesRepository.QueryWorkspacesDirectoryPath();
 
-        return workspacesRepository.QueryWorkspaceNames()
+        return _workspacesRepository.QueryWorkspaceNames()
             .Select(workspaceName => new SettingsWorkspaceItemModel
             {
                 Name = workspaceName,
@@ -122,69 +137,85 @@ public sealed class SettingsDomain(
     }
 
     /// <summary>
-    /// 切換目前作用中的工作區。
+    /// 切換作用中的工作區。
     /// </summary>
     public void ActivateWorkspace(string workspaceName)
-        => iniRepository.SaveValues(MainSection, new Dictionary<string, string?>
+    {
+        var resolvedWorkspaceName = _workspacesRepository.ResolveWorkspaceNameOrFallback(workspaceName);
+        var workspaceDescription = string.IsNullOrWhiteSpace(resolvedWorkspaceName)
+            ? string.Empty
+            : _workspacesRepository.QueryWorkspaceDescription(resolvedWorkspaceName);
+
+        _iniRepository.SaveValues(MainSection, new Dictionary<string, string?>
         {
-            [nameof(MainModel.Workspace)] = workspaceName,
+            [nameof(MainModel.Workspace)] = resolvedWorkspaceName,
+            [nameof(MainModel.WorkspaceDescription)] = workspaceDescription,
         });
+    }
 
     /// <summary>
-    /// 建立工作區並切換為使用中。
+    /// 建立工作區並立即切換。
     /// </summary>
     public void CreateWorkspace(string workspaceName, string description)
     {
-        workspacesRepository.CreateWorkspace(workspaceName, description);
+        _workspacesRepository.CreateWorkspace(workspaceName, description);
         ActivateWorkspace(workspaceName);
     }
 
     /// <summary>
-    /// 刪除工作區。
+    /// 刪除工作區；若刪除的是作用中工作區，會切回下一個有效工作區。
     /// </summary>
     public void DeleteWorkspace(string workspaceName)
     {
-        var workspaceDirectoryPath = Path.Combine(workspacesRepository.QueryWorkspacesDirectoryPath(), workspaceName);
+        var workspaceDirectoryPath = Path.Combine(_workspacesRepository.QueryWorkspacesDirectoryPath(), workspaceName);
         Directory.Delete(workspaceDirectoryPath, recursive: true);
 
-        var remainingWorkspaceName = workspacesRepository.QueryWorkspaceNames()
+        var remainingWorkspaceName = _workspacesRepository.QueryWorkspaceNames()
             .Where(name => !string.Equals(name, workspaceName, StringComparison.OrdinalIgnoreCase))
             .FirstOrDefault() ?? string.Empty;
 
         if (string.Equals(QueryActiveWorkspaceName(), workspaceName, StringComparison.OrdinalIgnoreCase))
         {
-            iniRepository.SaveValues(MainSection, new Dictionary<string, string?>
+            var remainingWorkspaceDescription = string.IsNullOrWhiteSpace(remainingWorkspaceName)
+                ? string.Empty
+                : _workspacesRepository.QueryWorkspaceDescription(remainingWorkspaceName);
+
+            _iniRepository.SaveValues(MainSection, new Dictionary<string, string?>
             {
                 [nameof(MainModel.Workspace)] = remainingWorkspaceName,
+                [nameof(MainModel.WorkspaceDescription)] = remainingWorkspaceDescription,
             });
         }
     }
 
     /// <summary>
-    /// 查詢關於資訊。
+    /// 查詢關於頁資訊。
     /// </summary>
     public SettingsAboutModel QueryAbout()
     {
         var assembly = Assembly.GetExecutingAssembly();
-        var versionText = assembly.GetName().Version?.ToString() ?? "—";
+        var versionText = assembly.GetName().Version?.ToString() ?? "-";
         var buildDateText = File.GetLastWriteTime(assembly.Location).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+        var licenseState = _applicationLicenseService.VerifyStoredLicense();
 
         return new SettingsAboutModel
         {
             VersionText = versionText,
             BuildDateText = buildDateText,
-            LicenseExpiryText = "—",
+            LicenseExpiryText = licenseState.IsValid
+                ? "已啟用（一般金鑰 / 無到期欄位）"
+                : "未啟用",
         };
     }
 
     /// <summary>
-    /// 匯出目前日誌到 ZIP（輸出到指定資料夾）。
+    /// 匯出日誌為 ZIP 檔並回傳檔案路徑。
     /// </summary>
     public string ExportLogs(string exportDirectoryPath)
     {
         Directory.CreateDirectory(exportDirectoryPath);
 
-        var logDirectoryPath = AppPathHelper.QueryLogsDirectory();
+        var logDirectoryPath = AppPathProvider.QueryLogsDirectory();
         var archiveFileName = $"Helix-Studio-Logs-{DateTime.Now:yyyyMMdd-HHmmss}.zip";
         var archiveFilePath = Path.Combine(exportDirectoryPath, archiveFileName);
         File.Delete(archiveFilePath);
@@ -200,11 +231,11 @@ public sealed class SettingsDomain(
     }
 
     /// <summary>
-    /// 開啟法律文件。
+    /// 開啟法律聲明檔。
     /// </summary>
     public void OpenLegalNotices(string languageCode)
     {
-        var legalFilePath = AppPathHelper.QueryLegalNoticesFilePath(languageCode);
+        var legalFilePath = AppPathProvider.QueryLegalNoticesFilePath(languageCode);
         Process.Start(new ProcessStartInfo
         {
             FileName = legalFilePath,
@@ -213,7 +244,10 @@ public sealed class SettingsDomain(
     }
 
     private string QueryActiveWorkspaceName()
-        => iniRepository.QuerySnapshot<MainModel>(MainSection).Workspace ?? string.Empty;
+    {
+        var configuredWorkspaceName = _iniRepository.QuerySnapshot<MainModel>(MainSection).Workspace ?? string.Empty;
+        return _workspacesRepository.ResolveWorkspaceNameOrFallback(configuredWorkspaceName);
+    }
 
     private static IReadOnlyDictionary<string, string?> ResolveValues<TSnapshot>(TSnapshot snapshot)
         where TSnapshot : class

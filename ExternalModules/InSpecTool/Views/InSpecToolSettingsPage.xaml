@@ -27,7 +27,7 @@
                        FontWeight="SemiBold"
                        Foreground="{DynamicResource TextPrimary}"/>
             <TextBlock Margin="0,6,0,0"
-                       Text="現行版以固定欄位為主，設定頁只調整執行行為與路徑，不再做自由增刪欄位。"
+                       Text="右側設定只負責暫時解鎖敏感欄位，不負責保存模組授權。解鎖 3 分鐘後會自動重新上鎖。"
                        TextWrapping="Wrap"
                        FontSize="11"
                        Foreground="{DynamicResource TextTertiary}"/>
@@ -47,24 +47,29 @@
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0"
                                Margin="0,8,12,0"
-                               Text="模組授權"
+                               Text="管理解鎖"
                                FontSize="12"
                                FontWeight="SemiBold"
                                Foreground="{DynamicResource TextPrimary}"/>
-                    <TextBox Grid.Column="1"
-                             Style="{StaticResource InSpecBaseTextFieldStyle}"
-                             VerticalAlignment="Center"
-                             Text="{Binding ModuleLicenseKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <PasswordBox x:Name="UnlockKeyBox"
+                                 Grid.Column="1"
+                                 VerticalAlignment="Center"
+                                 Style="{StaticResource InSpecBasePasswordFieldStyle}"
+                                 PasswordChanged="ApplyUnlockKeyPasswordChanged"/>
                     <Button Grid.Column="2"
                             Margin="8,0,0,0"
                             MinWidth="88"
                             Style="{StaticResource InSpecJavaButtonStyle}"
-                            Content="套用授權"
-                            Command="{Binding ApplyModuleLicenseKeyCommand}"/>
+                            Content="解鎖"
+                            Command="{Binding ApplyUnlockCommand}"/>
                 </Grid>
                 <TextBlock Margin="120,6,0,0"
                            FontSize="11"
-                           Text="{Binding LicenseStatusText}"
+                           Text="{Binding UnlockStatusText}"
+                           Foreground="{DynamicResource TextTertiary}"/>
+                <TextBlock Margin="120,4,0,0"
+                           FontSize="11"
+                           Text="{Binding LockStateText, StringFormat=欄位狀態：{0}}"
                            Foreground="{DynamicResource TextTertiary}"/>
             </StackPanel>
         </Border>
@@ -89,13 +94,13 @@
                 <TextBlock Grid.Column="0"
                            Grid.RowSpan="2"
                            Margin="0,8,12,0"
-                           Text="執行設定"
+                           Text="自動化設定"
                            FontSize="12"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource TextPrimary}"/>
 
                 <StackPanel Grid.Column="1">
-                    <TextBlock Text="掃描間隔"
+                    <TextBlock Text="條碼解析間隔"
                                FontSize="11"
                                Foreground="{DynamicResource TextTertiary}"/>
                     <ComboBox Margin="0,4,0,0"
@@ -104,7 +109,7 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="3">
-                    <TextBlock Text="監控間隔"
+                    <TextBlock Text="監控輪詢間隔"
                                FontSize="11"
                                Foreground="{DynamicResource TextTertiary}"/>
                     <ComboBox Margin="0,4,0,0"
@@ -122,7 +127,7 @@
                 <CheckBox Grid.Row="1"
                           Grid.Column="3"
                           Margin="0,12,0,0"
-                          Content="啟用自動執行 Run"
+                          Content="啟用自動開啟"
                           Foreground="{DynamicResource TextPrimary}"
                           IsChecked="{Binding EnableAutoRun, Mode=TwoWay}"/>
             </Grid>
@@ -174,7 +179,7 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Grid.Row="1" Margin="0,12,0,0">
-                    <TextBlock Text="系統輸出路徑"
+                    <TextBlock Text="系統紀錄資料夾"
                                FontSize="11"
                                Foreground="{DynamicResource TextTertiary}"/>
                     <Grid Margin="0,4,0,0">
@@ -195,7 +200,7 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Grid.Row="2" Margin="0,12,0,0">
-                    <TextBlock Text="備援輸出路徑"
+                    <TextBlock Text="備份輸出路徑"
                                FontSize="11"
                                Foreground="{DynamicResource TextTertiary}"/>
                     <Grid Margin="0,4,0,0">
@@ -231,7 +236,7 @@
 
                 <TextBlock Grid.Column="0"
                            Margin="0,8,12,0"
-                           Text="欄位行為"
+                           Text="欄位結構"
                            FontSize="12"
                            FontWeight="SemiBold"
                            Foreground="{DynamicResource TextPrimary}"/>
@@ -240,7 +245,7 @@
                     <DockPanel LastChildFill="False">
                         <TextBlock DockPanel.Dock="Left"
                                    VerticalAlignment="Center"
-                                   Text="固定 6 欄，只允許調整 `TargetMode` 與是否可編輯。"
+                                   Text="固定 6 個欄位，可調整 TargetMode 與是否允許手動修改。"
                                    FontSize="11"
                                    Foreground="{DynamicResource TextTertiary}"/>
                         <Button DockPanel.Dock="Right"
@@ -271,7 +276,7 @@
                                                Foreground="{DynamicResource TextTertiary}"/>
                                     <TextBlock Grid.Column="1"
                                                Margin="8,0,0,0"
-                                               Text="關鍵字"
+                                               Text="對應關鍵字"
                                                FontSize="11"
                                                Foreground="{DynamicResource TextTertiary}"/>
                                     <TextBlock Grid.Column="2"
@@ -281,7 +286,7 @@
                                                Foreground="{DynamicResource TextTertiary}"/>
                                     <TextBlock Grid.Column="3"
                                                Margin="8,0,0,0"
-                                               Text="可編輯"
+                                               Text="允許編輯"
                                                FontSize="11"
                                                Foreground="{DynamicResource TextTertiary}"/>
 

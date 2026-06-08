@@ -259,3 +259,5 @@ appsettings.Production.json
 .agents/
 AGENTS.md
 docs/
+.artifacts/
+.claude

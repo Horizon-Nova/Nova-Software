@@ -75,7 +75,10 @@ public sealed class MainWindowDomain(
     /// 查詢使用中的工作區名稱。
     /// </summary>
     public string QueryActiveWorkspaceName()
-        => iniRepository.QuerySnapshot<MainModel>(MainSection).Workspace ?? string.Empty;
+    {
+        var configuredWorkspaceName = iniRepository.QuerySnapshot<MainModel>(MainSection).Workspace ?? string.Empty;
+        return workspacesRepository.ResolveWorkspaceNameOrFallback(configuredWorkspaceName);
+    }
 
     /// <summary>
     /// 查詢使用中的工作區描述。
@@ -110,6 +113,9 @@ public sealed class MainWindowDomain(
             [nameof(MainModel.WorkspaceDescription)] = workspaceDescription,
         });
 
+    /// <summary>
+    /// 依設定解析主視窗啟動首頁代號。
+    /// </summary>
     public string ResolveStartupPageId()
     {
         var settings = iniRepository.QuerySnapshot<SettingsModel>(SettingsSection);
@@ -120,6 +126,10 @@ public sealed class MainWindowDomain(
             : DefaultHomePageId;
     }
 
+    /// <summary>
+    /// 儲存最後一次瀏覽的頁面代號。
+    /// </summary>
+    /// <param name="pageId">頁面代號。</param>
     public void SaveLastVisitedPageId(string pageId)
     {
         var normalized = string.IsNullOrWhiteSpace(pageId) ? string.Empty : pageId;
@@ -135,6 +145,9 @@ public sealed class MainWindowDomain(
         });
     }
 
+    /// <summary>
+    /// 依設定解析閒置鎖定逾時。
+    /// </summary>
     public TimeSpan? QueryInactivityTimeout()
     {
         var index = iniRepository.QuerySnapshot<SettingsModel>(SettingsSection).InactivityIndex;

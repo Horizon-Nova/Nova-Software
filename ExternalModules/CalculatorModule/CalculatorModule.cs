@@ -1,28 +1,29 @@
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using HN_Studio.ModuleSdk;
+using HorizonNova.HelixStudio.ModuleSdk;
 
 namespace ExternalModules.CalculatorModule;
 
-public sealed class CalculatorModule : IHnModule
+public sealed class CalculatorModule : IModule
 {
     private readonly Views.CalculatorView _view = new();
-    private HnModuleContext? _context;
 
-    public FrameworkElement QueryView() => _view;
-
-    public ValueTask StartAsync(HnModuleContext context, CancellationToken cancellationToken = default)
+    public FrameworkElement CreateView(IShellContext context)
     {
-        _context = context;
         _view.ApplyHostContext(context);
-        return ValueTask.CompletedTask;
+        return _view;
     }
 
-    public ValueTask StopAsync(CancellationToken cancellationToken = default)
+    public void OnActivated(IShellContext context)
     {
-        _context = null;
+        _view.ApplyHostContext(context);
+    }
+
+    public void OnDeactivated()
+    {
         _view.ClearHostContext();
-        return ValueTask.CompletedTask;
+    }
+
+    public void Dispose()
+    {
     }
 }

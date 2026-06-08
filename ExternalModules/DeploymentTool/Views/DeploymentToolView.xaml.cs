@@ -4,15 +4,15 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 using ExternalModules.DeploymentTool.Components;
-using ExternalModules.DeploymentTool.Core;
-using ExternalModules.DeploymentTool.Services;
-using HN_Studio.ModuleSdk;
+using ExternalModules.DeploymentTool.Models.Deployment;
+using ExternalModules.DeploymentTool.ViewModels;
+using HorizonNova.HelixStudio.ModuleSdk;
 
 namespace ExternalModules.DeploymentTool.Views;
 
 public partial class DeploymentToolView : UserControl
 {
-    private readonly DeploymentToolService _service = new();
+    private readonly DeploymentToolPageViewModel _viewModel = new();
     private int _nextCardIndex;
 
     private Point _canvasDragStartPoint;
@@ -38,6 +38,7 @@ public partial class DeploymentToolView : UserControl
     public DeploymentToolView()
     {
         InitializeComponent();
+        DataContext = _viewModel;
 
         PendingChangesBanner.DetailsClicked += (_, _) => DetailsButton_OnClick(this, new RoutedEventArgs());
         PendingChangesBanner.DeployClicked += (_, _) => DeployButton_OnClick(this, new RoutedEventArgs());
@@ -47,11 +48,11 @@ public partial class DeploymentToolView : UserControl
         Loaded += DeploymentToolView_OnLoaded;
     }
 
-    public void ApplyHostContext(HnModuleContext context)
+    internal void ApplyHostContext(IShellContext context)
     {
     }
 
-    public void ClearHostContext()
+    internal void ClearHostContext()
     {
     }
 
@@ -119,9 +120,7 @@ public partial class DeploymentToolView : UserControl
 
         if (!_isCanvasDragging)
         {
-            bool isOverThreshold = dragVector.Length >= CanvasDragThreshold
-                ? true
-                : false;
+            bool isOverThreshold = dragVector.Length >= CanvasDragThreshold;
 
             if (!isOverThreshold)
             {
@@ -206,9 +205,7 @@ public partial class DeploymentToolView : UserControl
 
         if (!_isCardDragging)
         {
-            bool isOverThreshold = dragVector.Length >= CardDragThreshold
-                ? true
-                : false;
+            bool isOverThreshold = dragVector.Length >= CardDragThreshold;
 
             if (!isOverThreshold)
             {
@@ -231,9 +228,7 @@ public partial class DeploymentToolView : UserControl
         }
 
         UserControl releasedCard = _draggingCard;
-        bool shouldOpenSidePanel = _isCardDragging
-            ? false
-            : true;
+        bool shouldOpenSidePanel = !_isCardDragging;
 
         releasedCard.ReleaseMouseCapture();
         _draggingCard = null;
@@ -260,7 +255,7 @@ public partial class DeploymentToolView : UserControl
             return;
         }
 
-        AddCanvasCard(_service.BuildCanvasItem(optionKey));
+        AddCanvasCard(_viewModel.BuildCanvasItem(optionKey));
         RefreshPendingChangesBanner();
         AddServicePopup.IsOpen = false;
         e.Handled = true;
@@ -285,7 +280,7 @@ public partial class DeploymentToolView : UserControl
 
     private void RefreshPendingChangesBanner()
     {
-        string pendingChangesText = _service.QueryPendingChangesText(CanvasPanel.Children.Count);
+        string pendingChangesText = _viewModel.QueryPendingChangesText(CanvasPanel.Children.Count);
         PendingChangesBanner.TitleText = pendingChangesText;
         PendingChangesBanner.Visibility = string.IsNullOrWhiteSpace(pendingChangesText)
             ? Visibility.Collapsed

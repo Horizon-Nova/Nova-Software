@@ -3,7 +3,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Windows.Input;
-using Helix_Studio.AppHost;
+using Helix_Studio.AppRuntime;
 using Helix_Studio.Domain;
 using Helix_Studio.Model;
 using Helix_Studio.ViewModels.Base;
@@ -27,7 +27,6 @@ public sealed class SettingsPageViewModel(
         ("General", "Loc_Settings_SectionGeneral"),
         ("Display", "Loc_Settings_SectionDisplay"),
         ("Workspaces", "Loc_Settings_SectionWorkspaces"),
-        ("Modules", "Loc_Settings_SectionModules"),
         ("Log", "Loc_Settings_SectionLog"),
         ("About", "Loc_Settings_SectionAbout"),
     ];
@@ -154,78 +153,117 @@ public sealed class SettingsPageViewModel(
     /// </summary>
     public bool ShowModulesEmptyState => ModuleSettingsCards.Count == 0;
 
+    /// <summary>
+    /// 目前語系索引值。
+    /// </summary>
     public int LanguageIndex
     {
         get => _languageIndex;
         set => SetSettingsField(ref _languageIndex, value);
     }
 
+    /// <summary>
+    /// 啟動首頁索引值。
+    /// </summary>
     public int StartPageIndex
     {
         get => _startPageIndex;
         set => SetSettingsField(ref _startPageIndex, value);
     }
 
+    /// <summary>
+    /// 閒置鎖定索引值。
+    /// </summary>
     public int InactivityIndex
     {
         get => _inactivityIndex;
         set => SetSettingsField(ref _inactivityIndex, value);
     }
 
+    /// <summary>
+    /// 主題索引值。
+    /// </summary>
     public int ThemeIndex
     {
         get => _themeIndex;
         set => SetSettingsField(ref _themeIndex, value);
     }
 
+    /// <summary>
+    /// 字型縮放索引值。
+    /// </summary>
     public int FontScaleIndex
     {
         get => _fontScaleIndex;
         set => SetSettingsField(ref _fontScaleIndex, value);
     }
 
+    /// <summary>
+    /// 資料密度索引值。
+    /// </summary>
     public int DataDensityIndex
     {
         get => _dataDensityIndex;
         set => SetSettingsField(ref _dataDensityIndex, value);
     }
 
+    /// <summary>
+    /// 日誌等級索引值。
+    /// </summary>
     public int LogLevelIndex
     {
         get => _logLevelIndex;
         set => SetSettingsField(ref _logLevelIndex, value);
     }
 
+    /// <summary>
+    /// 日誌保留期限索引值。
+    /// </summary>
     public int LogRetentionIndex
     {
         get => _logRetentionIndex;
         set => SetSettingsField(ref _logRetentionIndex, value);
     }
 
+    /// <summary>
+    /// 日誌匯出目錄。
+    /// </summary>
     public string LogExportFolder
     {
         get => _logExportFolder;
         set => SetSettingsField(ref _logExportFolder, value);
     }
 
+    /// <summary>
+    /// 關於頁版本文字。
+    /// </summary>
     public string AboutVersionText
     {
         get => _aboutVersionText;
         private set => SetField(ref _aboutVersionText, value);
     }
 
+    /// <summary>
+    /// 關於頁建置日期文字。
+    /// </summary>
     public string AboutBuildDateText
     {
         get => _aboutBuildDateText;
         private set => SetField(ref _aboutBuildDateText, value);
     }
 
+    /// <summary>
+    /// 關於頁授權到期文字。
+    /// </summary>
     public string AboutLicenseExpiryText
     {
         get => _aboutLicenseExpiryText;
         private set => SetField(ref _aboutLicenseExpiryText, value);
     }
 
+    /// <summary>
+    /// 重新載入設定快照命令。
+    /// </summary>
     public ICommand ReloadCommand
         => _reloadCommand ??= new RelayCommand(_ =>
         {
@@ -238,9 +276,15 @@ public sealed class SettingsPageViewModel(
             });
         });
 
+    /// <summary>
+    /// 儲存設定命令。
+    /// </summary>
     public ICommand SaveCommand
         => _saveCommand ??= new RelayCommand(_ => ApplySave(), _ => IsDirty);
 
+    /// <summary>
+    /// 放棄未儲存變更命令。
+    /// </summary>
     public ICommand DiscardCommand
         => _discardCommand ??= new RelayCommand(_ =>
         {
@@ -253,15 +297,27 @@ public sealed class SettingsPageViewModel(
             });
         }, _ => IsDirty);
 
+    /// <summary>
+    /// 啟用指定工作區命令。
+    /// </summary>
     public ICommand ActivateWorkspaceCommand
         => _activateWorkspaceCommand ??= new RelayCommand(parameter => ApplyActivateWorkspace(parameter?.ToString() ?? string.Empty));
 
+    /// <summary>
+    /// 刪除指定工作區命令。
+    /// </summary>
     public ICommand DeleteWorkspaceCommand
         => _deleteWorkspaceCommand ??= new RelayCommand(parameter => ApplyDeleteWorkspace(parameter?.ToString() ?? string.Empty));
 
+    /// <summary>
+    /// 匯出日誌命令。
+    /// </summary>
     public ICommand ExportLogsCommand
         => _exportLogsCommand ??= new RelayCommand(parameter => ApplyExportLogs(parameter?.ToString() ?? string.Empty));
 
+    /// <summary>
+    /// 開啟法律聲明命令。
+    /// </summary>
     public ICommand OpenLegalNoticesCommand
         => _openLegalNoticesCommand ??= new RelayCommand(_ => domain.OpenLegalNotices(ResolveLanguageCode(LanguageIndex)));
 
@@ -283,6 +339,9 @@ public sealed class SettingsPageViewModel(
         _isInitialized = true;
     }
 
+    /// <summary>
+    /// 釋放事件訂閱與 ViewModel 資源。
+    /// </summary>
     public void Dispose()
     {
         if (_isDisposed)

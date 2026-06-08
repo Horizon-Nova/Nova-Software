@@ -18,9 +18,10 @@ public sealed class ModulesPageViewModel(ModulesDomain domain) : ViewModelBase, 
     private SynchronizationContext _synchronizationContext = new();
     private RelayCommand? _rescanCommand;
     private RelayCommand? _importCommand;
-    private RelayCommand? _disableCommand;
+    private RelayCommand? _toggleEnabledCommand;
     private RelayCommand? _uninstallCommand;
     private RelayCommand? _openCommand;
+    private RelayCommand? _settingsCommand;
     private bool _isInitialized;
     private bool _isDisposed;
     private string _modulesDirectoryPath = string.Empty;
@@ -55,9 +56,11 @@ public sealed class ModulesPageViewModel(ModulesDomain domain) : ViewModelBase, 
 
             NotifyPropertyChanged(nameof(HasSelection));
             NotifyPropertyChanged(nameof(NoSelection));
-            _disableCommand?.NotifyCanExecuteChanged();
+            NotifyPropertyChanged(nameof(ToggleEnabledButtonText));
+            _toggleEnabledCommand?.NotifyCanExecuteChanged();
             _uninstallCommand?.NotifyCanExecuteChanged();
             _openCommand?.NotifyCanExecuteChanged();
+            _settingsCommand?.NotifyCanExecuteChanged();
         }
     }
 
@@ -97,13 +100,25 @@ public sealed class ModulesPageViewModel(ModulesDomain domain) : ViewModelBase, 
     /// 開啟模組。
     /// </summary>
     public ICommand OpenCommand
-        => _openCommand ??= new RelayCommand(_ => ApplyOpen(), _ => SelectedItem is not null);
+        => _openCommand ??= new RelayCommand(_ => ApplyOpen(), _ => SelectedItem is { IsLoadable: true });
+
+    /// <summary>
+    /// 開啟模組設定。
+    /// </summary>
+    public ICommand SettingsCommand
+        => _settingsCommand ??= new RelayCommand(_ => ApplyOpenSettings(), _ => SelectedItem is { HasSettings: true, IsEnabled: true });
 
     /// <summary>
     /// 停用模組。
     /// </summary>
-    public ICommand DisableCommand
-        => _disableCommand ??= new RelayCommand(_ => ApplyDisable(), _ => SelectedItem is not null);
+    public ICommand ToggleEnabledCommand
+        => _toggleEnabledCommand ??= new RelayCommand(_ => ApplyToggleEnabled(), _ => SelectedItem is not null);
+
+    /// <summary>
+    /// 啟用或停用按鈕文案。
+    /// </summary>
+    public string ToggleEnabledButtonText
+        => SelectedItem is { IsEnabled: false } ? "啟用模組" : "停用模組";
 
     /// <summary>
     /// 移除模組。
@@ -115,6 +130,11 @@ public sealed class ModulesPageViewModel(ModulesDomain domain) : ViewModelBase, 
     /// 模組開啟請求事件（由 View 決定如何呈現模組畫面）。
     /// </summary>
     public event EventHandler<string>? ModuleOpenRequested;
+
+    /// <summary>
+    /// 模組設定開啟要求。
+    /// </summary>
+    public event EventHandler<string>? ModuleSettingsRequested;
 
     /// <summary>
     /// 導入模組請求事件（由 View 顯示資料夾挑選對話框）。
@@ -191,6 +211,9 @@ public sealed class ModulesPageViewModel(ModulesDomain domain) : ViewModelBase, 
     private void ApplySnapshot(string? preferSelectModuleId = null)
     {
         ModulesDirectoryPath = domain.QueryModulesDirectoryPath();
+        var selectedModuleId = !string.IsNullOrWhiteSpace(preferSelectModuleId)
+            ? preferSelectModuleId
+            : SelectedItem?.Id;
 
         var modules = domain.QueryModules();
         Items.Clear();
@@ -199,26 +222,25 @@ public sealed class ModulesPageViewModel(ModulesDomain domain) : ViewModelBase, 
             Items.Add(module);
         }
 
-        if (!string.IsNullOrWhiteSpace(preferSelectModuleId))
-        {
-            SelectedItem = Items.FirstOrDefault(item => string.Equals(item.Id, preferSelectModuleId, StringComparison.OrdinalIgnoreCase));
-            return;
-        }
-
-        if (SelectedItem is not null)
-        {
-            SelectedItem = Items.FirstOrDefault(item => string.Equals(item.Id, SelectedItem.Id, StringComparison.OrdinalIgnoreCase));
-        }
+        SelectedItem = string.IsNullOrWhiteSpace(selectedModuleId)
+            ? null
+            : Items.FirstOrDefault(item => string.Equals(item.Id, selectedModuleId, StringComparison.OrdinalIgnoreCase));
     }
 
-    private void ApplyDisable()
+    private void ApplyToggleEnabled()
     {
         if (SelectedItem is null)
         {
             return;
         }
 
-        domain.DisableModule(SelectedItem.Id);
+        if (SelectedItem.IsEnabled)
+        {
+            domain.DisableModule(SelectedItem.Id);
+            return;
+        }
+
+        domain.EnableModule(SelectedItem.Id);
     }
 
     private void ApplyUninstall()
@@ -240,6 +262,21 @@ public sealed class ModulesPageViewModel(ModulesDomain domain) : ViewModelBase, 
             return;
         }
 
+        if (!SelectedItem.IsEnabled)
+        {
+            domain.EnableModule(SelectedItem.Id);
+        }
+
         ModuleOpenRequested?.Invoke(this, SelectedItem.Id);
+    }
+
+    private void ApplyOpenSettings()
+    {
+        if (SelectedItem is null || !SelectedItem.HasSettings)
+        {
+            return;
+        }
+
+        ModuleSettingsRequested?.Invoke(this, SelectedItem.Id);
     }
 }

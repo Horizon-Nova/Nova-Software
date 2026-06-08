@@ -1,6 +1,8 @@
 using System.Windows;
 using HorizonNova.HelixStudio.ModuleSdk;
+using HorizonNova.SampleModule.ViewModels;
 using HorizonNova.SampleModule.Views;
+using Microsoft.Extensions.Logging;
 
 namespace HorizonNova.SampleModule;
 
@@ -11,30 +13,33 @@ namespace HorizonNova.SampleModule;
 public sealed class SampleModule : IModule
 {
     private SampleModuleView? _view;
-    private IShellContext?    _context;
+    private SampleModulePageViewModel? _viewModel;
+    private IShellContext? _context;
 
     public FrameworkElement CreateView(IShellContext context)
     {
         _context = context;
-        _view    = new SampleModuleView();
-        _view.Initialize(context);
+        _viewModel = new SampleModulePageViewModel();
+        _viewModel.ApplyWorkspace(context.ActiveWorkspaceName);
+        _view = new SampleModuleView(_viewModel);
         return _view;
     }
 
     public void OnActivated(IShellContext context)
     {
         _context = context;
-        context.Log("Sample Module activated.");
+        _viewModel?.ApplyWorkspace(context.ActiveWorkspaceName);
+        context.Log?.Invoke("Sample Module activated.", LogLevel.Information);
     }
 
     public void OnDeactivated()
     {
-        _context?.Log("Sample Module deactivated.");
+        _context?.Log?.Invoke("Sample Module deactivated.", LogLevel.Information);
     }
 
     public void Dispose()
     {
         _view = null;
+        _viewModel = null;
     }
 }
-

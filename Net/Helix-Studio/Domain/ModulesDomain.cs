@@ -9,14 +9,14 @@ using Helix_Studio.Model;
 namespace Helix_Studio.Domain;
 
 /// <summary>
-/// 模組 Domain（提供模組管理頁所需資料與操作）。
+/// Modules 頁與模組狀態的領域邏輯。
 /// </summary>
 public sealed class ModulesDomain(
     ModulesRepository modulesRepository,
     IniRepository iniRepository)
 {
     /// <summary>
-    /// 模組或工作區變更事件。
+    /// 模組或設定異動事件。
     /// </summary>
     public event EventHandler? Changed
     {
@@ -33,16 +33,16 @@ public sealed class ModulesDomain(
     }
 
     /// <summary>
-    /// 查詢目前工作區的模組目錄路徑。
+    /// 取得目前工作區 Modules 目錄。
     /// </summary>
     public string QueryModulesDirectoryPath()
         => modulesRepository.QueryModulesDirectoryPath();
 
     /// <summary>
-    /// 查詢已安裝模組清單。
+    /// 取得目前工作區的所有已安裝模組。
     /// </summary>
     public IReadOnlyList<ModulesInstalledItemModel> QueryModules()
-        => modulesRepository.QueryModules()
+        => modulesRepository.QueryInstalledModules()
             .Select(QueryInstalledItem)
             .OrderBy(static item => item.DisplayName, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -60,7 +60,13 @@ public sealed class ModulesDomain(
         => modulesRepository.DisableModule(moduleId);
 
     /// <summary>
-    /// 解除安裝模組（刪除安裝資料夾）。
+    /// 啟用模組。
+    /// </summary>
+    public void EnableModule(string moduleId)
+        => modulesRepository.EnableModule(moduleId);
+
+    /// <summary>
+    /// 移除模組安裝資料夾。
     /// </summary>
     public void UninstallModule(string installedFolderPath)
         => modulesRepository.DeleteModule(installedFolderPath);
@@ -68,7 +74,11 @@ public sealed class ModulesDomain(
     private static ModulesInstalledItemModel QueryInstalledItem(ModuleModel module)
     {
         var readmeText = QueryReadmeText(module.FolderPath);
-        var statusText = module.RequiresLicense ? "需要授權" : "可使用";
+        var statusText = !module.IsEnabled
+            ? "已停用"
+            : module.IsLoadable
+                ? "可使用"
+                : "不可用";
 
         return new ModulesInstalledItemModel
         {
@@ -79,9 +89,13 @@ public sealed class ModulesDomain(
             Description = module.Description,
             MinHostVersion = module.MinHostVersion,
             InstalledFolderPath = module.FolderPath,
+            DllPath = module.DllPath,
             StatusText = statusText,
             Icon = null,
             ReadmeText = readmeText,
+            IsLoadable = module.IsLoadable,
+            IsEnabled = module.IsEnabled,
+            HasSettings = module.HasSettings,
         };
     }
 

@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Helix_Studio.Data.Repositories;
 using Helix_Studio.Model;
-using Helix_Studio.Utils;
+using Helix_Studio.Infrastructure.Paths;
 
 namespace Helix_Studio.Domain;
 
@@ -50,7 +50,8 @@ public sealed class OverviewDomain(
         var uptime = TimeSpan.FromMilliseconds(Environment.TickCount64);
         var uptimeText = FormatDuration(uptime);
 
-        var workspaceName = iniRepository.QuerySnapshot<MainModel>(MainSection).Workspace ?? string.Empty;
+        var configuredWorkspaceName = iniRepository.QuerySnapshot<MainModel>(MainSection).Workspace ?? string.Empty;
+        var workspaceName = workspacesRepository.ResolveWorkspaceNameOrFallback(configuredWorkspaceName);
         var workspaceDescription = string.IsNullOrWhiteSpace(workspaceName)
             ? string.Empty
             : workspacesRepository.QueryWorkspaceDescription(workspaceName);
@@ -71,7 +72,7 @@ public sealed class OverviewDomain(
             ModuleCountText = modules.Count.ToString(CultureInfo.InvariantCulture),
             ModuleStatusText = string.Empty,
             BuildVersionText = versionText,
-            DataFolderPath = AppPathHelper.QueryAppDataDirectory(),
+            DataFolderPath = AppPathProvider.QueryAppDataDirectory(),
             Modules = modules,
         };
     }

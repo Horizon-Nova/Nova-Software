@@ -12,12 +12,13 @@ namespace Helix_Studio.Views;
 /// </summary>
 public partial class OverviewPage : UserControl
 {
-    private static readonly IReadOnlyDictionary<string, string> QuickNavPageIds =
-        new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+    private static readonly IReadOnlyDictionary<string, (string PageId, string? TargetId)> QuickNavigationTargets =
+        new Dictionary<string, (string PageId, string? TargetId)>(StringComparer.OrdinalIgnoreCase)
         {
-            ["Settings"] = "settings",
-            ["Modules"] = "modules",
-            ["EventLog"] = "eventlog",
+            ["Settings"] = ("settings", null),
+            ["Workspaces"] = ("settings", "Workspaces"),
+            ["Modules"] = ("modules", null),
+            ["EventLog"] = ("eventlog", null),
         };
 
     /// <summary>
@@ -37,7 +38,7 @@ public partial class OverviewPage : UserControl
         => ApplyNavigation("Settings");
 
     private void GoToWorkspaces_Click(object sender, RoutedEventArgs e)
-        => ApplyNavigation("Settings");
+        => ApplyNavigation("Workspaces");
 
     private void GoToModules_Click(object sender, RoutedEventArgs e)
         => ApplyNavigation("Modules");
@@ -46,11 +47,24 @@ public partial class OverviewPage : UserControl
         => ApplyNavigation("EventLog");
 
     private void OpenModule_Click(object sender, RoutedEventArgs e)
-        => ApplyNavigation("Modules");
+    {
+        if (sender is not FrameworkElement { Tag: string moduleId } || string.IsNullOrWhiteSpace(moduleId))
+        {
+            ApplyNavigation("Modules");
+            return;
+        }
+
+        if (Window.GetWindow(this)?.DataContext is not MainWindowWindowViewModel shellViewModel)
+        {
+            return;
+        }
+
+        shellViewModel.ApplyNavigationRequest("modules", moduleId);
+    }
 
     private void ApplyNavigation(string tag)
     {
-        if (!QuickNavPageIds.TryGetValue(tag, out var pageId))
+        if (!QuickNavigationTargets.TryGetValue(tag, out var target))
         {
             return;
         }
@@ -60,6 +74,6 @@ public partial class OverviewPage : UserControl
             return;
         }
 
-        shellViewModel.NavigateCommand.Execute(pageId);
+        shellViewModel.ApplyNavigationRequest(target.PageId, target.TargetId);
     }
 }
