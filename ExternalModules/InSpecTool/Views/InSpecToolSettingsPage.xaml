@@ -3,291 +3,323 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Name="Root"
              PreviewMouseWheel="ApplyRootPreviewMouseWheel">
-    <StackPanel Margin="0,0,0,8">
-        <TextBlock Text="InSpecTool 設定"
-                   FontSize="16"
-                   FontWeight="SemiBold"
-                   Foreground="{DynamicResource TextPrimary}"/>
-        <TextBlock Margin="0,6,0,0"
-                   Text="模組自行提供設定內容，但版面骨架與控制項尺寸對齊宿主設定頁。"
-                   TextWrapping="Wrap"
-                   Foreground="{DynamicResource TextTertiary}"/>
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/InSpecTool;component/Themes/InSpecToolTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
 
-        <Grid Margin="0,18,0,0">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
+    <Grid Margin="0,0,0,8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-            <Grid.Resources>
-                <Style x:Key="ModuleSettingsLabelGridStyle" TargetType="Grid">
-                    <Setter Property="Margin" Value="0,0,0,14"/>
-                </Style>
-            </Grid.Resources>
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="InSpecTool 設定"
+                       FontSize="14"
+                       FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimary}"/>
+            <TextBlock Margin="0,6,0,0"
+                       Text="現行版以固定欄位為主，設定頁只調整執行行為與路徑，不再做自由增刪欄位。"
+                       TextWrapping="Wrap"
+                       FontSize="11"
+                       Foreground="{DynamicResource TextTertiary}"/>
+        </StackPanel>
 
-            <Grid Grid.Row="0" Style="{StaticResource ModuleSettingsLabelGridStyle}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" MinWidth="160" MaxWidth="320"/>
-                    <ColumnDefinition Width="3*" MinWidth="200"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Margin="0,0,18,0">
-                    <TextBlock Text="條碼輸入延遲"
-                               Style="{StaticResource InSpecFieldLabelStyle}"/>
-                </StackPanel>
-                <ComboBox Grid.Column="1"
-                          MinWidth="200"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Center"
-                          ItemsSource="{Binding ScanIntervalOptions}"
-                          SelectedItem="{Binding ScanIntervalMs, Mode=TwoWay}"/>
-            </Grid>
-
-            <Grid Grid.Row="1" Style="{StaticResource ModuleSettingsLabelGridStyle}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" MinWidth="160" MaxWidth="320"/>
-                    <ColumnDefinition Width="3*" MinWidth="200"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Margin="0,0,18,0">
-                    <TextBlock Text="自動監控"
-                               Style="{StaticResource InSpecFieldLabelStyle}"/>
-                </StackPanel>
-                <CheckBox Grid.Column="1"
-                          Content="啟用自動監控"
-                          VerticalAlignment="Center"
-                          Foreground="{DynamicResource TextPrimary}"
-                          IsChecked="{Binding EnableAutoMonitoring, Mode=TwoWay}"/>
-            </Grid>
-
-            <Grid Grid.Row="2" Style="{StaticResource ModuleSettingsLabelGridStyle}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" MinWidth="160" MaxWidth="320"/>
-                    <ColumnDefinition Width="3*" MinWidth="200"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Margin="0,0,18,0">
-                    <TextBlock Text="監控輪詢間隔"
-                               Style="{StaticResource InSpecFieldLabelStyle}"/>
-                </StackPanel>
-                <ComboBox Grid.Column="1"
-                          MinWidth="200"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Center"
-                          ItemsSource="{Binding MonitorIntervalOptions}"
-                          SelectedItem="{Binding MonitorIntervalMs, Mode=TwoWay}"/>
-            </Grid>
-
-            <Grid Grid.Row="3" Style="{StaticResource ModuleSettingsLabelGridStyle}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" MinWidth="160" MaxWidth="320"/>
-                    <ColumnDefinition Width="3*" MinWidth="200"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Margin="0,0,18,0">
-                    <TextBlock Text="自動執行"
-                               Style="{StaticResource InSpecFieldLabelStyle}"/>
-                </StackPanel>
-                <CheckBox Grid.Column="1"
-                          Content="開啟 iwp 後自動執行 Run"
-                          VerticalAlignment="Center"
-                          Foreground="{DynamicResource TextPrimary}"
-                          IsChecked="{Binding EnableAutoRun, Mode=TwoWay}"/>
-            </Grid>
-
-            <Grid Grid.Row="4" Style="{StaticResource ModuleSettingsLabelGridStyle}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" MinWidth="160" MaxWidth="320"/>
-                    <ColumnDefinition Width="3*" MinWidth="200"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Margin="0,0,18,0">
-                    <TextBlock Text="搜尋目錄"
-                               Style="{StaticResource InSpecFieldLabelStyle}"/>
-                </StackPanel>
-                <Grid Grid.Column="1">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox x:Name="SearchDirectoryTextBox"
-                             MinWidth="200"
-                             HorizontalAlignment="Stretch"
-                             Style="{StaticResource InSpecBaseTextFieldStyle}"
-                             Text="{Binding SearchDirectory, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
-                    <Button Grid.Column="1"
-                            Margin="8,0,0,0"
-                            MinWidth="72"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource InSpecJavaButtonStyle}"
-                            Content="瀏覽"
-                            Click="ApplySearchDirectoryBrowse"/>
-                </Grid>
-            </Grid>
-
-            <Grid Grid.Row="5" Style="{StaticResource ModuleSettingsLabelGridStyle}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" MinWidth="160" MaxWidth="320"/>
-                    <ColumnDefinition Width="3*" MinWidth="200"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Margin="0,0,18,0">
-                    <TextBlock Text="系統記錄目錄"
-                               Style="{StaticResource InSpecFieldLabelStyle}"/>
-                </StackPanel>
-                <Grid Grid.Column="1">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox x:Name="SystemLogDirectoryTextBox"
-                             MinWidth="200"
-                             HorizontalAlignment="Stretch"
-                             Style="{StaticResource InSpecBaseTextFieldStyle}"
-                             Text="{Binding SystemLogDirectory, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
-                    <Button Grid.Column="1"
-                            Margin="8,0,0,0"
-                            MinWidth="72"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource InSpecJavaButtonStyle}"
-                            Content="瀏覽"
-                            Click="ApplySystemLogDirectoryBrowse"/>
-                </Grid>
-            </Grid>
-
-            <Grid Grid.Row="6">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" MinWidth="160" MaxWidth="320"/>
-                    <ColumnDefinition Width="3*" MinWidth="200"/>
-                </Grid.ColumnDefinitions>
-                <StackPanel Grid.Column="0" Margin="0,0,18,0">
-                    <TextBlock Text="備援儲存目錄"
-                               Style="{StaticResource InSpecFieldLabelStyle}"/>
-                </StackPanel>
-                <Grid Grid.Column="1">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBox x:Name="BackupSavePathTextBox"
-                             MinWidth="200"
-                             HorizontalAlignment="Stretch"
-                             Style="{StaticResource InSpecBaseTextFieldStyle}"
-                             Text="{Binding BackupSavePath, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
-                    <Button Grid.Column="1"
-                            Margin="8,0,0,0"
-                            MinWidth="72"
-                            VerticalAlignment="Center"
-                            Style="{StaticResource InSpecJavaButtonStyle}"
-                            Content="瀏覽"
-                            Click="ApplyBackupSavePathBrowse"/>
-                </Grid>
-            </Grid>
-        </Grid>
-
-        <Border Margin="0,22,0,0"
-                Padding="14"
-                Background="{DynamicResource SurfaceSubtle}"
+        <Border Grid.Row="1"
+                Margin="0,14,0,0"
+                Padding="0,12,0,0"
                 BorderBrush="{DynamicResource BorderLight}"
-                BorderThickness="1"
-                CornerRadius="6">
+                BorderThickness="0,1,0,0">
             <StackPanel>
-                <DockPanel LastChildFill="False">
-                    <TextBlock Text="欄位結構"
-                               FontSize="14"
-                               FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextPrimary}"
-                               DockPanel.Dock="Left"/>
-                    <StackPanel DockPanel.Dock="Right"
-                                Orientation="Horizontal">
-                        <Button Content="新增欄位"
-                                Margin="0,0,8,0"
-                                MinWidth="88"
-                                Style="{StaticResource InSpecJavaButtonStyle}"
-                                Command="{Binding ApplyAddFieldRowCommand}"/>
-                        <Button Content="儲存欄位結構"
-                                MinWidth="112"
-                                Style="{StaticResource InSpecJavaButtonStyle}"
-                                Command="{Binding SaveFieldSchemaCommand}"/>
-                    </StackPanel>
-                </DockPanel>
-
-                <TextBlock Margin="0,6,0,0"
-                           Text="這裡對應原版 inputType 的 name / keyword / target / editable。"
-                           TextWrapping="Wrap"
-                           Foreground="{DynamicResource TextTertiary}"/>
-
-                <Grid Margin="0,14,0,6">
+                <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1.1*"/>
-                        <ColumnDefinition Width="0.9*"/>
-                        <ColumnDefinition Width="0.7*"/>
-                        <ColumnDefinition Width="0.45*"/>
-                        <ColumnDefinition Width="72"/>
+                        <ColumnDefinition Width="120"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="欄位名稱"
-                               Foreground="{DynamicResource TextTertiary}"/>
-                    <TextBlock Grid.Column="1"
-                               Text="關鍵字"
-                               Foreground="{DynamicResource TextTertiary}"/>
-                    <TextBlock Grid.Column="2"
-                               Text="目標模式"
-                               Foreground="{DynamicResource TextTertiary}"/>
-                    <TextBlock Grid.Column="3"
-                               Text="可編輯"
-                               Foreground="{DynamicResource TextTertiary}"/>
+                    <TextBlock Grid.Column="0"
+                               Margin="0,8,12,0"
+                               Text="模組授權"
+                               FontSize="12"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimary}"/>
+                    <TextBox Grid.Column="1"
+                             Style="{StaticResource InSpecBaseTextFieldStyle}"
+                             VerticalAlignment="Center"
+                             Text="{Binding ModuleLicenseKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Button Grid.Column="2"
+                            Margin="8,0,0,0"
+                            MinWidth="88"
+                            Style="{StaticResource InSpecJavaButtonStyle}"
+                            Content="套用授權"
+                            Command="{Binding ApplyModuleLicenseKeyCommand}"/>
                 </Grid>
-
-                <ItemsControl ItemsSource="{Binding FieldRows}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Grid Margin="0,0,0,8">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="1.1*"/>
-                                    <ColumnDefinition Width="0.9*"/>
-                                    <ColumnDefinition Width="0.7*"/>
-                                    <ColumnDefinition Width="0.45*"/>
-                                    <ColumnDefinition Width="72"/>
-                                </Grid.ColumnDefinitions>
-
-                                <TextBox Grid.Column="0"
-                                         Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
-                                         Style="{StaticResource InSpecBaseTextFieldStyle}"/>
-                                <TextBox Grid.Column="1"
-                                         Margin="8,0,0,0"
-                                         Text="{Binding Keyword, UpdateSourceTrigger=PropertyChanged}"
-                                         Style="{StaticResource InSpecBaseTextFieldStyle}"/>
-                                <ComboBox Grid.Column="2"
-                                          Margin="8,0,0,0"
-                                          MinWidth="120"
-                                          ItemsSource="{Binding DataContext.TargetModeOptions, ElementName=Root}"
-                                          SelectedItem="{Binding TargetMode, UpdateSourceTrigger=PropertyChanged}"/>
-                                <ComboBox Grid.Column="3"
-                                          Margin="8,0,0,0"
-                                          MinWidth="96"
-                                          SelectedValue="{Binding IsEditable, UpdateSourceTrigger=PropertyChanged}"
-                                          SelectedValuePath="Tag">
-                                    <ComboBoxItem Content="可編輯" Tag="True"/>
-                                    <ComboBoxItem Content="不可編輯" Tag="False"/>
-                                </ComboBox>
-                                <Button Grid.Column="4"
-                                        Margin="8,0,0,0"
-                                        MinWidth="56"
-                                        VerticalAlignment="Center"
-                                        Style="{StaticResource InSpecJavaButtonStyle}"
-                                        Content="刪除"
-                                        Command="{Binding DataContext.DeleteFieldRowCommand, ElementName=Root}"
-                                        CommandParameter="{Binding}"/>
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <TextBlock Margin="120,6,0,0"
+                           FontSize="11"
+                           Text="{Binding LicenseStatusText}"
+                           Foreground="{DynamicResource TextTertiary}"/>
             </StackPanel>
         </Border>
 
-        <TextBlock Margin="0,14,0,0"
+        <Border Grid.Row="2"
+                Margin="0,14,0,0"
+                Padding="0,12,0,0"
+                BorderBrush="{DynamicResource BorderLight}"
+                BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           Grid.RowSpan="2"
+                           Margin="0,8,12,0"
+                           Text="執行設定"
+                           FontSize="12"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimary}"/>
+
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="掃描間隔"
+                               FontSize="11"
+                               Foreground="{DynamicResource TextTertiary}"/>
+                    <ComboBox Margin="0,4,0,0"
+                              ItemsSource="{Binding ScanIntervalOptions}"
+                              SelectedItem="{Binding ScanIntervalMs, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="3">
+                    <TextBlock Text="監控間隔"
+                               FontSize="11"
+                               Foreground="{DynamicResource TextTertiary}"/>
+                    <ComboBox Margin="0,4,0,0"
+                              ItemsSource="{Binding MonitorIntervalOptions}"
+                              SelectedItem="{Binding MonitorIntervalMs, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <CheckBox Grid.Row="1"
+                          Grid.Column="1"
+                          Margin="0,12,0,0"
+                          Content="啟用自動監控"
+                          Foreground="{DynamicResource TextPrimary}"
+                          IsChecked="{Binding EnableAutoMonitoring, Mode=TwoWay}"/>
+
+                <CheckBox Grid.Row="1"
+                          Grid.Column="3"
+                          Margin="0,12,0,0"
+                          Content="啟用自動執行 Run"
+                          Foreground="{DynamicResource TextPrimary}"
+                          IsChecked="{Binding EnableAutoRun, Mode=TwoWay}"/>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="3"
+                Margin="0,14,0,0"
+                Padding="0,12,0,0"
+                BorderBrush="{DynamicResource BorderLight}"
+                BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           Grid.RowSpan="3"
+                           Margin="0,8,12,0"
+                           Text="路徑設定"
+                           FontSize="12"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimary}"/>
+
+                <StackPanel Grid.Column="1" Grid.Row="0">
+                    <TextBlock Text="搜尋資料夾"
+                               FontSize="11"
+                               Foreground="{DynamicResource TextTertiary}"/>
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="SearchDirectoryTextBox"
+                                 Style="{StaticResource InSpecBaseTextFieldStyle}"
+                                 Text="{Binding SearchDirectory, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                        <Button Grid.Column="1"
+                                Margin="8,0,0,0"
+                                MinWidth="64"
+                                Style="{StaticResource InSpecJavaButtonStyle}"
+                                Content="瀏覽"
+                                Click="ApplySearchDirectoryBrowse"/>
+                    </Grid>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Grid.Row="1" Margin="0,12,0,0">
+                    <TextBlock Text="系統輸出路徑"
+                               FontSize="11"
+                               Foreground="{DynamicResource TextTertiary}"/>
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="SystemLogDirectoryTextBox"
+                                 Style="{StaticResource InSpecBaseTextFieldStyle}"
+                                 Text="{Binding SystemLogDirectory, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                        <Button Grid.Column="1"
+                                Margin="8,0,0,0"
+                                MinWidth="64"
+                                Style="{StaticResource InSpecJavaButtonStyle}"
+                                Content="瀏覽"
+                                Click="ApplySystemLogDirectoryBrowse"/>
+                    </Grid>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Grid.Row="2" Margin="0,12,0,0">
+                    <TextBlock Text="備援輸出路徑"
+                               FontSize="11"
+                               Foreground="{DynamicResource TextTertiary}"/>
+                    <Grid Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="BackupSavePathTextBox"
+                                 Style="{StaticResource InSpecBaseTextFieldStyle}"
+                                 Text="{Binding BackupSavePath, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"/>
+                        <Button Grid.Column="1"
+                                Margin="8,0,0,0"
+                                MinWidth="64"
+                                Style="{StaticResource InSpecJavaButtonStyle}"
+                                Content="瀏覽"
+                                Click="ApplyBackupSavePathBrowse"/>
+                    </Grid>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="4"
+                Margin="0,14,0,0"
+                Padding="0,12,0,0"
+                BorderBrush="{DynamicResource BorderLight}"
+                BorderThickness="0,1,0,0"
+                IsEnabled="{Binding IsFieldSchemaUnlocked}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="120"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0"
+                           Margin="0,8,12,0"
+                           Text="欄位行為"
+                           FontSize="12"
+                           FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimary}"/>
+
+                <StackPanel Grid.Column="1">
+                    <DockPanel LastChildFill="False">
+                        <TextBlock DockPanel.Dock="Left"
+                                   VerticalAlignment="Center"
+                                   Text="固定 6 欄，只允許調整 `TargetMode` 與是否可編輯。"
+                                   FontSize="11"
+                                   Foreground="{DynamicResource TextTertiary}"/>
+                        <Button DockPanel.Dock="Right"
+                                MinWidth="112"
+                                Style="{StaticResource InSpecJavaButtonStyle}"
+                                Content="儲存欄位設定"
+                                Command="{Binding SaveFieldSchemaCommand}"/>
+                    </DockPanel>
+
+                    <ItemsControl Margin="0,12,0,0" ItemsSource="{Binding FieldRows}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1.2*"/>
+                                        <ColumnDefinition Width="1.1*"/>
+                                        <ColumnDefinition Width="1*"/>
+                                        <ColumnDefinition Width="110"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Column="0"
+                                               Text="欄位名稱"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource TextTertiary}"/>
+                                    <TextBlock Grid.Column="1"
+                                               Margin="8,0,0,0"
+                                               Text="關鍵字"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource TextTertiary}"/>
+                                    <TextBlock Grid.Column="2"
+                                               Margin="8,0,0,0"
+                                               Text="TargetMode"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource TextTertiary}"/>
+                                    <TextBlock Grid.Column="3"
+                                               Margin="8,0,0,0"
+                                               Text="可編輯"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource TextTertiary}"/>
+
+                                    <TextBox Grid.Row="1"
+                                             Grid.Column="0"
+                                             Margin="0,4,0,0"
+                                             Style="{StaticResource InSpecBaseTextFieldStyle}"
+                                             IsReadOnly="True"
+                                             Text="{Binding Name}"/>
+                                    <TextBox Grid.Row="1"
+                                             Grid.Column="1"
+                                             Margin="8,4,0,0"
+                                             Style="{StaticResource InSpecBaseTextFieldStyle}"
+                                             IsReadOnly="True"
+                                             Text="{Binding Keyword}"/>
+                                    <ComboBox Grid.Row="1"
+                                              Grid.Column="2"
+                                              Margin="8,4,0,0"
+                                              ItemsSource="{Binding DataContext.TargetModeOptions, ElementName=Root}"
+                                              SelectedItem="{Binding TargetMode, UpdateSourceTrigger=PropertyChanged}"/>
+                                    <CheckBox Grid.Row="1"
+                                              Grid.Column="3"
+                                              Margin="8,6,0,0"
+                                              VerticalAlignment="Center"
+                                              IsChecked="{Binding IsEditable, UpdateSourceTrigger=PropertyChanged}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <TextBlock Grid.Row="5"
+                   Margin="0,14,0,0"
                    TextWrapping="Wrap"
+                   FontSize="11"
                    Foreground="{DynamicResource TextTertiary}"
                    Text="{Binding StatusText}"/>
-    </StackPanel>
+    </Grid>
 </UserControl>
-

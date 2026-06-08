@@ -1,17 +1,15 @@
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Input;
+using ExternalModules.InSpecTool.App.Runtime;
 using ExternalModules.InSpecTool.Model;
-using ExternalModules.InSpecTool.Services;
 using ExternalModules.InSpecTool.ViewModels.Base;
 
 namespace ExternalModules.InSpecTool.ViewModels;
 
-/// <summary>
-/// InSpecTool 設定頁的 UI 狀態機。
-/// </summary>
 internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
 {
-    private readonly InSpecToolServices _services;
+    private readonly InSpecToolRuntime _services;
     private bool _isBusy;
     private bool _isDirty;
     private bool _isLoading;
@@ -23,12 +21,10 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
     private string _searchDirectory = string.Empty;
     private string _systemLogDirectory = string.Empty;
     private string _backupSavePath = string.Empty;
+    private string _moduleLicenseKey = string.Empty;
+    private bool _isFieldSchemaLocked = true;
 
-    /// <summary>
-    /// 建立設定頁 ViewModel。
-    /// </summary>
-    /// <param name="services">服務層實例。</param>
-    public InSpecToolSettingsPageViewModel(InSpecToolServices services)
+    public InSpecToolSettingsPageViewModel(InSpecToolRuntime services)
     {
         _services = services;
         FieldRows = [];
@@ -38,64 +34,47 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
         MonitorIntervalOptions = optionModel.MonitorIntervalOptions;
         TargetModeOptions = optionModel.TargetModeOptions;
 
-        ApplyAddFieldRowCommand = new RelayCommand(ApplyAddFieldRow);
-        DeleteFieldRowCommand = new RelayCommand(ApplyDeleteFieldRow);
-        SaveFieldSchemaCommand = new RelayCommand(ApplySaveFieldSchema);
+        ApplyAddFieldRowCommand = new RelayCommand(ApplyAddFieldRow, () => false);
+        DeleteFieldRowCommand = new RelayCommand(ApplyDeleteFieldRow, _ => false);
+        SaveFieldSchemaCommand = new RelayCommand(ApplySaveFieldSchema, () => IsFieldSchemaUnlocked && !IsBusy);
+        ApplyModuleLicenseKeyCommand = new RelayCommand(ApplyModuleLicenseKey, () => !IsBusy);
         ApplySearchDirectoryDialogCommand = new RelayCommand(ApplySearchDirectoryDialog);
         ApplySystemLogDirectoryDialogCommand = new RelayCommand(ApplySystemLogDirectoryDialog);
         ApplyBackupSavePathDialogCommand = new RelayCommand(ApplyBackupSavePathDialog);
     }
 
-    /// <summary>
-    /// 條碼輸入延遲選項集合。
-    /// </summary>
     public IReadOnlyList<string> ScanIntervalOptions { get; }
 
-    /// <summary>
-    /// 自動監控輪詢間隔選項集合。
-    /// </summary>
     public IReadOnlyList<string> MonitorIntervalOptions { get; }
 
-    /// <summary>
-    /// 欄位目標模式選項集合。
-    /// </summary>
     public IReadOnlyList<string> TargetModeOptions { get; }
 
-    /// <summary>
-    /// 欄位結構列集合。
-    /// </summary>
-    public ObservableCollection<InSpecSettingsFieldRowModel> FieldRows { get; }
+    public ObservableCollection<InSpecSettingsFieldRowItemViewModel> FieldRows { get; }
 
-    /// <summary>
-    /// 設定頁目前是否忙碌。
-    /// </summary>
     public bool IsBusy
     {
         get => _isBusy;
-        private set => SetProperty(ref _isBusy, value);
+        private set
+        {
+            if (SetProperty(ref _isBusy, value))
+            {
+                RelayCommand.ApplyInvalidate();
+            }
+        }
     }
 
-    /// <summary>
-    /// 設定頁是否存在未保存變更。
-    /// </summary>
     public bool IsDirty
     {
         get => _isDirty;
         private set => SetProperty(ref _isDirty, value);
     }
 
-    /// <summary>
-    /// 狀態訊息文字。
-    /// </summary>
     public string StatusText
     {
         get => _statusText;
         private set => SetProperty(ref _statusText, value ?? string.Empty);
     }
 
-    /// <summary>
-    /// 條碼輸入延遲值。
-    /// </summary>
     public string ScanIntervalMs
     {
         get => _scanIntervalMs;
@@ -106,13 +85,10 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
                 return;
             }
 
-            ApplyStringSettingSave("scanIntervalMs", _scanIntervalMs, "已更新條碼輸入延遲。");
+            ApplyStringSettingSave("scanIntervalMs", _scanIntervalMs, "掃描間隔已儲存。");
         }
     }
 
-    /// <summary>
-    /// 自動監控輪詢間隔值。
-    /// </summary>
     public string MonitorIntervalMs
     {
         get => _monitorIntervalMs;
@@ -123,13 +99,10 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
                 return;
             }
 
-            ApplyStringSettingSave("monitorIntervalMs", _monitorIntervalMs, "已更新監控輪詢間隔。");
+            ApplyStringSettingSave("monitorIntervalMs", _monitorIntervalMs, "監控間隔已儲存。");
         }
     }
 
-    /// <summary>
-    /// 是否啟用自動監控。
-    /// </summary>
     public bool EnableAutoMonitoring
     {
         get => _enableAutoMonitoring;
@@ -140,13 +113,10 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
                 return;
             }
 
-            ApplyBooleanSettingSave("enableAutoMonitoring", value, "已更新自動監控設定。");
+            ApplyBooleanSettingSave("enableAutoMonitoring", value, "自動監控設定已儲存。");
         }
     }
 
-    /// <summary>
-    /// 是否啟用自動執行。
-    /// </summary>
     public bool EnableAutoRun
     {
         get => _enableAutoRun;
@@ -157,13 +127,10 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
                 return;
             }
 
-            ApplyBooleanSettingSave("enableAutoRun", value, "已更新自動執行設定。");
+            ApplyBooleanSettingSave("enableAutoRun", value, "自動執行 Run 設定已儲存。");
         }
     }
 
-    /// <summary>
-    /// 搜尋資料夾路徑。
-    /// </summary>
     public string SearchDirectory
     {
         get => _searchDirectory;
@@ -174,13 +141,10 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
                 return;
             }
 
-            ApplyStringSettingSave("searchDirectory", _searchDirectory, "已更新搜尋目錄。");
+            ApplyStringSettingSave("searchDirectory", _searchDirectory, "搜尋資料夾已儲存。");
         }
     }
 
-    /// <summary>
-    /// 系統記錄資料夾路徑。
-    /// </summary>
     public string SystemLogDirectory
     {
         get => _systemLogDirectory;
@@ -191,13 +155,10 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
                 return;
             }
 
-            ApplyStringSettingSave("systemLogDirectory", _systemLogDirectory, "已更新系統記錄目錄。");
+            ApplyStringSettingSave("systemLogDirectory", _systemLogDirectory, "系統輸出路徑已儲存。");
         }
     }
 
-    /// <summary>
-    /// 備援儲存資料夾路徑。
-    /// </summary>
     public string BackupSavePath
     {
         get => _backupSavePath;
@@ -208,49 +169,59 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
                 return;
             }
 
-            ApplyStringSettingSave("backupSavePath", _backupSavePath, "已更新備援儲存目錄。");
+            ApplyStringSettingSave("backupSavePath", _backupSavePath, "備援輸出路徑已儲存。");
         }
     }
 
-    /// <summary>
-    /// 新增欄位結構列的命令。
-    /// </summary>
+    public string ModuleLicenseKey
+    {
+        get => _moduleLicenseKey;
+        set => SetProperty(ref _moduleLicenseKey, value ?? string.Empty);
+    }
+
+    public bool IsFieldSchemaLocked
+    {
+        get => _isFieldSchemaLocked;
+        private set
+        {
+            if (SetProperty(ref _isFieldSchemaLocked, value))
+            {
+                RaisePropertyChanged(nameof(IsFieldSchemaUnlocked));
+                RaisePropertyChanged(nameof(LicenseStatusText));
+                RelayCommand.ApplyInvalidate();
+            }
+        }
+    }
+
+    public bool IsFieldSchemaUnlocked => !IsFieldSchemaLocked;
+
+    public string LicenseStatusText => IsFieldSchemaLocked
+        ? "授權未設定或無效"
+        : "授權有效";
+
+    public bool IsFixedFieldSchema => true;
+
     public ICommand ApplyAddFieldRowCommand { get; }
 
-    /// <summary>
-    /// 刪除欄位結構列的命令。
-    /// </summary>
     public ICommand DeleteFieldRowCommand { get; }
 
-    /// <summary>
-    /// 儲存欄位結構設定的命令。
-    /// </summary>
     public ICommand SaveFieldSchemaCommand { get; }
 
-    /// <summary>
-    /// 套用搜尋目錄對話框結果的命令。
-    /// </summary>
+    public ICommand ApplyModuleLicenseKeyCommand { get; }
+
     public ICommand ApplySearchDirectoryDialogCommand { get; }
 
-    /// <summary>
-    /// 套用系統記錄目錄對話框結果的命令。
-    /// </summary>
     public ICommand ApplySystemLogDirectoryDialogCommand { get; }
 
-    /// <summary>
-    /// 套用備援儲存目錄對話框結果的命令。
-    /// </summary>
     public ICommand ApplyBackupSavePathDialogCommand { get; }
 
-    /// <summary>
-    /// 依目前模組上下文重新載入設定頁資料。
-    /// </summary>
     internal void LoadSettings()
     {
         _isLoading = true;
         try
         {
             IsBusy = true;
+
             var snapshot = _services.QuerySettingsSnapshot();
             _scanIntervalMs = snapshot.ScanIntervalMs;
             _monitorIntervalMs = snapshot.MonitorIntervalMs;
@@ -259,6 +230,7 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
             _searchDirectory = snapshot.SearchDirectory;
             _systemLogDirectory = snapshot.SystemLogDirectory;
             _backupSavePath = snapshot.BackupSavePath;
+            _moduleLicenseKey = _services.QueryModuleLicenseKey();
 
             RaisePropertyChanged(nameof(ScanIntervalMs));
             RaisePropertyChanged(nameof(MonitorIntervalMs));
@@ -267,14 +239,16 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
             RaisePropertyChanged(nameof(SearchDirectory));
             RaisePropertyChanged(nameof(SystemLogDirectory));
             RaisePropertyChanged(nameof(BackupSavePath));
+            RaisePropertyChanged(nameof(ModuleLicenseKey));
 
             FieldRows.Clear();
             foreach (var fieldRow in snapshot.FieldRows)
             {
-                FieldRows.Add(fieldRow);
+                FieldRows.Add(InSpecSettingsFieldRowItemViewModel.Create(fieldRow));
             }
 
-            StatusText = "已載入目前模組設定。";
+            IsFieldSchemaLocked = !_services.ValidateStoredModuleLicense();
+            StatusText = BuildFieldSchemaStatusText(IsFieldSchemaLocked);
             IsDirty = false;
         }
         finally
@@ -286,37 +260,57 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
 
     private void ApplyAddFieldRow()
     {
-        FieldRows.Add(_services.CreateSettingsFieldRow());
-        IsDirty = true;
-        StatusText = "已新增欄位列，記得按「儲存欄位結構」。";
+        StatusText = "欄位結構已固定，不能新增欄位。";
     }
 
-    private void ApplyDeleteFieldRow(object? parameter)
+    private void ApplyDeleteFieldRow(object? _)
     {
-        if (parameter is not InSpecSettingsFieldRowModel fieldRow)
-        {
-            return;
-        }
-
-        FieldRows.Remove(fieldRow);
-        IsDirty = true;
-        StatusText = "已移除欄位列，記得按「儲存欄位結構」。";
+        StatusText = "欄位結構已固定，不能刪除欄位。";
     }
 
     private void ApplySaveFieldSchema()
     {
+        if (IsFieldSchemaLocked)
+        {
+            StatusText = "固定欄位結構需要有效模組授權才能儲存行為設定。";
+            return;
+        }
+
         IsBusy = true;
-        var schemaText = _services.ResolveFieldSchemaText(FieldRows);
+        var schemaText = _services.ResolveFieldSchemaText(FieldRows.Select(fieldRow => fieldRow.BuildModel()));
         var saveResult = _services.SaveStringSetting("fieldSchema", schemaText);
         IsBusy = false;
+
         if (!saveResult.IsSuccess)
         {
-            StatusText = $"儲存失敗：{saveResult.DetailText}";
+            StatusText = $"固定欄位設定儲存失敗：{saveResult.DetailText}";
             return;
         }
 
         IsDirty = false;
-        StatusText = "已更新欄位結構。";
+        StatusText = "固定欄位的行為設定已儲存。";
+    }
+
+    private void ApplyModuleLicenseKey()
+    {
+        if (_isLoading)
+        {
+            return;
+        }
+
+        IsBusy = true;
+        var key = ModuleLicenseKey.Trim();
+        var saveResult = _services.SaveModuleLicenseKey(key);
+        IsBusy = false;
+
+        if (!saveResult.IsSuccess)
+        {
+            StatusText = $"模組授權儲存失敗：{saveResult.DetailText}";
+            return;
+        }
+
+        IsFieldSchemaLocked = !_services.ValidateStoredModuleLicense();
+        StatusText = BuildFieldSchemaStatusText(IsFieldSchemaLocked);
     }
 
     private void ApplySearchDirectoryDialog(object? parameter)
@@ -354,13 +348,13 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
         IsDirty = true;
         var saveResult = _services.SaveStringSetting(key, value);
         IsBusy = false;
+
         if (!saveResult.IsSuccess)
         {
-            StatusText = $"儲存失敗：{saveResult.DetailText}";
+            StatusText = $"設定儲存失敗：{saveResult.DetailText}";
             return;
         }
 
-        IsDirty = false;
         StatusText = successMessage;
     }
 
@@ -375,13 +369,18 @@ internal sealed class InSpecToolSettingsPageViewModel : ViewModelBase
         IsDirty = true;
         var saveResult = _services.SaveBooleanSetting(key, value);
         IsBusy = false;
+
         if (!saveResult.IsSuccess)
         {
-            StatusText = $"儲存失敗：{saveResult.DetailText}";
+            StatusText = $"設定儲存失敗：{saveResult.DetailText}";
             return;
         }
 
-        IsDirty = false;
         StatusText = successMessage;
     }
+
+    private static string BuildFieldSchemaStatusText(bool isLocked)
+        => isLocked
+            ? "固定欄位結構需要有效模組授權才能調整行為設定。"
+            : "固定欄位結構已載入，目前只允許調整欄位行為設定。";
 }

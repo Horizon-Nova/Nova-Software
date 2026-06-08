@@ -44,7 +44,14 @@ internal sealed class ModuleRuntimeService(
     public FrameworkElement CreateModuleView(string moduleId)
     {
         var handle = QueryOrLoadModule(moduleId);
-        handle.MainView ??= handle.Module.CreateView(handle.Context);
+        if (handle.MainView is null)
+        {
+            // 強制回收 metadata-ALC 殘留組件，防止 WPF BAML 查找時掃到錯誤版本
+            GC.Collect(2, GCCollectionMode.Forced, blocking: true);
+            GC.WaitForPendingFinalizers();
+            handle.MainView = handle.Module.CreateView(handle.Context);
+        }
+
         return handle.MainView;
     }
 
@@ -56,24 +63,32 @@ internal sealed class ModuleRuntimeService(
             return null;
         }
 
-        handle.SettingsView ??= moduleWithSettings.CreateSettingsView(handle.Context);
+        if (handle.SettingsView is null)
+        {
+            GC.Collect(2, GCCollectionMode.Forced, blocking: true);
+            GC.WaitForPendingFinalizers();
+            handle.SettingsView = moduleWithSettings.CreateSettingsView(handle.Context);
+        }
+
         return handle.SettingsView;
     }
 
-    public void ActivateModule(string moduleId)
+    // 回傳 true 表示模組健康，false 表示授權失效（Faulted）
+    public bool ActivateModule(string moduleId)
     {
         var handle = QueryOrLoadModule(moduleId);
         if (string.Equals(_activeModuleCacheKey, handle.CacheKey, StringComparison.OrdinalIgnoreCase))
         {
             eventLogRepository.Record(EventLogLevel.Info, handle.ModuleId, "模組已啟動");
             handle.Module.OnActivated(handle.Context);
-            return;
+            return handle.Context.LastHealth != ModuleHealth.Faulted;
         }
 
         DeactivateCurrentModule();
         eventLogRepository.Record(EventLogLevel.Info, handle.ModuleId, "模組已啟動");
         handle.Module.OnActivated(handle.Context);
         _activeModuleCacheKey = handle.CacheKey;
+        return handle.Context.LastHealth != ModuleHealth.Faulted;
     }
 
     public void DeactivateCurrentModule()
@@ -262,8 +277,12 @@ internal sealed class ModuleRuntimeService(
             return licenseVerificationService.VerifyLicense(moduleId, licenseKey);
         }
 
+        public ModuleHealth LastHealth { get; private set; } = ModuleHealth.Healthy;
+
         public void ReportHealth(ModuleHealth health, string? detailText = null)
         {
+            LastHealth = health;
+
             if (health != ModuleHealth.Faulted)
             {
                 eventLogRepository.Record(EventLogLevel.Info, moduleId, detailText ?? $"模組狀態：{health}");
