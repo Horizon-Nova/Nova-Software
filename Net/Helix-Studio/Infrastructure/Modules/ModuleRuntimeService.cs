@@ -44,14 +44,7 @@ internal sealed class ModuleRuntimeService(
     public FrameworkElement CreateModuleView(string moduleId)
     {
         var handle = QueryOrLoadModule(moduleId);
-        if (handle.MainView is null)
-        {
-            // 強制回收 metadata-ALC 殘留組件，防止 WPF BAML 查找時掃到錯誤版本
-            GC.Collect(2, GCCollectionMode.Forced, blocking: true);
-            GC.WaitForPendingFinalizers();
-            handle.MainView = handle.Module.CreateView(handle.Context);
-        }
-
+        handle.MainView ??= handle.Module.CreateView(handle.Context);
         return handle.MainView;
     }
 
@@ -63,13 +56,7 @@ internal sealed class ModuleRuntimeService(
             return null;
         }
 
-        if (handle.SettingsView is null)
-        {
-            GC.Collect(2, GCCollectionMode.Forced, blocking: true);
-            GC.WaitForPendingFinalizers();
-            handle.SettingsView = moduleWithSettings.CreateSettingsView(handle.Context);
-        }
-
+        handle.SettingsView ??= moduleWithSettings.CreateSettingsView(handle.Context);
         return handle.SettingsView;
     }
 
@@ -124,6 +111,15 @@ internal sealed class ModuleRuntimeService(
         {
             throw new InvalidOperationException($"模組無法載入：{moduleMetadata.DisplayName}");
         }
+
+        // QueryModules() 在 ModulesRepository 內使用可回收 ALC 掃描 DLL 元資料。
+        // 掃描完成後呼叫 Unload()，但 ghost 組件在 GC 回收前仍存於 AppDomain。
+        // 若 ghost 與 runtime 組件同時存在，WPF BAML 解析器會取得 ghost（先載入），
+        // 導致 Application.LoadComponent 拋出「無法識別資源」。
+        // 解法：metadata 掃描結束後、runtime 組件載入前，先執行雙次 GC 強制回收 ghost。
+        GC.Collect(2, GCCollectionMode.Forced, blocking: true);
+        GC.WaitForPendingFinalizers();
+        GC.Collect(2, GCCollectionMode.Forced, blocking: true);
 
         var stagedDllPath = ModulePackageCache.QueryStagedDllPath(
             moduleMetadata.FolderPath,
