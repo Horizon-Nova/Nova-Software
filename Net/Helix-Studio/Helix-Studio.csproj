@@ -8,44 +8,27 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Assets\**\*.*" />
-    <Resource Include="Assets\**\*.svg" />
-    <Resource Include="Assets\**\*.png" />
-    <Resource Include="Assets\**\*.ico" />
-    <Resource Include="Assets\**\*.jpg" />
-    <Resource Include="Assets\**\*.jpeg" />
-    <Resource Include="Assets\**\*.webp" />
-    <Resource Include="Assets\**\*.html" />
-    <Resource Include="Assets\**\*.css" />
-    <Resource Include="Assets\**\*.js" />
-    <Resource Include="Assets\**\*.txt" Exclude="Assets\Legal\*.txt" />
-    <Content Include="Assets\Legal\*.txt" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="_tools\**\*.cs" />
-    <None Remove="_tools\**\*.*" />
-    <Page Remove="_tools\**\*.xaml" />
-    <Resource Remove="_tools\**\*.*" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
-    <PackageReference Include="MdXaml" Version="1.27.0" />
-    <PackageReference Include="SharpVectors" Version="1.8.5" />
     <PackageReference Include="System.Management" Version="8.0.0" />
-    <PackageReference Include="System.Reflection.MetadataLoadContext" Version="8.0.0" />
+    <!-- SvgIcon 渲染 lucide 線條圖示 -->
+    <PackageReference Include="SharpVectors" Version="1.8.5" />
   </ItemGroup>
 
+  <!-- lucide SVG 圖示內嵌供 SvgIcon 以 pack URI 載入 -->
   <ItemGroup>
-    <ProjectReference Include="..\Helix-Studio.ModuleSdk\Helix-Studio.ModuleSdk.csproj" />
+    <None Remove="Assets\**\*.svg" />
+    <Resource Include="Assets\**\*.svg" />
+  </ItemGroup>
+
+  <!-- 內建推薦工具目錄：複製到輸出供 ToolCatalogService 讀取 -->
+  <ItemGroup>
+    <Content Include="Catalog\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

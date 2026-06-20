@@ -1,67 +1,102 @@
-using System;
 using System.Windows;
-using Helix_Studio.AppRuntime;
-using Helix_Studio.Infrastructure.DependencyInjection;
-using Helix_Studio.Infrastructure.Licensing;
-using Helix_Studio.Views;
 using Microsoft.Extensions.DependencyInjection;
+using Helix_Studio.Data;
+using Helix_Studio.Services;
+using Helix_Studio.Services.Tools;
+using Helix_Studio.ViewModels;
+using Helix_Studio.Views;
 
 namespace Helix_Studio;
 
-/// <summary>
-/// 應用程式入口。
-/// </summary>
 public partial class App : Application
 {
-    /// <summary>
-    /// 取得目前 App 實例。
-    /// </summary>
-    public static new App Current => (App)Application.Current;
+    private SystemTrayService? _tray;
+    private ThemeService? _themeService;
 
-    /// <summary>
-    /// DI 容器。
-    /// </summary>
-    public IServiceProvider Services { get; private set; } = new ServiceCollection().BuildServiceProvider();
-
-    /// <summary>
-    /// 取得目前應用程式的 DI 容器。
-    /// </summary>
-    public IServiceProvider QueryServiceProvider() => Services;
-
-    /// <summary>
-    /// 啟動應用程式並建立根服務容器。
-    /// </summary>
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
 
         var services = new ServiceCollection();
-        services
-            .AddAppLayer()
-            .AddViewModelsLayer()
-            .AddDomainLayer()
-            .AddDataLayer();
+        services.AddSingleton<AppSettingsService>();
+        services.AddSingleton<StartupSettingsService>();
+        services.AddSingleton<ToolCatalogService>();
+        services.AddSingleton<InstalledToolsRepository>();
+        services.AddSingleton<WorkspacesRepository>();
+        services.AddSingleton<EventLogService>();
+        services.AddSingleton<ToolInstallService>();
+        services.AddSingleton<ToolProcessService>();
+        services.AddSingleton<ThemeService>();
+        services.AddSingleton<MainViewModel>();
 
-        Services = services.BuildServiceProvider(validateScopes: true);
-        ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        var provider = services.BuildServiceProvider();
 
-        _ = Services.GetRequiredService<AppearanceRuntime>();
-        var applicationLicenseService = Services.GetRequiredService<IApplicationLicenseService>();
+        provider.GetRequiredService<AppSettingsService>().Initialize();
 
-        if (!applicationLicenseService.VerifyStoredLicense().IsValid)
+        _themeService = provider.GetRequiredService<ThemeService>();
+        _themeService.Initialize();
+
+        var vm = provider.GetRequiredService<MainViewModel>();
+        var settings = provider.GetRequiredService<AppSettingsService>();
+        var processService = provider.GetRequiredService<ToolProcessService>();
+
+        // FL-17: 系統匣
+        _tray = new SystemTrayService(processService);
+        _tray.RestoreRequested += () => Current?.MainWindow?.Dispatcher.Invoke(() =>
         {
-            var activationWindow = new ActivationWindow();
-            var activationSucceeded = activationWindow.ShowDialog() == true;
-            if (!activationSucceeded || !applicationLicenseService.VerifyStoredLicense().IsValid)
-            {
-                Shutdown();
-                return;
-            }
+            if (Current.MainWindow is MainWindow w) { w.Show(); w.WindowState = WindowState.Normal; w.Activate(); }
+        });
+        _tray.ExitRequested += () => Current?.MainWindow?.Dispatcher.Invoke(() =>
+        {
+            vm.SaveLastRunningTools();
+            _tray?.HideIcon();
+            _tray?.Dispose();
+            Current.Shutdown();
+        });
+        _tray.QuickLaunchRequested += toolId =>
+        {
+            var tool = vm.AppList.Apps.FirstOrDefault(t => t.Id == toolId);
+            if (tool is not null)
+                vm.AppList.StartCommand.Execute(tool);
+        };
+        _tray.QuickStopRequested += toolId =>
+        {
+            var tool = vm.AppList.Apps.FirstOrDefault(t => t.Id == toolId);
+            if (tool is not null)
+                vm.AppList.StopCommand.Execute(tool);
+        };
+        _tray.ShowIcon();
+
+        var window = new MainWindow { DataContext = vm };
+
+        _tray.Attach(window);
+
+        // FL-16: 啟動最小化
+        if (settings.Settings.StartMinimized)
+        {
+            window.Show();
+            _tray.MinimizeToTray();
+        }
+        else
+        {
+            window.Show();
         }
 
-        var mainWindow = new MainWindow();
-        MainWindow = mainWindow;
-        ShutdownMode = ShutdownMode.OnMainWindowClose;
-        mainWindow.Show();
+        // 讓系統匣右鍵選單在需要時更新
+        window.Activated += (_, _) => RefreshTrayMenu(vm, _tray);
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        _tray?.HideIcon();
+        _tray?.Dispose();
+        _themeService?.Dispose();
+        base.OnExit(e);
+    }
+
+    private static void RefreshTrayMenu(MainViewModel vm, SystemTrayService tray)
+    {
+        var tools = vm.AppList.Apps.Select(t => (t.Id, t.Name, t.Status == Models.AppStatus.Running));
+        tray.RefreshContextMenu(tools);
     }
 }

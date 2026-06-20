@@ -1,0 +1,39 @@
+<Window x:Class="Helix_Studio.Views.Dialogs.WorkspaceSwitchDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="切換工作區"
+        Width="480" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="{DynamicResource BrushSurface}"
+        FontFamily="Segoe UI, Microsoft JhengHei UI"
+        FontSize="13"
+        Foreground="{DynamicResource BrushForegroundPrimary}">
+
+    <StackPanel x:Name="LayoutRoot" Margin="24,20">
+        <TextBlock Text="以下工具正在執行中，切換工作區時如何處理？"
+                   TextWrapping="Wrap"
+                   Foreground="{DynamicResource BrushForegroundPrimary}"
+                   Margin="0,0,0,12"/>
+        <ItemsControl x:Name="ToolList" Margin="8,0,0,20">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}"
+                               Foreground="{DynamicResource BrushForegroundSecondary}"
+                               FontSize="12" Margin="0,2"/>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="StopBtn" Content="停止所有工具後切換"
+                    Margin="0,0,8,0" IsDefault="True"
+                    Style="{StaticResource PrimaryActionButtonStyle}"/>
+            <Button x:Name="ContinueBtn" Content="讓工具繼續在背景執行後切換"
+                    Margin="0,0,8,0"
+                    Style="{StaticResource SecondaryActionButtonStyle}"/>
+            <Button Content="取消" IsCancel="True"
+                    Style="{StaticResource SecondaryActionButtonStyle}"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

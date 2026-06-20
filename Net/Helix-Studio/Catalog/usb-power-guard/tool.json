@@ -1,0 +1,11 @@
+{
+  "id": "usb-power-guard",
+  "name": "USB 防休眠控制",
+  "version": "1.0.0",
+  "author": "Horizon Nova",
+  "category": "維運",
+  "description": "防止閒置時 USB 攝影機等裝置被 Windows「USB 選擇性暫停」關閉。新版 Windows 已從設定介面隱藏此選項，此工具直接讀取與切換。套用變更時會要求系統管理員權限。",
+  "entry": "UsbPowerGuard.exe",
+  "args": [],
+  "requiresAdmin": true
+}

@@ -1,0 +1,29 @@
+<Window x:Class="Helix_Studio.Views.Dialogs.AddWorkspaceDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="新增工作區"
+        Width="420" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="{DynamicResource BrushSurface}"
+        FontFamily="Segoe UI, Microsoft JhengHei UI"
+        FontSize="13"
+        Foreground="{DynamicResource BrushForegroundPrimary}">
+
+    <StackPanel x:Name="LayoutRoot" Margin="24,20">
+        <TextBlock Text="工作區名稱" FontSize="13" FontWeight="SemiBold"
+                   Foreground="{DynamicResource BrushForegroundPrimary}" Margin="0,0,0,8"/>
+        <TextBox x:Name="NameBox" MaxLength="20" Height="34" Margin="0,0,0,6"/>
+        <TextBlock Text="最多 20 個字元" FontSize="11"
+                   Foreground="{DynamicResource BrushForegroundMuted}" Margin="0,0,0,20"/>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="ConfirmBtn" Content="確認" Width="80" Margin="0,0,8,0"
+                    Style="{StaticResource PrimaryActionButtonStyle}"
+                    IsDefault="True" IsEnabled="False"/>
+            <Button Content="取消" Width="80"
+                    Style="{StaticResource SecondaryActionButtonStyle}"
+                    IsCancel="True"/>
+        </StackPanel>
+    </StackPanel>
+</Window>
