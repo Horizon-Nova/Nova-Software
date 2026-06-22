@@ -15,10 +15,10 @@
                 BorderBrush="{DynamicResource BrushShellSeparator}"
                 BorderThickness="0,0,0,1" Padding="28,20">
             <StackPanel>
-                <TextBlock Text="應用程式"
+                <TextBlock Text="{DynamicResource L.Nav.Apps}"
                            Foreground="{DynamicResource BrushForegroundPrimary}"
                            FontSize="{StaticResource FontSizePageTitle}" FontWeight="SemiBold"/>
-                <TextBlock Text="檢視並管理此工作區內的應用程式。"
+                <TextBlock Text="{DynamicResource L.AppList.Subtitle}"
                            Foreground="{DynamicResource BrushForegroundSecondary}"
                            FontSize="{StaticResource FontSizeCaption}" Margin="0,3,0,16"/>
                 <StackPanel Orientation="Horizontal">
@@ -28,7 +28,7 @@
                             BorderThickness="1" CornerRadius="8"
                             Padding="16,10" MinWidth="160">
                         <StackPanel>
-                            <TextBlock Text="CPU 用量"
+                            <TextBlock Text="{DynamicResource L.AppList.CpuUsage}"
                                        Foreground="{DynamicResource BrushForegroundSecondary}"
                                        FontSize="{StaticResource FontSizeSmall}"/>
                             <TextBlock FontSize="{StaticResource FontSizeStat}" FontWeight="SemiBold" Margin="0,2,0,0">
@@ -43,7 +43,7 @@
                             BorderThickness="1" CornerRadius="8"
                             Padding="16,10" MinWidth="200" Margin="12,0,0,0">
                         <StackPanel>
-                            <TextBlock Text="記憶體用量"
+                            <TextBlock Text="{DynamicResource L.AppList.MemUsage}"
                                        Foreground="{DynamicResource BrushForegroundSecondary}"
                                        FontSize="{StaticResource FontSizeSmall}"/>
                             <TextBlock FontSize="{StaticResource FontSizeStat}" FontWeight="SemiBold" Margin="0,2,0,0">
@@ -74,7 +74,7 @@
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                     <ToggleButton Style="{StaticResource DataToggleStyle}"
                                   IsChecked="{Binding ShowOnlyRunning}"/>
-                    <TextBlock Text="只顯示執行中" FontSize="{StaticResource FontSizeCaption}"
+                    <TextBlock Text="{DynamicResource L.AppList.OnlyRunning}" FontSize="{StaticResource FontSizeCaption}"
                                Foreground="{DynamicResource BrushForegroundSecondary}"
                                VerticalAlignment="Center" Margin="8,0,0,0"/>
                 </StackPanel>
@@ -96,17 +96,17 @@
                     <ColumnDefinition Width="100"/>
                     <ColumnDefinition Width="120"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="1" Text="名稱" FontSize="{StaticResource FontSizeSmall}" FontWeight="Medium"
+                <TextBlock Grid.Column="1" Text="{DynamicResource L.Col.Name}" FontSize="{StaticResource FontSizeSmall}" FontWeight="Medium"
                            Foreground="{DynamicResource BrushForegroundSecondary}" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="2" Text="狀態" FontSize="{StaticResource FontSizeSmall}" FontWeight="Medium"
+                <TextBlock Grid.Column="2" Text="{DynamicResource L.Col.Status}" FontSize="{StaticResource FontSizeSmall}" FontWeight="Medium"
                            Foreground="{DynamicResource BrushForegroundSecondary}" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="3" Text="CPU %" FontSize="{StaticResource FontSizeSmall}" FontWeight="Medium"
+                <TextBlock Grid.Column="3" Text="{DynamicResource L.Col.Cpu}" FontSize="{StaticResource FontSizeSmall}" FontWeight="Medium"
                            Foreground="{DynamicResource BrushForegroundSecondary}" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="4" Text="記憶體" FontSize="{StaticResource FontSizeSmall}" FontWeight="Medium"
+                <TextBlock Grid.Column="4" Text="{DynamicResource L.Col.Memory}" FontSize="{StaticResource FontSizeSmall}" FontWeight="Medium"
                            Foreground="{DynamicResource BrushForegroundSecondary}" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="5" Text="上次啟動" FontSize="{StaticResource FontSizeSmall}" FontWeight="Medium"
+                <TextBlock Grid.Column="5" Text="{DynamicResource L.Col.LastStarted}" FontSize="{StaticResource FontSizeSmall}" FontWeight="Medium"
                            Foreground="{DynamicResource BrushForegroundSecondary}" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="6" Text="操作" FontSize="{StaticResource FontSizeSmall}" FontWeight="Medium"
+                <TextBlock Grid.Column="6" Text="{DynamicResource L.Col.Actions}" FontSize="{StaticResource FontSizeSmall}" FontWeight="Medium"
                            Foreground="{DynamicResource BrushForegroundSecondary}"
                            VerticalAlignment="Center" HorizontalAlignment="Right"/>
             </Grid>
@@ -123,16 +123,16 @@
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock VerticalAlignment="Center" FontSize="{StaticResource FontSizeCaption}"
                            Foreground="{DynamicResource BrushForegroundPrimary}">
-                    <Run Text="已選"/>
+                    <Run Text="{DynamicResource L.Bulk.Selected}"/>
                     <Run Text="{Binding SelectedCount, Mode=OneWay}" Foreground="{DynamicResource BrushBrand}" FontWeight="SemiBold"/>
-                    <Run Text="項"/>
+                    <Run Text="{DynamicResource L.Bulk.Items}"/>
                 </TextBlock>
                 <Rectangle Width="1" Height="18" Fill="{DynamicResource BrushShellSeparator}" Margin="14,0"/>
-                <Button Content="批次啟動" Style="{StaticResource PrimaryActionButtonStyle}"
+                <Button Content="{DynamicResource L.Bulk.Start}" Style="{StaticResource PrimaryActionButtonStyle}"
                         Command="{Binding BulkStartCommand}"/>
-                <Button Content="批次停止" Style="{StaticResource SecondaryActionButtonStyle}"
+                <Button Content="{DynamicResource L.Bulk.Stop}" Style="{StaticResource SecondaryActionButtonStyle}"
                         Margin="6,0,0,0" Command="{Binding BulkStopCommand}"/>
-                <Button Content="取消選取" Style="{StaticResource SecondaryActionButtonStyle}"
+                <Button Content="{DynamicResource L.Bulk.ClearSelection}" Style="{StaticResource SecondaryActionButtonStyle}"
                         Margin="6,0,0,0" Command="{Binding ClearSelectionCommand}"/>
             </StackPanel>
         </Border>
@@ -201,18 +201,18 @@
                                 <StackPanel Grid.Column="6" Orientation="Horizontal"
                                             VerticalAlignment="Center" HorizontalAlignment="Right">
                                     <!-- 詳細/設定 -->
-                                    <Button Content="詳細" Style="{StaticResource SecondaryActionButtonStyle}" Margin="0,0,6,0"
+                                    <Button Content="{DynamicResource L.Common.Detail}" Style="{StaticResource SecondaryActionButtonStyle}" Margin="0,0,6,0"
                                             Command="{Binding DataContext.ShowDetailCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                             CommandParameter="{Binding}"/>
-                                    <!-- 執行中：停止 -->
-                                    <Button Content="停止"
+                                    <!-- 執行中 / 啟動中：停止 -->
+                                    <Button Content="{DynamicResource L.Common.Stop}"
                                             Command="{Binding DataContext.StopCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                             CommandParameter="{Binding}">
                                         <Button.Style>
                                             <Style TargetType="Button" BasedOn="{StaticResource SecondaryActionButtonStyle}">
                                                 <Setter Property="Visibility" Value="Collapsed"/>
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Status}" Value="Running">
+                                                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
                                                         <Setter Property="Visibility" Value="Visible"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
@@ -220,7 +220,7 @@
                                         </Button.Style>
                                     </Button>
                                     <!-- 已停止：啟動 -->
-                                    <Button Content="啟動"
+                                    <Button Content="{DynamicResource L.Common.Start}"
                                             Command="{Binding DataContext.StartCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                             CommandParameter="{Binding}">
                                         <Button.Style>
@@ -235,7 +235,7 @@
                                         </Button.Style>
                                     </Button>
                                     <!-- 錯誤：重試（啟動） -->
-                                    <Button Content="重試"
+                                    <Button Content="{DynamicResource L.Common.Retry}"
                                             Command="{Binding DataContext.StartCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                             CommandParameter="{Binding}">
                                         <Button.Style>
@@ -260,10 +260,10 @@
         <!-- 空狀態：尚未安裝任何工具 -->
         <StackPanel Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Center"
                     Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}">
-            <TextBlock Text="尚未安裝任何工具" FontSize="{StaticResource FontSizeHeading}" FontWeight="SemiBold"
+            <TextBlock Text="{DynamicResource L.AppList.EmptyTitle}" FontSize="{StaticResource FontSizeHeading}" FontWeight="SemiBold"
                        Foreground="{DynamicResource BrushForegroundSecondary}"
                        HorizontalAlignment="Center"/>
-            <TextBlock Text="前往「應用程式庫」安裝推薦工具。" FontSize="{StaticResource FontSizeCaption}"
+            <TextBlock Text="{DynamicResource L.AppList.EmptySubtitle}" FontSize="{StaticResource FontSizeCaption}"
                        Foreground="{DynamicResource BrushForegroundMuted}"
                        HorizontalAlignment="Center" Margin="0,6,0,0"/>
         </StackPanel>
@@ -321,28 +321,28 @@
                                             <Button.Style>
                                                 <Style TargetType="Button" BasedOn="{StaticResource PrimaryActionButtonStyle}">
                                                     <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Status}" Value="{x:Static models:AppStatus.Running}">
+                                                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
                                                             <Setter Property="Visibility" Value="Collapsed"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </Button.Style>
-                                            啟動
+                                            <TextBlock Text="{DynamicResource L.Common.Start}"/>
                                         </Button>
-                                        <!-- 停止按鈕（執行中時顯示） -->
+                                        <!-- 停止按鈕（執行中 / 啟動中時顯示） -->
                                         <Button Command="{Binding DataContext.StopCommand, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
                                                 CommandParameter="{Binding}">
                                             <Button.Style>
                                                 <Style TargetType="Button" BasedOn="{StaticResource SecondaryActionButtonStyle}">
                                                     <Setter Property="Visibility" Value="Collapsed"/>
                                                     <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding Status}" Value="{x:Static models:AppStatus.Running}">
+                                                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
                                                             <Setter Property="Visibility" Value="Visible"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </Button.Style>
-                                            停止
+                                            <TextBlock Text="{DynamicResource L.Common.Stop}"/>
                                         </Button>
                                     </StackPanel>
                                 </Grid>
@@ -352,14 +352,14 @@
                                            Foreground="{DynamicResource BrushForegroundMuted}" Margin="0,4,0,0">
                                     <Run Text="CPU "/>
                                     <Run Text="{Binding CpuPercent, StringFormat={}{0:0.0}%, Mode=OneWay}"/>
-                                    <Run Text="  記憶體 "/>
+                                    <Run Text="  "/><Run Text="{DynamicResource L.Col.Memory}"/><Run Text=" "/>
                                     <Run Text="{Binding MemoryMb, StringFormat={}{0:0} MB, Mode=OneWay}"/>
                                 </TextBlock>
                             </StackPanel>
                         </Border>
 
                         <!-- 工具資訊 -->
-                        <TextBlock Text="工具資訊" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold"
+                        <TextBlock Text="{DynamicResource L.AppDetail.ToolInfo}" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,16,0,8"/>
                         <Border Background="{DynamicResource BrushSurface}" CornerRadius="8" Padding="14,10">
                             <StackPanel>
@@ -369,7 +369,7 @@
                                         <ColumnDefinition Width="90"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="上次執行" FontSize="{StaticResource FontSizeCaption}"
+                                    <TextBlock Grid.Column="0" Text="{DynamicResource L.AppDetail.LastRun}" FontSize="{StaticResource FontSizeCaption}"
                                                Foreground="{DynamicResource BrushForegroundSecondary}"/>
                                     <TextBlock Grid.Column="1" FontSize="{StaticResource FontSizeCaption}"
                                                Foreground="{DynamicResource BrushForegroundMuted}">
@@ -378,7 +378,7 @@
                                                 <Setter Property="Text" Value="{Binding LastStarted, Converter={StaticResource RelativeTime}}"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding LastStarted}" Value="{x:Null}">
-                                                        <Setter Property="Text" Value="從未執行"/>
+                                                        <Setter Property="Text" Value="{DynamicResource L.AppDetail.NeverRun}"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -391,7 +391,7 @@
                                         <ColumnDefinition Width="90"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="安裝日期" FontSize="{StaticResource FontSizeCaption}"
+                                    <TextBlock Grid.Column="0" Text="{DynamicResource L.AppDetail.InstallDate}" FontSize="{StaticResource FontSizeCaption}"
                                                Foreground="{DynamicResource BrushForegroundSecondary}"/>
                                     <TextBlock Grid.Column="1" Text="{Binding InstalledAt, StringFormat={}{0:yyyy-MM-dd}}"
                                                FontSize="{StaticResource FontSizeCaption}"
@@ -406,9 +406,9 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="近期事件" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold"
+                            <TextBlock Grid.Column="0" Text="{DynamicResource L.AppDetail.RecentEvents}" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold"
                                        Foreground="{DynamicResource BrushForegroundSecondary}"/>
-                            <Button Grid.Column="1" Content="查看全部 →" BorderThickness="0" Background="Transparent"
+                            <Button Grid.Column="1" Content="{DynamicResource L.AppDetail.ViewAll}" BorderThickness="0" Background="Transparent"
                                     FontSize="{StaticResource FontSizeCaption}" Cursor="Hand"
                                     Foreground="{DynamicResource BrushBrand}"
                                     Command="{Binding DataContext.ShowToolEventsCommand, RelativeSource={RelativeSource AncestorType=Window}}"
@@ -443,7 +443,7 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
                                 <!-- 無事件時 -->
-                                <TextBlock Text="尚無事件記錄"
+                                <TextBlock Text="{DynamicResource L.AppDetail.NoEvents}"
                                            FontSize="{StaticResource FontSizeCaption}"
                                            Foreground="{DynamicResource BrushForegroundMuted}"
                                            Margin="0,2">
@@ -462,9 +462,9 @@
                         </Border>
 
                         <!-- 啟動參數（真實生效：下次啟動套用） -->
-                        <TextBlock Text="啟動參數" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold"
+                        <TextBlock Text="{DynamicResource L.AppDetail.LaunchArgs}" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold"
                                    Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,20,0,4"/>
-                        <TextBlock Text="一行一個參數；儲存後於下次啟動此工具時套用。"
+                        <TextBlock Text="{DynamicResource L.AppDetail.LaunchArgsHint}"
                                    FontSize="{StaticResource FontSizeSmall}"
                                    Foreground="{DynamicResource BrushForegroundMuted}" Margin="0,0,0,8"/>
                         <TextBox Text="{Binding DataContext.ArgsText, RelativeSource={RelativeSource AncestorType=ScrollViewer}, UpdateSourceTrigger=PropertyChanged}"
@@ -475,7 +475,7 @@
                                  BorderBrush="{DynamicResource BrushShellSeparator}" BorderThickness="1"
                                  CaretBrush="{DynamicResource BrushBrand}"
                                  FontFamily="Consolas" FontSize="{StaticResource FontSizeBody}" Padding="8,6"/>
-                        <Button Content="儲存設定" HorizontalAlignment="Left" Margin="0,10,0,0"
+                        <Button Content="{DynamicResource L.Common.SaveSettings}" HorizontalAlignment="Left" Margin="0,10,0,0"
                                 Style="{StaticResource PrimaryActionButtonStyle}"
                                 Command="{Binding DataContext.SaveSettingsCommand, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"/>
 
@@ -483,9 +483,9 @@
 
                         <!-- 操作 -->
                         <StackPanel Orientation="Horizontal">
-                            <Button Content="開啟資料夾" Style="{StaticResource SecondaryActionButtonStyle}"
+                            <Button Content="{DynamicResource L.Common.OpenFolder}" Style="{StaticResource SecondaryActionButtonStyle}"
                                     Command="{Binding DataContext.OpenFolderCommand, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"/>
-                            <Button Content="解除安裝" Style="{StaticResource DangerActionButtonStyle}" Margin="8,0,0,0"
+                            <Button Content="{DynamicResource L.Common.Uninstall}" Style="{StaticResource DangerActionButtonStyle}" Margin="8,0,0,0"
                                     Command="{Binding DataContext.UninstallCommand, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"/>
                         </StackPanel>
                     </StackPanel>

@@ -47,7 +47,7 @@ internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
     /// <summary>
     /// 主頁顯示的欄位模型集合。
     /// </summary>
-    public ObservableCollection<InSpecPreviewFieldModel> FieldModels { get; }
+    public ObservableCollection<InSpecPreviewFieldItemViewModel> FieldModels { get; }
 
     /// <summary>
     /// 主頁顯示的檔案結果集合。
@@ -253,6 +253,11 @@ internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
     public void Dispose()
     {
         _services.AutoInputRequested -= ApplyAutoInputRequested;
+        foreach (var item in FieldModels)
+        {
+            item.PropertyChanged -= ApplyFieldItemValueChanged;
+        }
+
         _barcodeRefreshCancellation?.Cancel();
         _barcodeRefreshCancellation?.Dispose();
     }
@@ -365,17 +370,43 @@ internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
 
     private async Task ApplyFieldRefreshAsync()
     {
-        BarcodeText = _services.ResolveBarcodeText(FieldModels, _configuration.FieldDefinitions);
+        BarcodeText = _services.ResolveBarcodeText(FieldModels.Select(f => f.BuildModel()), _configuration.FieldDefinitions);
         await ApplyResultRefreshAsync(null);
     }
 
     private void ApplyFieldModels(InSpecBarcodeParseResultModel parseResult)
     {
+        foreach (var item in FieldModels)
+        {
+            item.PropertyChanged -= ApplyFieldItemValueChanged;
+        }
+
         FieldModels.Clear();
         foreach (var fieldModel in _services.QueryPreviewFieldModels(parseResult, _configuration.FieldDefinitions))
         {
-            FieldModels.Add(fieldModel);
+            var itemVm = InSpecPreviewFieldItemViewModel.Create(fieldModel);
+            itemVm.PropertyChanged += ApplyFieldItemValueChanged;
+            FieldModels.Add(itemVm);
         }
+    }
+
+    private void ApplyFieldItemValueChanged(object? sender, PropertyChangedEventArgs eventArgs)
+    {
+        if (eventArgs.PropertyName != nameof(InSpecPreviewFieldItemViewModel.Value))
+        {
+            return;
+        }
+
+        var newBarcode = _services.ResolveBarcodeText(FieldModels.Select(f => f.BuildModel()), _configuration.FieldDefinitions);
+        if (string.Equals(_barcodeText, newBarcode, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        _barcodeText = newBarcode;
+        IsDirty = true;
+        RaisePropertyChanged(nameof(BarcodeText));
+        ApplyBarcodeRefreshDebounce();
     }
 
     private async Task ApplyResultRefreshAsync(InSpecBarcodeParseResultModel? parseResult)
@@ -392,14 +423,7 @@ internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
         }
 
         var searchVersion = ++_searchVersion;
-        var fieldSnapshot = FieldModels.Select(fieldModel => new InSpecPreviewFieldModel
-        {
-            Label = fieldModel.Label,
-            Value = fieldModel.Value,
-            IsReadOnly = fieldModel.IsReadOnly,
-            Keyword = fieldModel.Keyword,
-            TargetMode = fieldModel.TargetMode
-        }).ToArray();
+        var fieldSnapshot = FieldModels.Select(f => f.BuildModel()).ToArray();
 
         IsBusy = true;
         FileListTitleText = _services.ResolveFileListTitleText(true);
@@ -434,7 +458,7 @@ internal sealed class InSpecToolPageViewModel : ViewModelBase, IDisposable
             return;
         }
 
-        if (!_services.ValidateCanOpenFile(FieldModels, out var message))
+        if (!_services.ValidateCanOpenFile(FieldModels.Select(f => f.BuildModel()), out var message))
         {
             MessageRequested?.Invoke(this, InSpecMessageRequestModel.CreateWarning("InSpec 工具", message));
             return;

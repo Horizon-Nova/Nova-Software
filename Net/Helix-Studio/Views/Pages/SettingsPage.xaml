@@ -1,4 +1,4 @@
-<UserControl x:Class="Helix_Studio.Views.Pages.SettingsPage"
+﻿<UserControl x:Class="Helix_Studio.Views.Pages.SettingsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:models="clr-namespace:Helix_Studio.Models"
@@ -99,7 +99,7 @@
                             <shell:SvgIcon Source="/Assets/lucide/settings.svg" IconSize="14"
                                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
                                            VerticalAlignment="Center"/>
-                            <TextBlock Text="一般" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource L.Settings.Nav.General}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </RadioButton>
                     <RadioButton x:Name="NavDisplay" Style="{StaticResource SettingsNavItemStyle}"
@@ -109,7 +109,7 @@
                             <shell:SvgIcon Source="/Assets/lucide/monitor.svg" IconSize="14"
                                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
                                            VerticalAlignment="Center"/>
-                            <TextBlock Text="顯示" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource L.Settings.Nav.Display}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </RadioButton>
 
@@ -121,7 +121,7 @@
                             <shell:SvgIcon Source="/Assets/lucide/layers.svg" IconSize="14"
                                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
                                            VerticalAlignment="Center"/>
-                            <TextBlock Text="工作區" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource L.Settings.Nav.Workspaces}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </RadioButton>
 
@@ -133,7 +133,7 @@
                             <shell:SvgIcon Source="/Assets/lucide/scroll-text.svg" IconSize="14"
                                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
                                            VerticalAlignment="Center"/>
-                            <TextBlock Text="日誌" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource L.Settings.Nav.Log}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </RadioButton>
                     <RadioButton x:Name="NavAlerts" Style="{StaticResource SettingsNavItemStyle}"
@@ -143,7 +143,7 @@
                             <shell:SvgIcon Source="/Assets/lucide/bell.svg" IconSize="14"
                                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
                                            VerticalAlignment="Center"/>
-                            <TextBlock Text="資源警報" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource L.Settings.Nav.Alerts}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </RadioButton>
                     <RadioButton x:Name="NavAbout" Style="{StaticResource SettingsNavItemStyle}"
@@ -153,7 +153,7 @@
                             <shell:SvgIcon Source="/Assets/lucide/info.svg" IconSize="14"
                                            Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=RadioButton}}"
                                            VerticalAlignment="Center"/>
-                            <TextBlock Text="關於" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource L.Settings.Nav.About}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                         </StackPanel>
                     </RadioButton>
 
@@ -170,19 +170,19 @@
                 <!-- ─ 一般 ─ -->
                 <StackPanel x:Name="SectionGeneral" Margin="0,0,0,44">
                     <StackPanel Margin="0,0,0,12">
-                        <TextBlock Text="一般" FontSize="20" FontWeight="SemiBold"
+                        <TextBlock Text="{DynamicResource L.Settings.Nav.General}" FontSize="20" FontWeight="SemiBold"
                                    Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                        <TextBlock Text="設定介面語言、啟動行為與系統整合選項。"
+                        <TextBlock Text="{DynamicResource L.Settings.General.Subtitle}"
                                    FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,4,0,0"/>
                     </StackPanel>
                     <Border BorderBrush="{DynamicResource BrushShellSeparator}" BorderThickness="0,1,0,0"/>
-                    <!-- FL-24: 介面語言 -->
+                    <!-- FL-08 N-001: 介面語言 -->
                     <Border Style="{StaticResource ListRowStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="200"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="介面語言" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="變更後需重新啟動應用程式使設定生效。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Language.Title}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Language.Desc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <ComboBox Grid.Column="1" VerticalAlignment="Center"
                                       SelectedValue="{Binding Language, Mode=TwoWay}" SelectedValuePath="Tag">
@@ -192,13 +192,13 @@
                             </ComboBox>
                         </Grid>
                     </Border>
-                    <!-- FL-16: 啟動設定 -->
+                    <!-- FL-08 N-002: 啟動設定 -->
                     <Border Style="{StaticResource ListRowStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="開機時啟動" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="系統登入後自動啟動 Helix Studio。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.StartOnBoot.Title}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.StartOnBoot.Desc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}"
                                       IsChecked="{Binding StartWithWindows}"/>
@@ -208,24 +208,36 @@
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="啟動時最小化" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="啟動後直接最小化至工作列。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.StartMin.Title}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.StartMin.Desc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}"
                                       IsChecked="{Binding StartMinimized}"/>
+                        </Grid>
+                    </Border>
+                    <!-- FL-09: 關閉視窗行為 -->
+                    <Border Style="{StaticResource ListRowStyle}">
+                        <Grid>
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <StackPanel Margin="0,0,16,0">
+                                <TextBlock Text="{DynamicResource L.Settings.CloseToTray.Title}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.CloseToTray.Desc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                            </StackPanel>
+                            <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}"
+                                      IsChecked="{Binding CloseToTray}"/>
                         </Grid>
                     </Border>
                     <Border Style="{StaticResource ListRowStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="200"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="工具啟動行為" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="應用程式啟動時對工具的處理方式。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.ToolStartup.Title}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.ToolStartup.Desc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <ComboBox Grid.Column="1" VerticalAlignment="Center"
                                       SelectedValue="{Binding ToolStartupBehavior}" SelectedValuePath="Tag">
-                                <ComboBoxItem Content="不自動啟動" Tag="none"/>
-                                <ComboBoxItem Content="還原上次狀態" Tag="restore"/>
+                                <ComboBoxItem Content="{DynamicResource L.Settings.ToolStartup.None}" Tag="none"/>
+                                <ComboBoxItem Content="{DynamicResource L.Settings.ToolStartup.Restore}" Tag="restore"/>
                             </ComboBox>
                         </Grid>
                     </Border>
@@ -233,8 +245,8 @@
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="200"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="預設工作區" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="啟動後自動切換至指定工作區。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.DefaultWorkspace.Title}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.DefaultWorkspace.Desc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <ComboBox Grid.Column="1" VerticalAlignment="Center"
                                       ItemsSource="{Binding Workspaces}"
@@ -253,9 +265,9 @@
                 <!-- ─ 顯示 ─ -->
                 <StackPanel x:Name="SectionDisplay" Margin="0,0,0,44">
                     <StackPanel Margin="0,0,0,12">
-                        <TextBlock Text="顯示" FontSize="20" FontWeight="SemiBold"
+                        <TextBlock Text="{DynamicResource L.Settings.Nav.Display}" FontSize="20" FontWeight="SemiBold"
                                    Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                        <TextBlock Text="調整介面主題、字體縮放與工具清單排序。"
+                        <TextBlock Text="{DynamicResource L.Settings.Display.Subtitle}"
                                    FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,4,0,0"/>
                     </StackPanel>
                     <Border BorderBrush="{DynamicResource BrushShellSeparator}" BorderThickness="0,1,0,0"/>
@@ -263,14 +275,14 @@
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="200"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="介面主題" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="切換應用程式的明暗主題。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Theme.Title}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Theme.Desc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <ComboBox Grid.Column="1" VerticalAlignment="Center"
                                       SelectedValue="{Binding Theme, Mode=TwoWay}" SelectedValuePath="Tag">
-                                <ComboBoxItem Content="淺色" Tag="light"/>
-                                <ComboBoxItem Content="深色" Tag="dark"/>
-                                <ComboBoxItem Content="跟隨系統" Tag="system"/>
+                                <ComboBoxItem Content="{DynamicResource L.Settings.Theme.Light}" Tag="light"/>
+                                <ComboBoxItem Content="{DynamicResource L.Settings.Theme.Dark}" Tag="dark"/>
+                                <ComboBoxItem Content="{DynamicResource L.Settings.Theme.System}" Tag="system"/>
                             </ComboBox>
                         </Grid>
                     </Border>
@@ -278,13 +290,13 @@
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="200"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="字體縮放" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="調整全域字體大小比例。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.FontScale.Title}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.FontScale.Desc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <ComboBox Grid.Column="1" VerticalAlignment="Center"
                                       SelectedValue="{Binding FontScaleOption, Mode=TwoWay}" SelectedValuePath="Tag">
                                 <ComboBoxItem Content="90%" Tag="0.9"/>
-                                <ComboBoxItem Content="100%（預設）" Tag="1.0"/>
+                                <ComboBoxItem Content="{DynamicResource L.Settings.FontScale.Default}" Tag="1.0"/>
                                 <ComboBoxItem Content="110%" Tag="1.1"/>
                                 <ComboBoxItem Content="125%" Tag="1.25"/>
                                 <ComboBoxItem Content="150%" Tag="1.5"/>
@@ -292,19 +304,19 @@
                         </Grid>
                     </Border>
 
-                    <!-- FL-15: 工具清單排序 -->
+                    <!-- FL-03 N-007: 工具清單排序 -->
                     <Border Style="{StaticResource ListRowStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="200"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="工具清單排序" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="選擇工具清單的預設排序方式。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.ToolSort.Title}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.ToolSort.Desc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <ComboBox Grid.Column="1" VerticalAlignment="Center"
                                       SelectedValue="{Binding ToolSortRule}" SelectedValuePath="Tag">
-                                <ComboBoxItem Content="自訂順序" Tag="custom"/>
-                                <ComboBoxItem Content="依名稱" Tag="name"/>
-                                <ComboBoxItem Content="依安裝日期" Tag="installedAt"/>
+                                <ComboBoxItem Content="{DynamicResource L.Settings.ToolSort.Custom}" Tag="custom"/>
+                                <ComboBoxItem Content="{DynamicResource L.Settings.ToolSort.Name}" Tag="name"/>
+                                <ComboBoxItem Content="{DynamicResource L.Settings.ToolSort.InstalledAt}" Tag="installedAt"/>
                             </ComboBox>
                         </Grid>
                     </Border>
@@ -313,9 +325,9 @@
                 <!-- ─ 工作區 ─ -->
                 <StackPanel x:Name="SectionWorkspaces" Margin="0,0,0,44">
                     <StackPanel Margin="0,0,0,12">
-                        <TextBlock Text="工作區" FontSize="20" FontWeight="SemiBold"
+                        <TextBlock Text="{DynamicResource L.Settings.Nav.Workspaces}" FontSize="20" FontWeight="SemiBold"
                                    Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                        <TextBlock Text="每個工作區擁有獨立的應用程式清單。切換時會停止目前執行中的工具。"
+                        <TextBlock Text="{DynamicResource L.Settings.Workspaces.Subtitle}"
                                    FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,4,0,0"/>
                     </StackPanel>
                     <Border BorderBrush="{DynamicResource BrushShellSeparator}" BorderThickness="0,1,0,0"/>
@@ -357,7 +369,7 @@
                                                     <shell:SvgIcon Source="/Assets/lucide/check.svg" IconSize="13"
                                                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                                                    VerticalAlignment="Center"/>
-                                                    <TextBlock Text="切換" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{DynamicResource L.Common.Switch}" Margin="5,0,0,0" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </Button>
                                             <Button Style="{StaticResource DangerActionButtonStyle}"
@@ -367,7 +379,7 @@
                                                     <shell:SvgIcon Source="/Assets/lucide/trash-2.svg" IconSize="13"
                                                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                                                    VerticalAlignment="Center"/>
-                                                    <TextBlock Text="移除" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{DynamicResource L.Common.Remove}" Margin="5,0,0,0" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </Button>
                                         </StackPanel>
@@ -384,23 +396,23 @@
                                 <shell:SvgIcon Source="/Assets/lucide/plus.svg" IconSize="13"
                                                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                                VerticalAlignment="Center"/>
-                                <TextBlock Text="新增工作區" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{DynamicResource L.Workspace.Add}" Margin="5,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Button>
                     </Border>
 
-                    <!-- FL-20: 切換行為 -->
+                    <!-- FL-08 N-004: 切換行為 -->
                     <Border Style="{StaticResource ListRowStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="200"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="切換行為" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="切換工作區時，對執行中工具的處理方式。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.SwitchBehavior.Title}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.SwitchBehavior.Desc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <ComboBox Grid.Column="1" VerticalAlignment="Center"
                                       SelectedValue="{Binding WorkspaceSwitchBehavior}" SelectedValuePath="Tag">
-                                <ComboBoxItem Content="停止全部工具" Tag="StopAll"/>
-                                <ComboBoxItem Content="保留執行中工具" Tag="StopNone"/>
+                                <ComboBoxItem Content="{DynamicResource L.Settings.SwitchBehavior.StopAll}" Tag="StopAll"/>
+                                <ComboBoxItem Content="{DynamicResource L.Settings.SwitchBehavior.StopNone}" Tag="StopNone"/>
                             </ComboBox>
                         </Grid>
                     </Border>
@@ -409,9 +421,9 @@
                 <!-- ─ 日誌 ─ -->
                 <StackPanel x:Name="SectionLog" Margin="0,0,0,44">
                     <StackPanel Margin="0,0,0,12">
-                        <TextBlock Text="日誌" FontSize="20" FontWeight="SemiBold"
+                        <TextBlock Text="{DynamicResource L.Settings.Nav.Log}" FontSize="20" FontWeight="SemiBold"
                                    Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                        <TextBlock Text="設定日誌的輸出位置、格式、編碼與保留期限。"
+                        <TextBlock Text="{DynamicResource L.Settings.Log.Subtitle}"
                                    FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,4,0,0"/>
                     </StackPanel>
                     <Border BorderBrush="{DynamicResource BrushShellSeparator}" BorderThickness="0,1,0,0"/>
@@ -424,8 +436,8 @@
                                 <ColumnDefinition Width="360"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="輸出位置" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="日誌檔案的儲存路徑，留空使用預設位置。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Log.OutputTitle}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Log.OutputDesc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <Grid Grid.Column="1" VerticalAlignment="Center">
                                 <Grid.ColumnDefinitions>
@@ -440,36 +452,36 @@
                                         <shell:SvgIcon Source="/Assets/lucide/folder.svg" IconSize="13"
                                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                                        VerticalAlignment="Center"/>
-                                        <TextBlock Text="瀏覽" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{DynamicResource L.Common.Browse}" Margin="5,0,0,0" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
                             </Grid>
                         </Grid>
                     </Border>
 
-                    <!-- FL-13: 記錄格式 -->
+                    <!-- FL-08 N-005: 記錄格式 -->
                     <Border Style="{StaticResource ListRowStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="200"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="記錄格式" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="決定日誌檔案的輸出格式。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Log.FormatTitle}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Log.FormatDesc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <ComboBox Grid.Column="1" VerticalAlignment="Center"
                                       SelectedValue="{Binding LogFormat}" SelectedValuePath="Tag">
                                 <ComboBoxItem Content="JSONL" Tag="jsonl"/>
-                                <ComboBoxItem Content="純文字" Tag="text"/>
+                                <ComboBoxItem Content="{DynamicResource L.Settings.Log.FormatText}" Tag="text"/>
                             </ComboBox>
                         </Grid>
                     </Border>
 
-                    <!-- FL-25: 檔案編碼 -->
+                    <!-- FL-08 N-005: 檔案編碼 -->
                     <Border Style="{StaticResource ListRowStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="200"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="檔案編碼" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="日誌檔案的文字編碼格式。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Log.EncodingTitle}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Log.EncodingDesc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <ComboBox Grid.Column="1" VerticalAlignment="Center"
                                       SelectedValue="{Binding LogEncoding, Mode=TwoWay}" SelectedValuePath="Tag">
@@ -485,55 +497,55 @@
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="200"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="時間戳記時區" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="日誌中時間戳記所使用的時區。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Log.TzTitle}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Log.TzDesc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <ComboBox Grid.Column="1" VerticalAlignment="Center"
                                       SelectedValue="{Binding LogTimeFormat, Mode=TwoWay}" SelectedValuePath="Tag">
-                                <ComboBoxItem Content="本地時間" Tag="local"/>
+                                <ComboBoxItem Content="{DynamicResource L.Settings.Log.TzLocal}" Tag="local"/>
                                 <ComboBoxItem Content="UTC" Tag="utc"/>
                             </ComboBox>
                         </Grid>
                     </Border>
 
-                    <!-- FL-13: 保留期限 -->
+                    <!-- FL-08 N-005: 保留期限 -->
                     <Border Style="{StaticResource ListRowStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="200"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="保留期限" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="超過保留期限的日誌檔案將自動刪除。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Log.RetentionTitle}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Log.RetentionDesc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <ComboBox Grid.Column="1" VerticalAlignment="Center"
                                       SelectedValue="{Binding LogRetentionOption}" SelectedValuePath="Tag">
-                                <ComboBoxItem Content="7 天" Tag="7"/>
-                                <ComboBoxItem Content="30 天" Tag="30"/>
-                                <ComboBoxItem Content="90 天" Tag="90"/>
-                                <ComboBoxItem Content="180 天" Tag="180"/>
+                                <ComboBoxItem Content="{DynamicResource L.Settings.Log.Days7}" Tag="7"/>
+                                <ComboBoxItem Content="{DynamicResource L.Settings.Log.Days30}" Tag="30"/>
+                                <ComboBoxItem Content="{DynamicResource L.Settings.Log.Days90}" Tag="90"/>
+                                <ComboBoxItem Content="{DynamicResource L.Settings.Log.Days180}" Tag="180"/>
                             </ComboBox>
                         </Grid>
                     </Border>
 
-                    <!-- FL-13: 顯示毫秒 -->
+                    <!-- FL-08 N-005: 顯示毫秒 -->
                     <Border Style="{StaticResource ListRowStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="顯示毫秒" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="在日誌時間戳中顯示毫秒精度。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Log.MsTitle}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Log.MsDesc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}"
                                       IsChecked="{Binding LogMilliseconds}"/>
                         </Grid>
                     </Border>
 
-                    <!-- FL-13: 開啟日誌資料夾 -->
+                    <!-- FL-08 N-005: 開啟日誌資料夾 -->
                     <Border Style="{StaticResource ListRowStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="日誌資料夾" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="在檔案總管中開啟日誌輸出位置。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Log.FolderTitle}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Log.FolderDesc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <Button Grid.Column="1" VerticalAlignment="Center"
                                     Style="{StaticResource SecondaryActionButtonStyle}"
@@ -542,7 +554,7 @@
                                     <shell:SvgIcon Source="/Assets/lucide/folder-open.svg" IconSize="13"
                                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                                    VerticalAlignment="Center"/>
-                                    <TextBlock Text="開啟資料夾" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{DynamicResource L.Common.OpenFolder}" Margin="5,0,0,0" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                         </Grid>
@@ -553,20 +565,20 @@
                 <!-- ─ 資源警報 ─ -->
                 <StackPanel x:Name="SectionAlerts" Margin="0,0,0,44">
                     <StackPanel Margin="0,0,0,12">
-                        <TextBlock Text="資源警報" FontSize="20" FontWeight="SemiBold"
+                        <TextBlock Text="{DynamicResource L.Settings.Nav.Alerts}" FontSize="20" FontWeight="SemiBold"
                                    Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                        <TextBlock Text="設定 CPU 與記憶體用量的警報門檻，超過時於通知面板顯示提示。"
+                        <TextBlock Text="{DynamicResource L.Settings.Alerts.Subtitle}"
                                    FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,4,0,0"/>
                     </StackPanel>
                     <Border BorderBrush="{DynamicResource BrushShellSeparator}" BorderThickness="0,1,0,0"/>
 
-                    <!-- FL-19: CPU 警報 -->
+                    <!-- FL-08 N-006: CPU 警報 -->
                     <Border Style="{StaticResource ListRowStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="CPU 用量警報" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="CPU 使用率持續超過門檻值時發出警報。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Alerts.CpuTitle}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Alerts.CpuDesc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBox Width="52" Margin="0,0,4,0" VerticalAlignment="Center"
@@ -580,13 +592,13 @@
                         </Grid>
                     </Border>
 
-                    <!-- FL-19: 記憶體警報 -->
+                    <!-- FL-08 N-006: 記憶體警報 -->
                     <Border Style="{StaticResource ListRowStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="記憶體用量警報" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="記憶體使用率超過門檻值時發出警報。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Alerts.MemTitle}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Alerts.MemDesc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBox Width="52" Margin="0,0,4,0" VerticalAlignment="Center"
@@ -600,13 +612,13 @@
                         </Grid>
                     </Border>
 
-                    <!-- FL-19: 工具層級警報 -->
+                    <!-- FL-08 N-006: 工具層級警報 -->
                     <Border Style="{StaticResource ListRowStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="工具層級警報" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="監控各工具的個別資源使用量。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Alerts.ToolTitle}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.Alerts.ToolDesc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <CheckBox Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}"
                                       IsChecked="{Binding ToolLevelAlertsEnabled}"/>
@@ -617,7 +629,7 @@
 
                 <!-- ─ 關於 ─ -->
                 <StackPanel x:Name="SectionAbout" Margin="0,0,0,40">
-                    <TextBlock Text="關於" FontSize="20" FontWeight="SemiBold"
+                    <TextBlock Text="{DynamicResource L.Settings.Nav.About}" FontSize="20" FontWeight="SemiBold"
                                Foreground="{DynamicResource BrushForegroundPrimary}" Margin="0,0,0,12"/>
                     <Border BorderBrush="{DynamicResource BrushShellSeparator}" BorderThickness="0,1,0,0"/>
 
@@ -660,7 +672,7 @@
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,24,0">
-                                <TextBlock Text="資料路徑" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.About.DataPath}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
                                 <TextBlock Text="{Binding HomePath}" FontSize="12" FontFamily="Consolas"
                                            Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,4,0,0" TextWrapping="Wrap"/>
                             </StackPanel>
@@ -671,19 +683,19 @@
                                     <shell:SvgIcon Source="/Assets/lucide/folder-open.svg" IconSize="13"
                                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                                    VerticalAlignment="Center"/>
-                                    <TextBlock Text="開啟資料夾" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{DynamicResource L.Common.OpenFolder}" Margin="5,0,0,0" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Button>
                         </Grid>
                     </Border>
 
-                    <!-- FL-18: 備份與還原 -->
+                    <!-- FL-02 N-007: 備份與還原 -->
                     <Border Style="{StaticResource ListRowStyle}">
                         <Grid>
                             <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                             <StackPanel Margin="0,0,16,0">
-                                <TextBlock Text="備份與還原" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                <TextBlock Text="匯出或匯入工作區設定與工具清單的備份檔。" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
+                                <TextBlock Text="{DynamicResource L.Settings.About.BackupTitle}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource BrushForegroundPrimary}"/>
+                                <TextBlock Text="{DynamicResource L.Settings.About.BackupDesc}" FontSize="12" Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,3,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                 <Button Margin="0,0,8,0" Style="{StaticResource SecondaryActionButtonStyle}"
@@ -692,7 +704,7 @@
                                         <shell:SvgIcon Source="/Assets/lucide/download.svg" IconSize="13"
                                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                                        VerticalAlignment="Center"/>
-                                        <TextBlock Text="匯出備份" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{DynamicResource L.Settings.About.BackupExport}" Margin="5,0,0,0" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
                                 <Button Style="{StaticResource SecondaryActionButtonStyle}"
@@ -701,7 +713,7 @@
                                         <shell:SvgIcon Source="/Assets/lucide/upload.svg" IconSize="13"
                                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"
                                                        VerticalAlignment="Center"/>
-                                        <TextBlock Text="匯入備份" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                                        <TextBlock Text="{DynamicResource L.Settings.About.BackupImport}" Margin="5,0,0,0" VerticalAlignment="Center"/>
                                     </StackPanel>
                                 </Button>
                             </StackPanel>

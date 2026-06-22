@@ -21,11 +21,11 @@
                     <TextBlock Text="{Binding ToolName}" FontSize="{StaticResource FontSizeHeading}" FontWeight="SemiBold"
                                Foreground="{DynamicResource BrushForegroundPrimary}"
                                VerticalAlignment="Center" Margin="10,0,0,0"/>
-                    <TextBlock Text="（隔離程序）" FontSize="{StaticResource FontSizeSmall}"
+                    <TextBlock Text="{DynamicResource L.ToolHost.Isolated}" FontSize="{StaticResource FontSizeSmall}"
                                Foreground="{DynamicResource BrushForegroundMuted}"
                                VerticalAlignment="Center" Margin="6,0,0,0"/>
                 </StackPanel>
-                <Button Grid.Column="1" Content="停止工具"
+                <Button Grid.Column="1" Content="{DynamicResource L.ToolHost.StopTool}"
                         Style="{StaticResource DangerActionButtonStyle}"
                         Command="{Binding StopCommand}"/>
             </Grid>

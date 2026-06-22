@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
@@ -21,6 +21,7 @@ public sealed class SettingsViewModel : ViewModelBase
     private readonly ThemeService _themeService;
     private readonly BackupService _backup;
     private string _currentWorkspaceId;
+    private string _activeSection = string.Empty;
 
     public override string PageKey => "settings";
 
@@ -33,11 +34,11 @@ public sealed class SettingsViewModel : ViewModelBase
     public ICommand SaveNamesCommand { get; }
     public ICommand OpenHomeFolderCommand { get; }
 
-    // FL-13: 日誌操作
+    // FL-08 N-005: 日誌操作
     public ICommand OpenLogFolderCommand { get; }
     public ICommand BrowseLogFolderCommand { get; }
 
-    // FL-18: 備份與還原
+    // FL-02 N-007: 備份與還原
     public ICommand ExportBackupCommand { get; }
     public ICommand ImportBackupCommand { get; }
 
@@ -84,7 +85,13 @@ public sealed class SettingsViewModel : ViewModelBase
     public string AppVersion { get; }
     public string HomePath => AppPathProvider.Home;
 
-    // FL-13: 日誌設定（全部即時儲存）
+    public string ActiveSection
+    {
+        get => _activeSection;
+        set => SetProperty(ref _activeSection, value);
+    }
+
+    // FL-08 N-005: 日誌設定（全部即時儲存）
     public string LogOutputPath
     {
         get => _appSettings.Settings.LogOutputPath;
@@ -129,21 +136,21 @@ public sealed class SettingsViewModel : ViewModelBase
         }
     }
 
-    // FL-25: 日誌編碼
+    // FL-08 N-005: 日誌編碼
     public string LogEncoding
     {
         get => _appSettings.Settings.LogEncoding;
         set { _appSettings.Settings.LogEncoding = value; _appSettings.Save(); OnPropertyChanged(); }
     }
 
-    // FL-15: 工具清單排序
+    // FL-03 N-007: 工具清單排序
     public string ToolSortRule
     {
         get => _appSettings.Settings.ToolSortRule;
         set { _appSettings.Settings.ToolSortRule = value; _appSettings.Save(); OnPropertyChanged(); }
     }
 
-    // FL-16: 應用程式啟動設定（全部即時儲存）
+    // FL-08 N-002: 應用程式啟動設定（全部即時儲存）
     public string DefaultWorkspaceId
     {
         get => _appSettings.Settings.DefaultWorkspaceId;
@@ -170,8 +177,13 @@ public sealed class SettingsViewModel : ViewModelBase
         get => _appSettings.Settings.StartMinimized;
         set { _appSettings.Settings.StartMinimized = value; _appSettings.Save(); OnPropertyChanged(); }
     }
+    public bool CloseToTray
+    {
+        get => _appSettings.Settings.CloseToTray;
+        set { _appSettings.Settings.CloseToTray = value; _appSettings.Save(); OnPropertyChanged(); }
+    }
 
-    // FL-19: 資源警報（全部即時儲存）
+    // FL-08 N-006: 資源警報（全部即時儲存）
     public bool CpuAlertEnabled
     {
         get => _appSettings.Settings.CpuAlertEnabled;
@@ -198,14 +210,14 @@ public sealed class SettingsViewModel : ViewModelBase
         set { _appSettings.Settings.ToolLevelAlertsEnabled = value; _appSettings.Save(); OnPropertyChanged(); }
     }
 
-    // FL-20: 工作區切換行為
+    // FL-08 N-004 / FL-02 N-003: 工作區切換行為
     public string WorkspaceSwitchBehavior
     {
         get => _appSettings.Settings.WorkspaceSwitchBehavior;
         set { _appSettings.Settings.WorkspaceSwitchBehavior = value; _appSettings.Save(); OnPropertyChanged(); }
     }
 
-    // FL-22: 介面主題
+    // FL-08 N-003: 介面主題
     public string Theme
     {
         get => _appSettings.Settings.Theme;
@@ -219,10 +231,10 @@ public sealed class SettingsViewModel : ViewModelBase
         }
     }
 
-    // FL-23: 字體縮放（double，供 ScaleTransform 綁定）
+    // FL-08 N-003: 字體縮放（double，供 ScaleTransform 綁定）
     public double FontScale => _appSettings.Settings.FontScale;
 
-    // FL-23: 字體縮放選項（string，供 ComboBox Tag 綁定）
+    // FL-08 N-003: 字體縮放選項（string，供 ComboBox Tag 綁定）
     public string FontScaleOption
     {
         get => _appSettings.Settings.FontScale.ToString("0.0#", System.Globalization.CultureInfo.InvariantCulture);
@@ -238,11 +250,18 @@ public sealed class SettingsViewModel : ViewModelBase
         }
     }
 
-    // FL-24: 介面語言
+    // FL-08 N-001: 介面語言（即時切換，無需重新啟動）
     public string Language
     {
         get => _appSettings.Settings.Language;
-        set { _appSettings.Settings.Language = value; _appSettings.Save(); OnPropertyChanged(); }
+        set
+        {
+            if (_appSettings.Settings.Language == value) return;
+            _appSettings.Settings.Language = value;
+            LocalizationService.Instance.SetLanguage(value);
+            _appSettings.Save();
+            OnPropertyChanged();
+        }
     }
 
     private void AddWorkspace()
@@ -280,7 +299,7 @@ public sealed class SettingsViewModel : ViewModelBase
 
     private void BrowseLogFolder()
     {
-        var dialog = new OpenFolderDialog { Title = "選擇日誌輸出資料夾" };
+        var dialog = new OpenFolderDialog { Title = LocalizationService.Instance.GetString("L.Dialog.BrowseLogFolder") };
         if (dialog.ShowDialog() == true)
             LogOutputPath = dialog.FolderName;
     }
@@ -297,10 +316,11 @@ public sealed class SettingsViewModel : ViewModelBase
 
     private void ExportBackup()
     {
+        var loc = LocalizationService.Instance;
         var dialog = new SaveFileDialog
         {
-            Title = "匯出備份",
-            Filter = "Helix 備份 (*.hbak)|*.hbak",
+            Title = loc.GetString("L.Settings.About.BackupExport"),
+            Filter = loc.GetString("L.Backup.Filter"),
             FileName = $"helix-backup-{DateTime.Now:yyyyMMdd}.hbak",
         };
         if (dialog.ShowDialog() != true) return;
@@ -309,54 +329,59 @@ public sealed class SettingsViewModel : ViewModelBase
         {
             var ids = Workspaces.Select(w => w.Id).ToList();
             _backup.Export(dialog.FileName, ids);
-            MessageBox.Show($"備份已儲存至：{dialog.FileName}", "備份成功",
+            MessageBox.Show(loc.Format("L.Backup.ExportSuccessMsg", dialog.FileName),
+                loc.GetString("L.Backup.ExportSuccessTitle"),
                 MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"匯出失敗：{ex.Message}", "錯誤", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(loc.Format("L.Backup.ExportFailMsg", ex.Message),
+                loc.GetString("L.Common.ErrorTitle"), MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
     private void ImportBackup()
     {
+        var loc = LocalizationService.Instance;
         var dialog = new OpenFileDialog
         {
-            Title = "從備份還原",
-            Filter = "Helix 備份 (*.hbak)|*.hbak",
+            Title = loc.GetString("L.Backup.ImportTitle"),
+            Filter = loc.GetString("L.Backup.Filter"),
         };
         if (dialog.ShowDialog() != true) return;
 
         var result = _backup.Validate(dialog.FileName);
         if (!result.IsValid)
         {
-            var msg = result.Error switch
+            var msgKey = result.Error switch
             {
-                "invalid_zip" => "所選檔案不是有效的 Helix 備份檔",
-                "missing_manifest" or "invalid_manifest" or "missing_workspace_data" => "備份檔案內容損毀或格式不正確",
-                "incompatible_version" => "此備份由更新版本的 Helix Studio 建立，請升級後再還原",
-                _ => "備份檔案無效",
+                "invalid_zip" => "L.Backup.ValidateInvalidZip",
+                "missing_manifest" or "invalid_manifest" or "missing_workspace_data" => "L.Backup.ValidateCorrupt",
+                "incompatible_version" => "L.Backup.ValidateIncompatible",
+                _ => "L.Backup.ValidateGeneric",
             };
-            MessageBox.Show(msg, "還原失敗", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(loc.GetString(msgKey), loc.GetString("L.Backup.ImportFailTitle"),
+                MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
 
         var wsNames = string.Join("、", result.Manifest!.WorkspaceIds);
         var confirm = MessageBox.Show(
-            $"備份包含 {result.Manifest.WorkspaceIds.Count} 個工作區：{wsNames}\n\n" +
-            "還原不會自動安裝工具執行檔，完成後需手動安裝。\n\n確定要還原嗎？",
-            "確認還原", MessageBoxButton.OKCancel, MessageBoxImage.Question);
+            loc.Format("L.Backup.ConfirmMsg", result.Manifest.WorkspaceIds.Count, wsNames),
+            loc.GetString("L.Backup.ConfirmTitle"), MessageBoxButton.OKCancel, MessageBoxImage.Question);
         if (confirm != MessageBoxResult.OK) return;
 
         try
         {
             _backup.Restore(dialog.FileName, overwriteExisting: true);
-            MessageBox.Show("工作區設定已還原，請重新啟動應用程式使設定生效。", "還原成功",
+            MessageBox.Show(loc.GetString("L.Backup.ImportSuccessMsg"),
+                loc.GetString("L.Backup.ImportSuccessTitle"),
                 MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"還原失敗，現有設定未被修改。\n{ex.Message}", "錯誤",
+            MessageBox.Show(loc.Format("L.Backup.ImportFailMsg", ex.Message),
+                loc.GetString("L.Common.ErrorTitle"),
                 MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }

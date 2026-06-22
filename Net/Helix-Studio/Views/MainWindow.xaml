@@ -66,7 +66,7 @@
         </Style>
     </Window.Resources>
 
-    <Grid>
+    <Grid x:Name="RootGrid">
         <Grid.LayoutTransform>
             <ScaleTransform ScaleX="{Binding Settings.FontScale}" ScaleY="{Binding Settings.FontScale}"/>
         </Grid.LayoutTransform>
@@ -79,17 +79,19 @@
         <!-- ═══ 頂部工具列（Row 0，深藍，全寬） ═══ -->
         <Grid Grid.Row="0" Background="{DynamicResource BrushSidebar}">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>   <!-- ≡ 側欄切換 -->
-                <ColumnDefinition Width="Auto"/>   <!-- 工作區按鈕 + Popup -->
-                <ColumnDefinition Width="*"/>      <!-- 可拖曳空白區 -->
-                <ColumnDefinition Width="200"/>    <!-- 搜尋框 -->
-                <ColumnDefinition Width="Auto"/>   <!-- 🔔 通知 -->
-                <ColumnDefinition Width="Auto"/>   <!-- 視窗控制 − □ × -->
+                <ColumnDefinition Width="Auto"/>   <!-- 0: ≡ 側欄切換 -->
+                <ColumnDefinition Width="Auto"/>   <!-- 1: 工作區按鈕 + Popup -->
+                <ColumnDefinition Width="Auto"/>   <!-- 2: Q 搜尋命令面板 -->
+                <ColumnDefinition Width="Auto"/>   <!-- 3: ← 上一頁 -->
+                <ColumnDefinition Width="Auto"/>   <!-- 4: → 下一頁 -->
+                <ColumnDefinition Width="*"/>      <!-- 5: 可拖曳空白區 -->
+                <ColumnDefinition Width="Auto"/>   <!-- 6: 🔔 通知 -->
+                <ColumnDefinition Width="Auto"/>   <!-- 7: 視窗控制 − □ × -->
             </Grid.ColumnDefinitions>
 
             <!-- ≡ 側欄切換 -->
             <Button Grid.Column="0" Style="{StaticResource ToolbarIconButtonStyle}"
-                    Command="{Binding ToggleSidebarCommand}" ToolTip="收合側欄">
+                    Command="{Binding ToggleSidebarCommand}" ToolTip="{DynamicResource L.Tooltip.CollapseSidebar}">
                 <TextBlock Text="☰" FontSize="16" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
             </Button>
 
@@ -140,7 +142,7 @@
                             BorderBrush="{DynamicResource BrushBorderMedium}" BorderThickness="1" CornerRadius="4"
                             Margin="0,0,0,8">
                         <StackPanel Margin="0,6">
-                            <TextBlock Text="切換工作區" FontSize="9" FontWeight="Bold"
+                            <TextBlock Text="{DynamicResource L.Workspace.Switch}" FontSize="9" FontWeight="Bold"
                                        Foreground="{DynamicResource BrushForegroundMuted}" Margin="14,4,14,6"/>
                             <ItemsControl ItemsSource="{Binding Workspaces}">
                                 <ItemsControl.ItemTemplate>
@@ -205,7 +207,7 @@
                                             <Border x:Name="AddBd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
                                                 <StackPanel Orientation="Horizontal">
                                                     <shell:SvgIcon IconSize="12" Source="/Assets/lucide/plus.svg" Foreground="{DynamicResource BrushBrand}"/>
-                                                    <TextBlock Text="新增工作區" FontSize="11" Foreground="{DynamicResource BrushBrand}"
+                                                    <TextBlock Text="{DynamicResource L.Workspace.Add}" FontSize="11" Foreground="{DynamicResource BrushBrand}"
                                                                Margin="6,0,0,0" VerticalAlignment="Center"/>
                                                 </StackPanel>
                                             </Border>
@@ -224,70 +226,37 @@
             </Grid>
 
             <!-- 可拖曳空白區（滑鼠左鍵拖動 / 雙擊最大化） -->
-            <Border Grid.Column="2" Background="Transparent"
+            <Border Grid.Column="5" Background="Transparent"
                     MouseLeftButtonDown="TitleBar_MouseLeftButtonDown"/>
 
-            <!-- 搜尋框 -->
-            <Grid Grid.Column="3" Margin="0,0,8,0" VerticalAlignment="Center">
-                <Border Height="28" Background="{DynamicResource BrushSidebarDeep}"
-                        BorderBrush="{DynamicResource BrushSidebarHover}" BorderThickness="1" CornerRadius="4">
-                    <Grid Margin="8,0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <shell:SvgIcon Grid.Column="0" IconSize="12" Source="/Assets/lucide/search.svg"
-                                       Foreground="{DynamicResource BrushTextOnDarkMuted}"/>
-                        <TextBox x:Name="GlobalSearchBox" Grid.Column="1" BorderThickness="0"
-                                 Background="Transparent" Padding="0"
-                                 Foreground="{DynamicResource BrushTextOnDark}"
-                                 CaretBrush="{DynamicResource BrushTextOnDark}"
-                                 VerticalContentAlignment="Center" FontSize="12" Margin="6,0,0,0"
-                                 WindowChrome.IsHitTestVisibleInChrome="True"
-                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
-                    </Grid>
-                </Border>
-                <Popup IsOpen="{Binding IsSearchOpen}" StaysOpen="False" Placement="Bottom"
-                       PlacementTarget="{Binding ElementName=GlobalSearchBox}"
-                       AllowsTransparency="True" Width="220">
-                    <Border Background="{DynamicResource BrushSurface}"
-                            BorderBrush="{DynamicResource BrushBorderMedium}"
-                            BorderThickness="1" CornerRadius="4" Margin="0,4,0,0" Padding="4">
-                        <StackPanel>
-                            <ItemsControl ItemsSource="{Binding ToolResults}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Button Background="Transparent" BorderThickness="0" Padding="10,6" Cursor="Hand"
-                                                HorizontalContentAlignment="Left"
-                                                Command="{Binding DataContext.OpenToolResultCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                CommandParameter="{Binding}">
-                                            <TextBlock Text="{Binding Name}" FontSize="13" Foreground="{DynamicResource BrushForegroundPrimary}"/>
-                                        </Button>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                            <ItemsControl ItemsSource="{Binding EventResults}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Button Background="Transparent" BorderThickness="0" Padding="10,6" Cursor="Hand"
-                                                HorizontalContentAlignment="Left"
-                                                Command="{Binding DataContext.OpenEventResultCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                CommandParameter="{Binding}">
-                                            <TextBlock Text="{Binding Message}" FontSize="12"
-                                                       Foreground="{DynamicResource BrushForegroundSecondary}"
-                                                       TextTrimming="CharacterEllipsis"/>
-                                        </Button>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-                    </Border>
-                </Popup>
-            </Grid>
+            <!-- Q 搜尋（開啟命令面板，Ctrl+K） -->
+            <Button Grid.Column="2" Style="{StaticResource ToolbarIconButtonStyle}"
+                    Command="{Binding OpenCommandPaletteCommand}"
+                    Click="OpenCommandPalette_Click"
+                    ToolTip="{DynamicResource L.Tooltip.Search}">
+                <shell:SvgIcon IconSize="15" Source="/Assets/lucide/search.svg"
+                               Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+            </Button>
+
+            <!-- ← 上一頁 -->
+            <Button Grid.Column="3" Style="{StaticResource ToolbarIconButtonStyle}"
+                    IsEnabled="{Binding CanGoBack}" Command="{Binding GoBackCommand}"
+                    ToolTip="{DynamicResource L.Tooltip.Back}">
+                <shell:SvgIcon IconSize="15" Source="/Assets/lucide/arrow-left.svg"
+                               Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+            </Button>
+
+            <!-- → 下一頁 -->
+            <Button Grid.Column="4" Style="{StaticResource ToolbarIconButtonStyle}"
+                    IsEnabled="{Binding CanGoForward}" Command="{Binding GoForwardCommand}"
+                    ToolTip="{DynamicResource L.Tooltip.Forward}">
+                <shell:SvgIcon IconSize="15" Source="/Assets/lucide/arrow-right.svg"
+                               Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+            </Button>
 
             <!-- 🔔 通知按鈕 -->
-            <Button Grid.Column="4" Style="{StaticResource ToolbarIconButtonStyle}"
-                    Command="{Binding ShowNotificationsCommand}" ToolTip="事件通知">
+            <Button Grid.Column="6" Style="{StaticResource ToolbarIconButtonStyle}"
+                    Command="{Binding ShowNotificationsCommand}" ToolTip="{DynamicResource L.Tooltip.Notifications}">
                 <Grid>
                     <shell:SvgIcon IconSize="15" Source="/Assets/lucide/bell.svg"
                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
@@ -301,16 +270,16 @@
             </Button>
 
             <!-- 視窗控制：− □ × -->
-            <StackPanel Grid.Column="5" Orientation="Horizontal">
-                <Button Style="{StaticResource ToolbarIconButtonStyle}" Click="MinimizeButton_Click" ToolTip="最小化">
+            <StackPanel Grid.Column="7" Orientation="Horizontal">
+                <Button Style="{StaticResource ToolbarIconButtonStyle}" Click="MinimizeButton_Click" ToolTip="{DynamicResource L.Tooltip.Minimize}">
                     <TextBlock Text="—" FontSize="12"
                                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                 </Button>
-                <Button Style="{StaticResource ToolbarIconButtonStyle}" Click="MaximizeButton_Click" ToolTip="最大化/還原">
+                <Button Style="{StaticResource ToolbarIconButtonStyle}" Click="MaximizeButton_Click" ToolTip="{DynamicResource L.Tooltip.MaximizeRestore}">
                     <shell:SvgIcon IconSize="12" Source="/Assets/lucide/square.svg"
                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                 </Button>
-                <Button Style="{StaticResource ToolbarCloseButtonStyle}" Click="CloseButton_Click" ToolTip="關閉">
+                <Button Style="{StaticResource ToolbarCloseButtonStyle}" Click="CloseButton_Click" ToolTip="{DynamicResource L.Tooltip.Close}">
                     <shell:SvgIcon IconSize="13" Source="/Assets/lucide/x.svg"
                                    Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                 </Button>
@@ -335,7 +304,7 @@
                                      IsChecked="{Binding CurrentNavKey, Converter={StaticResource StringEqualsToBoolean}, ConverterParameter=apps, Mode=OneWay}">
                             <StackPanel Orientation="Horizontal">
                                 <shell:SvgIcon IconSize="15" Source="/Assets/lucide/layout-grid.svg"/>
-                                <TextBlock Text="應用程式" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{DynamicResource L.Nav.Apps}" Margin="14,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
                         </RadioButton>
 
@@ -344,7 +313,7 @@
                                      IsChecked="{Binding CurrentNavKey, Converter={StaticResource StringEqualsToBoolean}, ConverterParameter=library, Mode=OneWay}">
                             <StackPanel Orientation="Horizontal">
                                 <shell:SvgIcon IconSize="15" Source="/Assets/lucide/package.svg"/>
-                                <TextBlock Text="應用程式庫" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{DynamicResource L.Nav.Library}" Margin="14,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
                         </RadioButton>
 
@@ -355,7 +324,7 @@
                             <Grid>
                                 <StackPanel Orientation="Horizontal">
                                     <shell:SvgIcon IconSize="15" Source="/Assets/lucide/bell.svg"/>
-                                    <TextBlock Text="事件日誌" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{DynamicResource L.Nav.Events}" Margin="14,0,0,0" VerticalAlignment="Center"/>
                                 </StackPanel>
                                 <Border MinWidth="16" Height="16" Background="{DynamicResource BrushStatusRed}" CornerRadius="8"
                                         HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4,0"
@@ -371,7 +340,7 @@
                                      IsChecked="{Binding CurrentNavKey, Converter={StaticResource StringEqualsToBoolean}, ConverterParameter=settings, Mode=OneWay}">
                             <StackPanel Orientation="Horizontal">
                                 <shell:SvgIcon IconSize="15" Source="/Assets/lucide/settings.svg"/>
-                                <TextBlock Text="設定" Margin="14,0,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{DynamicResource L.Nav.Settings}" Margin="14,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
                         </RadioButton>
                     </StackPanel>
@@ -428,25 +397,25 @@
                 <StackPanel Margin="0,8,0,0">
                     <Button Style="{StaticResource SidebarCollapsedNavButtonStyle}"
                             Command="{Binding NavigateCommand}" CommandParameter="apps"
-                            ToolTip="應用程式">
+                            ToolTip="{DynamicResource L.Nav.Apps}">
                         <shell:SvgIcon IconSize="16" Source="/Assets/lucide/layout-grid.svg"
                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                     </Button>
                     <Button Style="{StaticResource SidebarCollapsedNavButtonStyle}"
                             Command="{Binding NavigateCommand}" CommandParameter="library"
-                            ToolTip="應用程式庫">
+                            ToolTip="{DynamicResource L.Nav.Library}">
                         <shell:SvgIcon IconSize="16" Source="/Assets/lucide/package.svg"
                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                     </Button>
                     <Button Style="{StaticResource SidebarCollapsedNavButtonStyle}"
                             Command="{Binding NavigateCommand}" CommandParameter="events"
-                            ToolTip="事件日誌">
+                            ToolTip="{DynamicResource L.Nav.Events}">
                         <shell:SvgIcon IconSize="16" Source="/Assets/lucide/bell.svg"
                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                     </Button>
                     <Button Style="{StaticResource SidebarCollapsedNavButtonStyle}"
                             Command="{Binding NavigateCommand}" CommandParameter="settings"
-                            ToolTip="設定">
+                            ToolTip="{DynamicResource L.Nav.Settings}">
                         <shell:SvgIcon IconSize="16" Source="/Assets/lucide/settings.svg"
                                        Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
                     </Button>
@@ -456,8 +425,19 @@
             <!-- 主內容 + 工具宿主覆蓋層 -->
             <Grid Grid.Column="1" Background="{DynamicResource BrushShellBar}">
                 <ContentControl Content="{Binding CurrentPage}"/>
-                <ContentControl Content="{Binding ToolHost}"
-                                Visibility="{Binding IsToolHostVisible, Converter={StaticResource BoolToVisibility}}"/>
+                <ContentControl Content="{Binding ToolHost}">
+                    <ContentControl.Style>
+                        <Style TargetType="ContentControl">
+                            <Setter Property="Visibility" Value="{Binding IsToolHostVisible, Converter={StaticResource BoolToVisibility}}"/>
+                            <Style.Triggers>
+                                <!-- 命令面板開啟時折疊 HwndHost，避免 Win32 HWND 蓋住 WPF 覆蓋層 -->
+                                <DataTrigger Binding="{Binding IsCommandPaletteOpen}" Value="True">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ContentControl.Style>
+                </ContentControl>
             </Grid>
         </Grid>
 
@@ -475,7 +455,7 @@
                     <Border Width="1" Height="14" Background="{DynamicResource BrushTextOnDarkMuted}" Opacity="0.4" Margin="14,0"/>
                     <Ellipse Width="7" Height="7" Fill="{DynamicResource BrushStatusGreen}" VerticalAlignment="Center"/>
                     <TextBlock Margin="6,0,0,0" FontSize="11" Foreground="{DynamicResource BrushTextOnDark}" VerticalAlignment="Center">
-                        <Run Text="執行中 "/><Run Text="{Binding AppList.RunningCount, Mode=OneWay}"/>
+                        <Run Text="{DynamicResource L.Status.RunningLabel}"/><Run Text=" "/><Run Text="{Binding AppList.RunningCount, Mode=OneWay}"/>
                     </TextBlock>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -485,11 +465,118 @@
                     </TextBlock>
                     <Border Width="1" Height="14" Background="{DynamicResource BrushTextOnDarkMuted}" Opacity="0.4" Margin="14,0"/>
                     <TextBlock FontFamily="Consolas" FontSize="11" Foreground="{DynamicResource BrushTextOnDarkMuted}">
-                        <Run Text="事件 "/><Run Text="{Binding EventLog.TotalCount, Mode=OneWay}"/>
+                        <Run Text="{DynamicResource L.Status.EventsLabel}"/><Run Text=" "/><Run Text="{Binding EventLog.TotalCount, Mode=OneWay}"/>
                         <Run Text="  ·  "/><Run Text="{Binding StatusBuildText, Mode=OneWay}"/>
                     </TextBlock>
                 </StackPanel>
             </Grid>
         </Border>
+        <!-- ═══ 命令面板覆蓋層（Ctrl+K） ═══ -->
+        <Grid Grid.RowSpan="3" Panel.ZIndex="200"
+              Visibility="{Binding IsCommandPaletteOpen, Converter={StaticResource BoolToVisibility}}">
+            <!-- 半透明遮罩，點擊關閉 -->
+            <Border Background="{DynamicResource BrushScrim}"
+                    MouseLeftButtonDown="CommandPaletteScrim_MouseDown"/>
+            <!-- 面板 -->
+            <Border MaxWidth="640" Width="640"
+                    HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,60,0,0"
+                    Background="{DynamicResource BrushSidebarDeep}"
+                    BorderBrush="{DynamicResource BrushSidebarHover}" BorderThickness="1"
+                    CornerRadius="12">
+                <DockPanel>
+                    <!-- 搜尋列 -->
+                    <Border DockPanel.Dock="Top"
+                            BorderBrush="{DynamicResource BrushSidebarHover}" BorderThickness="0,0,0,1">
+                        <Grid Margin="16,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <shell:SvgIcon Grid.Column="0" IconSize="16" Source="/Assets/lucide/search.svg"
+                                           Foreground="{DynamicResource BrushTextOnDarkMuted}" VerticalAlignment="Center"/>
+                            <TextBox x:Name="CommandPaletteInput" Grid.Column="1"
+                                     Margin="10,0,0,0" BorderThickness="0" Padding="0"
+                                     Background="Transparent"
+                                     Foreground="{DynamicResource BrushTextOnDark}"
+                                     CaretBrush="{DynamicResource BrushTextOnDark}"
+                                     SelectionBrush="{DynamicResource BrushBrand}"
+                                     FontSize="14" VerticalContentAlignment="Center"
+                                     FocusVisualStyle="{StaticResource FocusVisualNone}"
+                                     WindowChrome.IsHitTestVisibleInChrome="True"
+                                     Text="{Binding CommandPaletteSearch, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Button Grid.Column="2" Background="Transparent" BorderThickness="0"
+                                    Padding="4" Margin="8,0,0,0" Cursor="Hand"
+                                    FocusVisualStyle="{StaticResource FocusVisualNone}"
+                                    Command="{Binding CloseCommandPaletteCommand}">
+                                <shell:SvgIcon IconSize="14" Source="/Assets/lucide/x.svg"
+                                               Foreground="{DynamicResource BrushTextOnDarkMuted}"/>
+                            </Button>
+                        </Grid>
+                    </Border>
+                    <!-- 結果清單 -->
+                    <ListBox x:Name="PaletteList"
+                             ItemsSource="{Binding FilteredPaletteItems}"
+                             SelectedIndex="{Binding CommandPaletteSelectedIndex, Mode=TwoWay}"
+                             Background="Transparent" BorderThickness="0"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                             MaxHeight="400" Padding="6,6">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisualNone}"/>
+                                <Setter Property="Padding" Value="12,9"/>
+                                <Setter Property="Cursor" Value="Hand"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <Border x:Name="Bd" CornerRadius="6"
+                                                    Background="Transparent"
+                                                    Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource BrushSidebarHover}"/>
+                                                </Trigger>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource BrushSidebarHover}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.InputBindings>
+                                        <MouseBinding MouseAction="LeftClick"
+                                                      Command="{Binding DataContext.ExecutePaletteItemCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                      CommandParameter="{Binding}"/>
+                                    </Grid.InputBindings>
+                                    <shell:SvgIcon Grid.Column="0" IconSize="14" Source="{Binding IconPath}"
+                                                   Foreground="{DynamicResource BrushTextOnDarkMuted}"
+                                                   VerticalAlignment="Center" Margin="0,0,10,0"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding Title}"
+                                               FontSize="13" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource BrushTextOnDark}"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding Subtitle}"
+                                               FontSize="12" VerticalAlignment="Center"
+                                               Margin="8,0,0,0"
+                                               Foreground="{DynamicResource BrushTextOnDarkMuted}"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </DockPanel>
+            </Border>
+        </Grid>
+
     </Grid>
 </Window>

@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
@@ -27,6 +27,14 @@ public sealed class MainViewModel : ObservableObject
     private bool _isWorkspacePopupOpen;
     private string _currentNavKey = "apps";
     private bool _isSidebarExpanded;
+    private bool _isCommandPaletteOpen;
+    private string _commandPaletteSearch = string.Empty;
+    private int _commandPaletteSelectedIndex = -1;
+    private bool _canGoBack;
+    private bool _canGoForward;
+    private readonly Stack<string> _navBack = new();
+    private readonly Stack<string> _navForward = new();
+    private CommandPaletteItem[] _allPaletteItems = Array.Empty<CommandPaletteItem>();
 
     public SystemStats Stats { get; }
 
@@ -44,6 +52,12 @@ public sealed class MainViewModel : ObservableObject
     public ICommand ActivateWorkspaceCommand { get; }
     public ICommand OpenToolCommand { get; }
     public ICommand ShowToolEventsCommand { get; }
+    public ICommand OpenCommandPaletteCommand { get; }
+    public ICommand CloseCommandPaletteCommand { get; }
+    public ICommand ExecutePaletteItemCommand { get; }
+    public ICommand GoBackCommand { get; }
+    public ICommand GoForwardCommand { get; }
+    public ObservableCollection<CommandPaletteItem> FilteredPaletteItems { get; } = new();
 
     public ObservableCollection<WorkspaceInfo> Workspaces => Settings.Workspaces;
 
@@ -67,7 +81,7 @@ public sealed class MainViewModel : ObservableObject
 
         var workspacesFile = workspacesRepo.Load();
 
-        // FL-16: 依 DefaultWorkspaceId 設定選擇起始工作區
+        // FL-08 N-002: 依 DefaultWorkspaceId 設定選擇起始工作區
         var startId = appSettings.Settings.DefaultWorkspaceId;
         _workspace = (startId.Length > 0
             ? workspacesFile.Workspaces.FirstOrDefault(w => w.Id == startId)
@@ -96,8 +110,12 @@ public sealed class MainViewModel : ObservableObject
         AppList.StopRequested += OnStopTool;
         ToolHost.StopRequested += OnStopTool;
         Settings.SwitchRequested += SwitchWorkspace;
-        _processService.ToolExited += OnToolExited;
-        _processService.WindowReady += OnWindowReady;
+        _processService.ToolExited       += OnToolExited;
+        _processService.WindowReady       += OnWindowReady;
+        _processService.ToolStatusChanged += OnToolStatusChanged;
+
+        // FL-08 N-001: 語言即時切換後，重整使用轉換器產生文字的視圖（狀態/事件類別/等級/相對時間）
+        LocalizationService.Instance.LanguageChanged += OnLanguageChanged;
 
         _sampler = new ProcessSampler(processService);
         _sampler.ConfigureAlerts(appSettings, eventLog);
@@ -132,10 +150,18 @@ public sealed class MainViewModel : ObservableObject
                 EventLog.SearchText = toolName;
             }
         });
+        OpenCommandPaletteCommand = new RelayCommand(_ => OpenCommandPalette());
+        CloseCommandPaletteCommand = new RelayCommand(_ => CloseCommandPalette());
+        ExecutePaletteItemCommand = new RelayCommand(p => { if (p is CommandPaletteItem i) ExecutePaletteItem(i); });
+        GoBackCommand = new RelayCommand(_ => GoBack());
+        GoForwardCommand = new RelayCommand(_ => GoForward());
+
+        BuildPaletteItems();
+        FilterPaletteItems();
 
         eventLog.Record(EventLevel.Info, EventCategory.System, "系統", $"Helix Studio 已啟動，工作區「{_workspace.Name}」");
 
-        // FL-16: 依 ToolStartupBehavior 決定啟動後工具狀態
+        // FL-08 N-002: 依 ToolStartupBehavior 決定啟動後工具狀態
         ExecuteStartupToolBehavior();
     }
 
@@ -176,6 +202,36 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
+    public bool IsCommandPaletteOpen
+    {
+        get => _isCommandPaletteOpen;
+        set => SetProperty(ref _isCommandPaletteOpen, value);
+    }
+
+    public string CommandPaletteSearch
+    {
+        get => _commandPaletteSearch;
+        set { if (SetProperty(ref _commandPaletteSearch, value)) FilterPaletteItems(); }
+    }
+
+    public int CommandPaletteSelectedIndex
+    {
+        get => _commandPaletteSelectedIndex;
+        set => SetProperty(ref _commandPaletteSelectedIndex, value);
+    }
+
+    public bool CanGoBack
+    {
+        get => _canGoBack;
+        private set => SetProperty(ref _canGoBack, value);
+    }
+
+    public bool CanGoForward
+    {
+        get => _canGoForward;
+        private set => SetProperty(ref _canGoForward, value);
+    }
+
     public ViewModelBase CurrentPage
     {
         get => _currentPage;
@@ -197,16 +253,112 @@ public sealed class MainViewModel : ObservableObject
         private set => SetProperty(ref _isToolHostVisible, value);
     }
 
-    private void Navigate(string? pageKey)
+    // FL-08 N-001: 語言切換後刷新各頁轉換器產生的文字，並重建命令面板項目
+    private void OnLanguageChanged()
     {
-        if (pageKey is not null && _pages.TryGetValue(pageKey, out var page))
-        {
-            CurrentPage = page;
-            CurrentNavKey = pageKey;
-            IsToolHostVisible = false;
-            IsWorkspacePopupOpen = false;
-        }
+        AppList.RefreshLocalizedText();
+        EventLog.RefreshLocalizedText();
+        BuildPaletteItems();
+        FilterPaletteItems();
     }
+
+    private void Navigate(string? pageKey, bool addToHistory = true)
+    {
+        if (pageKey is null || !_pages.TryGetValue(pageKey, out var page)) return;
+
+        if (addToHistory && pageKey != _currentNavKey)
+        {
+            _navBack.Push(_currentNavKey);
+            _navForward.Clear();
+            UpdateNavButtons();
+        }
+
+        CurrentPage = page;
+        CurrentNavKey = pageKey;
+        IsToolHostVisible = false;
+        IsWorkspacePopupOpen = false;
+    }
+
+    private void GoBack()
+    {
+        if (_navBack.Count == 0) return;
+        _navForward.Push(_currentNavKey);
+        var key = _navBack.Pop();
+        Navigate(key, addToHistory: false);
+        UpdateNavButtons();
+    }
+
+    private void GoForward()
+    {
+        if (_navForward.Count == 0) return;
+        _navBack.Push(_currentNavKey);
+        var key = _navForward.Pop();
+        Navigate(key, addToHistory: false);
+        UpdateNavButtons();
+    }
+
+    private void UpdateNavButtons()
+    {
+        CanGoBack = _navBack.Count > 0;
+        CanGoForward = _navForward.Count > 0;
+    }
+
+    public void OpenCommandPalette()
+    {
+        CommandPaletteSearch = string.Empty;
+        FilterPaletteItems();
+        IsCommandPaletteOpen = true;
+    }
+
+    private void CloseCommandPalette()
+    {
+        IsCommandPaletteOpen = false;
+        CommandPaletteSearch = string.Empty;
+    }
+
+    public void ExecutePaletteItem(CommandPaletteItem item)
+    {
+        CloseCommandPalette();
+        Navigate(item.NavKey);
+        if (item.NavKey == Settings.PageKey && item.Section.Length > 0)
+            Application.Current?.Dispatcher.BeginInvoke(
+                () => Settings.ActiveSection = item.Section,
+                System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    private void BuildPaletteItems()
+    {
+        var nav = GetStr("L.Palette.Category.Nav");
+        var cfg = GetStr("L.Nav.Settings");
+        _allPaletteItems = new[]
+        {
+            new CommandPaletteItem { Title = GetStr("L.Nav.Apps"),                   Subtitle = nav, IconPath = "/Assets/lucide/layout-grid.svg",  NavKey = "apps" },
+            new CommandPaletteItem { Title = GetStr("L.Nav.Library"),                Subtitle = nav, IconPath = "/Assets/lucide/package.svg",       NavKey = "library" },
+            new CommandPaletteItem { Title = GetStr("L.Nav.Events"),                 Subtitle = nav, IconPath = "/Assets/lucide/bell.svg",           NavKey = "events" },
+            new CommandPaletteItem { Title = GetStr("L.Nav.Settings"),               Subtitle = nav, IconPath = "/Assets/lucide/settings.svg",       NavKey = "settings" },
+            new CommandPaletteItem { Title = GetStr("L.Settings.Nav.General"),       Subtitle = cfg, IconPath = "/Assets/lucide/settings.svg",       NavKey = "settings", Section = "General" },
+            new CommandPaletteItem { Title = GetStr("L.Settings.Nav.Display"),       Subtitle = cfg, IconPath = "/Assets/lucide/monitor.svg",        NavKey = "settings", Section = "Display" },
+            new CommandPaletteItem { Title = GetStr("L.Settings.Nav.Workspaces"),    Subtitle = cfg, IconPath = "/Assets/lucide/layers.svg",         NavKey = "settings", Section = "Workspaces" },
+            new CommandPaletteItem { Title = GetStr("L.Settings.Nav.Log"),           Subtitle = cfg, IconPath = "/Assets/lucide/scroll-text.svg",    NavKey = "settings", Section = "Log" },
+            new CommandPaletteItem { Title = GetStr("L.Settings.Nav.Alerts"),        Subtitle = cfg, IconPath = "/Assets/lucide/bell.svg",           NavKey = "settings", Section = "Alerts" },
+            new CommandPaletteItem { Title = GetStr("L.Settings.Nav.About"),         Subtitle = cfg, IconPath = "/Assets/lucide/info.svg",           NavKey = "settings", Section = "About" },
+        };
+    }
+
+    private void FilterPaletteItems()
+    {
+        FilteredPaletteItems.Clear();
+        var q = _commandPaletteSearch.Trim();
+        var items = q.Length == 0
+            ? _allPaletteItems
+            : _allPaletteItems.Where(i =>
+                i.Title.Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                i.Subtitle.Contains(q, StringComparison.OrdinalIgnoreCase));
+        foreach (var item in items) FilteredPaletteItems.Add(item);
+        CommandPaletteSelectedIndex = FilteredPaletteItems.Count > 0 ? 0 : -1;
+    }
+
+    private static string GetStr(string key) => LocalizationService.Instance.GetString(key);
 
     private void OnOpenTool(InstalledTool tool)
     {
@@ -219,7 +371,6 @@ public sealed class MainViewModel : ObservableObject
         try
         {
             _processService.Start(Workspace.Id, tool);
-            tool.Status = AppStatus.Running;
             tool.LastStarted = DateTime.Now;
             AppList.AppsView.Refresh();
 
@@ -239,6 +390,18 @@ public sealed class MainViewModel : ObservableObject
         {
             if (ToolHost.Current?.Id == toolId)
                 ToolHost.SetTool(ToolHost.Current, hwnd);
+        });
+    }
+
+    // FL-12 N-004：tool-status.json 輪詢結果 → 更新工具卡片狀態 badge
+    private void OnToolStatusChanged(string toolId, AppStatus status, string message)
+    {
+        Application.Current?.Dispatcher.Invoke(() =>
+        {
+            var tool = AppList.Apps.FirstOrDefault(t => t.Id == toolId);
+            if (tool is null) return;
+            tool.Status        = status;
+            tool.StatusMessage = message;
         });
     }
 
@@ -275,7 +438,7 @@ public sealed class MainViewModel : ObservableObject
     private void OnToolSampled(string toolId, double cpuPercent, double memoryMb)
     {
         var tool = AppList.Apps.FirstOrDefault(t => t.Id == toolId);
-        if (tool is not null && tool.Status == AppStatus.Running)
+        if (tool is not null && tool.IsRunning)
         {
             tool.CpuPercent = cpuPercent;
             tool.MemoryMb = memoryMb;
@@ -286,7 +449,7 @@ public sealed class MainViewModel : ObservableObject
     {
         if (ws.Id == _workspace.Id) return;
 
-        var runningTools = AppList.Apps.Where(a => a.Status == AppStatus.Running).ToList();
+        var runningTools = AppList.Apps.Where(a => a.IsRunning).ToList();
         var behavior = _appSettings.Settings.WorkspaceSwitchBehavior;
 
         if (runningTools.Count > 0 && behavior == "Ask")
@@ -309,7 +472,7 @@ public sealed class MainViewModel : ObservableObject
                     return;
             }
         }
-        else if (behavior == "ContinueRunning")
+        else if (behavior == "StopNone")
         {
             DoSwitch(ws);
             return;
@@ -343,23 +506,22 @@ public sealed class MainViewModel : ObservableObject
         CurrentPage = AppList;
         _eventLog.Record(EventLevel.Info, EventCategory.System, "系統", $"已切換至工作區「{ws.Name}」");
 
-        // FL-14: 自動啟動新工作區的工具
+        // FL-03 N-006: 自動啟動新工作區的工具
         _ = ExecuteAutoStartAsync(ws.Id);
     }
 
-    // FL-14: 依序自動啟動 AutoStart 工具（500ms 間隔）
+    // FL-03 N-006: 依序自動啟動 AutoStart 工具（500ms 間隔）
     private async Task ExecuteAutoStartAsync(string workspaceId)
     {
         await Task.Delay(200);
         foreach (var tool in AppList.GetAutoStartTools())
         {
-            if (tool.Status == AppStatus.Running) continue;
+            if (tool.IsRunning) continue;
             Application.Current?.Dispatcher.Invoke(() =>
             {
                 try
                 {
                     _processService.Start(workspaceId, tool);
-                    tool.Status = AppStatus.Running;
                     tool.LastStarted = DateTime.Now;
                     AppList.AppsView.Refresh();
                     _eventLog.Record(EventLevel.Info, EventCategory.Runtime, tool.Name, "已自動啟動");
@@ -374,7 +536,7 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
-    // FL-16: 應用程式啟動時的工具行為
+    // FL-08 N-002: 應用程式啟動時的工具行為
     private void ExecuteStartupToolBehavior()
     {
         var behavior = _appSettings.Settings.ToolStartupBehavior;
@@ -396,13 +558,12 @@ public sealed class MainViewModel : ObservableObject
         foreach (var id in toolIds)
         {
             var tool = AppList.Apps.FirstOrDefault(t => t.Id == id);
-            if (tool is null || tool.Status == AppStatus.Running) continue;
+            if (tool is null || tool.IsRunning) continue;
             Application.Current?.Dispatcher.Invoke(() =>
             {
                 try
                 {
                     _processService.Start(workspaceId, tool);
-                    tool.Status = AppStatus.Running;
                     tool.LastStarted = DateTime.Now;
                     AppList.AppsView.Refresh();
                 }
@@ -415,7 +576,7 @@ public sealed class MainViewModel : ObservableObject
         }
     }
 
-    // FL-16: 正常關閉時儲存目前執行中工具清單
+    // FL-08 N-002: 正常關閉時儲存目前執行中工具清單
     public void SaveLastRunningTools()
     {
         var ids = AppList.Apps

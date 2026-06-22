@@ -6,6 +6,7 @@ using Microsoft.Win32;
 using Helix_Studio.Data;
 using Helix_Studio.Models;
 using Helix_Studio.Mvvm;
+using Helix_Studio.Services;
 using Helix_Studio.Services.Tools;
 
 namespace Helix_Studio.ViewModels;
@@ -127,13 +128,14 @@ public sealed class AppLibraryViewModel : ViewModelBase
 
     private void Import()
     {
-        var dialog = new OpenFolderDialog { Title = "選擇工具資料夾（須含 tool.json）" };
+        var loc = LocalizationService.Instance;
+        var dialog = new OpenFolderDialog { Title = loc.GetString("L.Dialog.ImportTool") };
         if (dialog.ShowDialog() != true) return;
 
         var manifest = _install.ImportFromFolder(dialog.FolderName);
         if (manifest is null)
         {
-            ImportStatus = "匯入失敗：所選資料夾須包含有效的 tool.json。";
+            ImportStatus = loc.GetString("L.Library.ImportFail");
             return;
         }
 
@@ -144,8 +146,8 @@ public sealed class AppLibraryViewModel : ViewModelBase
         Reload();
         SelectedTool = Tools.FirstOrDefault(t => t.Id == manifest.Id);
         ImportStatus = alreadyInstalled
-            ? $"已匯入並更新：{manifest.Name}（v{manifest.Version}）"
-            : $"已匯入：{manifest.Name}（v{manifest.Version}）";
+            ? loc.Format("L.Library.ImportUpdated", manifest.Name, manifest.Version)
+            : loc.Format("L.Library.ImportDone", manifest.Name, manifest.Version);
 
         if (alreadyInstalled) InstalledChanged?.Invoke();
     }

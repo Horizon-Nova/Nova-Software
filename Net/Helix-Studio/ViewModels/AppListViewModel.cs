@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows.Data;
@@ -135,7 +135,15 @@ public sealed class AppListViewModel : ViewModelBase
     public bool HasSelection => Apps.Any(a => a.IsSelected);
     public bool IsEmpty => Apps.Count == 0;
     public bool HasApps => Apps.Count > 0;
-    public int RunningCount => Apps.Count(a => a.Status == AppStatus.Running);
+    public int RunningCount => Apps.Count(a => a.IsRunning);
+
+    /// <summary>FL-08 N-001: 語言切換後重整清單與詳細面板，使轉換器產生的文字（狀態/相對時間）重新取值。</summary>
+    public void RefreshLocalizedText()
+    {
+        AppsView.Refresh();
+        OnPropertyChanged(nameof(DetailTool));
+        OnPropertyChanged(nameof(DetailToolRecentEvents));
+    }
 
     /// <summary>切換工作區：重新指向新工作區並重建清單。</summary>
     public void SwitchWorkspace(string workspaceId)
@@ -179,7 +187,7 @@ public sealed class AppListViewModel : ViewModelBase
     private bool FilterApp(object obj)
     {
         if (obj is not InstalledTool app) return false;
-        if (_showOnlyRunning && app.Status != AppStatus.Running) return false;
+        if (_showOnlyRunning && !app.IsRunning) return false;
         if (!string.IsNullOrWhiteSpace(_searchText)
             && !app.Name.Contains(_searchText, StringComparison.OrdinalIgnoreCase))
             return false;
@@ -226,11 +234,11 @@ public sealed class AppListViewModel : ViewModelBase
         };
     }
 
-    /// <summary>FL-14: 傳回目前工作區中設定了 AutoStart 的工具清單。</summary>
+    /// <summary>FL-03 N-006: 傳回目前工作區中設定了 AutoStart 的工具清單。</summary>
     public IReadOnlyList<InstalledTool> GetAutoStartTools()
         => Apps.Where(a => a.Settings.AutoStart).ToList();
 
-    /// <summary>FL-15: 儲存拖曳後的新排序到 installed.json。</summary>
+    /// <summary>FL-03 N-007: 儲存拖曳後的新排序到 installed.json。</summary>
     public void SaveCustomOrder()
     {
         var records = _repository.Load(_workspaceId).ToList();
@@ -281,7 +289,7 @@ public sealed class AppListViewModel : ViewModelBase
     {
         if (_detailTool is null) return;
         var tool = _detailTool;
-        if (tool.Status == AppStatus.Running)
+        if (tool.IsRunning)
             StopRequested?.Invoke(tool);   // 先停止，解除程序對工具檔案的鎖定
         _install.Uninstall(_workspaceId, tool.Id);
         DetailTool = null;

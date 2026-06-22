@@ -9,6 +9,7 @@ namespace Helix_Studio.Models;
 public sealed class InstalledTool : ObservableObject
 {
     private AppStatus _status = AppStatus.Stopped;
+    private string _statusMessage = string.Empty;
     private double _cpuPercent;
     private double _memoryMb;
     private DateTime? _lastStarted;
@@ -31,7 +32,14 @@ public sealed class InstalledTool : ObservableObject
         }
     }
 
-    public bool IsRunning => _status == AppStatus.Running;
+    /// <summary>工具回報的補充訊息（如錯誤描述或鎖定原因）。</summary>
+    public string StatusMessage
+    {
+        get => _statusMessage;
+        set => SetProperty(ref _statusMessage, value);
+    }
+
+    public bool IsRunning => _status is AppStatus.Starting or AppStatus.Running;
 
     public double CpuPercent
     {

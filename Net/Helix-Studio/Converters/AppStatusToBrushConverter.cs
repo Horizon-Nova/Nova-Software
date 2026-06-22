@@ -14,9 +14,11 @@ public sealed class AppStatusToBrushConverter : IValueConverter
 {
     private static readonly Dictionary<AppStatus, string> BrushKeys = new()
     {
-        [AppStatus.Running] = "BrushStatusGreen",
-        [AppStatus.Stopped] = "BrushStatusGray",
-        [AppStatus.Error] = "BrushStatusRed",
+        [AppStatus.Stopped]  = "BrushStatusGray",
+        [AppStatus.Starting] = "BrushStatusAmber",
+        [AppStatus.Running]  = "BrushStatusGreen",
+        [AppStatus.Error]    = "BrushStatusRed",
+        [AppStatus.Locked]   = "BrushStatusAmber",
     };
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

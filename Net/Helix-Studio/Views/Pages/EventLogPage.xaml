@@ -61,7 +61,7 @@
         <Style x:Key="CopyIconButtonStyle" TargetType="Button">
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisualNone}"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="ToolTip" Value="複製"/>
+            <Setter Property="ToolTip" Value="{DynamicResource L.Common.Copy}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -106,19 +106,19 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0">
-                    <TextBlock Text="事件日誌"
+                    <TextBlock Text="{DynamicResource L.Nav.Events}"
                                Foreground="{DynamicResource BrushForegroundPrimary}"
                                FontSize="{StaticResource FontSizePageTitle}" FontWeight="SemiBold"/>
-                    <TextBlock Text="檢視系統與應用程式產生的事件記錄。"
+                    <TextBlock Text="{DynamicResource L.EventLog.Subtitle}"
                                Foreground="{DynamicResource BrushForegroundSecondary}"
                                FontSize="{StaticResource FontSizeCaption}" Margin="0,3,0,0"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Button Content="標記全部已讀" Style="{StaticResource SecondaryActionButtonStyle}"
+                    <Button Content="{DynamicResource L.EventLog.MarkAllRead}" Style="{StaticResource SecondaryActionButtonStyle}"
                             Command="{Binding MarkAllReadCommand}"/>
-                    <Button Content="匯出…" Style="{StaticResource SecondaryActionButtonStyle}"
+                    <Button Content="{DynamicResource L.EventLog.Export}" Style="{StaticResource SecondaryActionButtonStyle}"
                             Margin="8,0,0,0" Command="{Binding ExportCommand}"/>
-                    <Button Content="清除" Style="{StaticResource SecondaryActionButtonStyle}"
+                    <Button Content="{DynamicResource L.EventLog.Clear}" Style="{StaticResource SecondaryActionButtonStyle}"
                             Margin="8,0,0,0" Command="{Binding ClearCommand}"/>
                 </StackPanel>
             </Grid>
@@ -139,30 +139,30 @@
                     </Grid.ColumnDefinitions>
                     <!-- 類別 -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="類別" FontSize="{StaticResource FontSizeCaption}"
+                        <TextBlock Text="{DynamicResource L.EventLog.CategoryLabel}" FontSize="{StaticResource FontSizeCaption}"
                                    Foreground="{DynamicResource BrushForegroundMuted}"
                                    VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <RadioButton Style="{StaticResource FilterChipStyle}" GroupName="EventCategory" Content="全部" IsChecked="True"
+                        <RadioButton Style="{StaticResource FilterChipStyle}" GroupName="EventCategory" Content="{DynamicResource L.Common.All}" IsChecked="True"
                                      Command="{Binding SetCategoryCommand}" CommandParameter="all"/>
-                        <RadioButton Style="{StaticResource FilterChipStyle}" GroupName="EventCategory" Content="系統"
+                        <RadioButton Style="{StaticResource FilterChipStyle}" GroupName="EventCategory" Content="{DynamicResource L.Event.Category.System}"
                                      Command="{Binding SetCategoryCommand}" CommandParameter="system"/>
-                        <RadioButton Style="{StaticResource FilterChipStyle}" GroupName="EventCategory" Content="安裝"
+                        <RadioButton Style="{StaticResource FilterChipStyle}" GroupName="EventCategory" Content="{DynamicResource L.Event.Category.Install}"
                                      Command="{Binding SetCategoryCommand}" CommandParameter="install"/>
-                        <RadioButton Style="{StaticResource FilterChipStyle}" GroupName="EventCategory" Content="執行" Margin="0"
+                        <RadioButton Style="{StaticResource FilterChipStyle}" GroupName="EventCategory" Content="{DynamicResource L.Event.Category.Runtime}" Margin="0"
                                      Command="{Binding SetCategoryCommand}" CommandParameter="runtime"/>
                     </StackPanel>
                     <!-- 等級 -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="等級" FontSize="{StaticResource FontSizeCaption}"
+                        <TextBlock Text="{DynamicResource L.EventLog.LevelLabel}" FontSize="{StaticResource FontSizeCaption}"
                                    Foreground="{DynamicResource BrushForegroundMuted}"
                                    VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <RadioButton Style="{StaticResource FilterChipStyle}" Content="全部" IsChecked="True"
+                        <RadioButton Style="{StaticResource FilterChipStyle}" Content="{DynamicResource L.Common.All}" IsChecked="True"
                                      Command="{Binding SetLevelCommand}" CommandParameter="all"/>
-                        <RadioButton Style="{StaticResource FilterChipStyle}" Content="資訊"
+                        <RadioButton Style="{StaticResource FilterChipStyle}" Content="{DynamicResource L.Event.Level.Info}"
                                      Command="{Binding SetLevelCommand}" CommandParameter="info"/>
-                        <RadioButton Style="{StaticResource FilterChipStyle}" Content="警告"
+                        <RadioButton Style="{StaticResource FilterChipStyle}" Content="{DynamicResource L.Event.Level.Warning}"
                                      Command="{Binding SetLevelCommand}" CommandParameter="warning"/>
-                        <RadioButton Style="{StaticResource FilterChipStyle}" Content="錯誤" Margin="0"
+                        <RadioButton Style="{StaticResource FilterChipStyle}" Content="{DynamicResource L.Event.Level.Error}" Margin="0"
                                      Command="{Binding SetLevelCommand}" CommandParameter="error"/>
                     </StackPanel>
                 </Grid>

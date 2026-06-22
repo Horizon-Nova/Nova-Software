@@ -54,14 +54,16 @@ public sealed class SystemTrayService : IDisposable
     private Window? _window;
     private bool _suppressClose;
     private ContextMenu? _contextMenu;
+    private readonly AppSettingsService _appSettings;
 
     public event Action? RestoreRequested;
     public event Action? ExitRequested;
     public event Action<string>? QuickLaunchRequested;
     public event Action<string>? QuickStopRequested;
 
-    public SystemTrayService(ToolProcessService processService)
+    public SystemTrayService(ToolProcessService processService, AppSettingsService appSettings)
     {
+        _appSettings = appSettings;
         var hp = new HwndSourceParameters("HelixTrayMsg")
         {
             WindowStyle = 0,
@@ -115,7 +117,7 @@ public sealed class SystemTrayService : IDisposable
     public void UpdateTooltip(int runningCount)
     {
         _nid.szTip = runningCount > 0
-            ? $"Helix Studio — {runningCount} 個工具執行中"
+            ? LocalizationService.Instance.Format("L.Tray.TooltipRunning", runningCount)
             : "Helix Studio";
         if (_iconAdded) Shell_NotifyIcon(NIM_MODIFY, ref _nid);
     }
@@ -124,7 +126,7 @@ public sealed class SystemTrayService : IDisposable
     {
         var menu = new ContextMenu();
 
-        var showItem = new MenuItem { Header = "顯示 Helix Studio" };
+        var showItem = new MenuItem { Header = LocalizationService.Instance.GetString("L.Tray.Show") };
         showItem.Click += (_, _) => RestoreRequested?.Invoke();
         menu.Items.Add(showItem);
         menu.Items.Add(new Separator());
@@ -143,7 +145,7 @@ public sealed class SystemTrayService : IDisposable
         }
 
         menu.Items.Add(new Separator());
-        var exitItem = new MenuItem { Header = "退出 Helix Studio" };
+        var exitItem = new MenuItem { Header = LocalizationService.Instance.GetString("L.Tray.Exit") };
         exitItem.Click += (_, _) => ExitRequested?.Invoke();
         menu.Items.Add(exitItem);
 
@@ -195,6 +197,7 @@ public sealed class SystemTrayService : IDisposable
     private void OnWindowClosing(object? sender, CancelEventArgs e)
     {
         if (_suppressClose) return;
+        if (!_appSettings.Settings.CloseToTray) return;
         e.Cancel = true;
         MinimizeToTray();
     }

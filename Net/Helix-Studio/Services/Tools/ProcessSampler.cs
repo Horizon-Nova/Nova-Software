@@ -77,28 +77,28 @@ public sealed class ProcessSampler
         var s = _appSettings.Settings;
         if (!s.ToolLevelAlertsEnabled) return;
 
-        var cpuThreshold = s.CpuAlertThreshold * 0.5;
-        var memThreshold = s.MemoryAlertEnabled
-            ? s.MemoryAlertThreshold * 0.5
-            : 50.0;
-
         _toolAlertCooldown.TryGetValue(toolId, out var lastAlert);
         if ((now - lastAlert).TotalSeconds < 60) return;
 
-        if (cpuPercent > cpuThreshold)
+        if (s.CpuAlertEnabled)
         {
-            _toolAlertCooldown[toolId] = now;
-            _eventLog.Record(EventLevel.Warning, EventCategory.Runtime, toolName,
-                $"CPU 使用率超過警報閾值（目前：{cpuPercent:F1}%，閾值：{cpuThreshold:F0}%）");
-            return;
+            var cpuThreshold = s.CpuAlertThreshold * 0.5;
+            if (cpuPercent > cpuThreshold)
+            {
+                _toolAlertCooldown[toolId] = now;
+                _eventLog.Record(EventLevel.Warning, EventCategory.Runtime, toolName,
+                    $"CPU 使用率超過警報閾值（目前：{cpuPercent:F1}%，閾值：{cpuThreshold:F0}%）");
+                return;
+            }
         }
 
-        if (memoryMb > 0)
+        if (s.MemoryAlertEnabled && memoryMb > 0)
         {
-            var stats = GetSystemMemoryTotalMb();
-            if (stats > 0)
+            var totalMb = GetSystemMemoryTotalMb();
+            if (totalMb > 0)
             {
-                var memPercent = memoryMb / stats * 100.0;
+                var memThreshold = s.MemoryAlertThreshold * 0.5;
+                var memPercent = memoryMb / totalMb * 100.0;
                 if (memPercent > memThreshold)
                 {
                     _toolAlertCooldown[toolId] = now;

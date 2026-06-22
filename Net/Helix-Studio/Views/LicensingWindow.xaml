@@ -1,0 +1,95 @@
+<Window x:Class="Helix_Studio.Views.LicensingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:Helix_Studio.ViewModels"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance vm:LicensingViewModel}"
+        Title="{DynamicResource L.License.Title}"
+        Width="480" Height="300"
+        MinWidth="400" MinHeight="260"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        Background="{DynamicResource BrushShellBar}"
+        FontFamily="Segoe UI, Microsoft JhengHei UI"
+        FontSize="13"
+        Foreground="{DynamicResource BrushForegroundPrimary}"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
+
+    <Grid Margin="36,28,36,28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="10"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="18"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="6"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 標題 -->
+        <TextBlock Grid.Row="0"
+                   Text="{DynamicResource L.License.Title}"
+                   FontSize="17"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource BrushForegroundPrimary}"/>
+
+        <!-- 說明文字 -->
+        <TextBlock Grid.Row="2"
+                   TextWrapping="Wrap"
+                   LineHeight="19"
+                   Foreground="{DynamicResource BrushForegroundSecondary}">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Text" Value="{DynamicResource L.License.Description}"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsRebind}" Value="True">
+                            <Setter Property="Text" Value="{DynamicResource L.License.RebindDesc}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource BrushStatusAmber}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+
+        <!-- 金鑰輸入（PasswordBox 隱藏內容，code-behind 轉發至 VM） -->
+        <PasswordBox Grid.Row="4"
+                     x:Name="KeyBox"
+                     Height="34"
+                     Padding="10,0"
+                     BorderBrush="{DynamicResource BrushBorderMedium}"
+                     BorderThickness="1"
+                     Background="{DynamicResource BrushSurface}"
+                     Foreground="{DynamicResource BrushForegroundPrimary}"
+                     CaretBrush="{DynamicResource BrushForegroundPrimary}"
+                     VerticalContentAlignment="Center"
+                     IsEnabled="{Binding IsInputEnabled}"
+                     PasswordChanged="KeyBox_PasswordChanged"/>
+
+        <!-- 錯誤訊息 -->
+        <TextBlock Grid.Row="6"
+                   Text="{Binding ErrorMessage}"
+                   TextWrapping="Wrap"
+                   FontSize="11.5"
+                   Foreground="{DynamicResource BrushStatusRed}"
+                   Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}"/>
+
+        <!-- 驗證按鈕 -->
+        <Button Grid.Row="8"
+                HorizontalAlignment="Right"
+                Width="96" Height="32"
+                Content="{Binding VerifyButtonText}"
+                IsDefault="True"
+                IsEnabled="{Binding IsInputEnabled}"
+                Command="{Binding VerifyCommand}"
+                Background="{DynamicResource BrushBrand}"
+                Foreground="{DynamicResource BrushTextOnDark}"
+                BorderThickness="0"
+                Cursor="Hand"
+                Padding="0"/>
+    </Grid>
+</Window>

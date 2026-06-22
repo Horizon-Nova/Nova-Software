@@ -42,4 +42,7 @@ public static class AppPathProvider
 
     /// <summary>應用程式設定檔（app-settings.json）。</summary>
     public static string AppSettingsFile => Path.Combine(Home, "app-settings.json");
+
+    /// <summary>L1 平台授權金鑰檔（license.json）。</summary>
+    public static string LicenseFile => Path.Combine(Home, "license.json");
 }

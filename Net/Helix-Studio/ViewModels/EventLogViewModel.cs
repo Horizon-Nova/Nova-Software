@@ -1,4 +1,4 @@
-using System.Collections.Specialized;
+﻿using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Text;
@@ -36,18 +36,18 @@ public sealed class EventLogViewModel : ViewModelBase
         ["runtime"] = EventCategory.Runtime,
     };
 
-    private static readonly Dictionary<EventLevel, string> LevelText = new()
+    private static readonly Dictionary<EventLevel, string> LevelKey = new()
     {
-        [EventLevel.Info] = "資訊",
-        [EventLevel.Warning] = "警告",
-        [EventLevel.Error] = "錯誤",
+        [EventLevel.Info] = "L.Event.Level.Info",
+        [EventLevel.Warning] = "L.Event.Level.Warning",
+        [EventLevel.Error] = "L.Event.Level.Error",
     };
 
-    private static readonly Dictionary<EventCategory, string> CategoryText = new()
+    private static readonly Dictionary<EventCategory, string> CategoryKey = new()
     {
-        [EventCategory.System] = "系統",
-        [EventCategory.Install] = "安裝",
-        [EventCategory.Runtime] = "執行",
+        [EventCategory.System] = "L.Event.Category.System",
+        [EventCategory.Install] = "L.Event.Category.Install",
+        [EventCategory.Runtime] = "L.Event.Category.Runtime",
     };
 
     public override string PageKey => "events";
@@ -153,8 +153,8 @@ public sealed class EventLogViewModel : ViewModelBase
     {
         var dialog = new SaveFileDialog
         {
-            Title = "匯出事件日誌",
-            Filter = "文字檔 (*.txt)|*.txt",
+            Title = LocalizationService.Instance.GetString("L.Dialog.ExportEventLog"),
+            Filter = LocalizationService.Instance.GetString("L.Dialog.ExportEventLogFilter"),
             FileName = "helix-eventlog.txt",
         };
         if (dialog.ShowDialog() != true) return;
@@ -163,10 +163,14 @@ public sealed class EventLogViewModel : ViewModelBase
         File.WriteAllLines(dialog.FileName, lines, Encoding.UTF8);
     }
 
+    /// <summary>FL-08 N-001: 語言切換後重整清單，使轉換器產生的類別/等級/相對時間文字重新取值。</summary>
+    public void RefreshLocalizedText() => EntriesView.Refresh();
+
     private static string Format(EventLogEntry e)
     {
-        var level = LevelText.GetValueOrDefault(e.Level, e.Level.ToString());
-        var category = CategoryText.GetValueOrDefault(e.Category, e.Category.ToString());
+        var loc = LocalizationService.Instance;
+        var level = LevelKey.TryGetValue(e.Level, out var lk) ? loc.GetString(lk) : e.Level.ToString();
+        var category = CategoryKey.TryGetValue(e.Category, out var ck) ? loc.GetString(ck) : e.Category.ToString();
         return $"[{e.Timestamp:yyyy-MM-dd HH:mm:ss}] [{level}] [{category}] {e.Source}: {e.Message}";
     }
 }

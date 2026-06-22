@@ -49,15 +49,15 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0">
-                    <TextBlock Text="應用程式庫"
+                    <TextBlock Text="{DynamicResource L.Nav.Library}"
                                Foreground="{DynamicResource BrushForegroundPrimary}"
                                FontSize="{StaticResource FontSizePageTitle}" FontWeight="SemiBold"/>
-                    <TextBlock Text="瀏覽推薦工具並安裝到目前工作區。"
+                    <TextBlock Text="{DynamicResource L.Library.Subtitle}"
                                Foreground="{DynamicResource BrushForegroundSecondary}"
                                FontSize="{StaticResource FontSizeCaption}" Margin="0,3,0,0"/>
                 </StackPanel>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
-                    <Button Content="匯入工具…" HorizontalAlignment="Right"
+                    <Button Content="{DynamicResource L.Library.Import}" HorizontalAlignment="Right"
                             Style="{StaticResource SecondaryActionButtonStyle}"
                             Command="{Binding ImportCommand}"/>
                     <TextBlock Text="{Binding ImportStatus}" FontSize="{StaticResource FontSizeSmall}"
@@ -140,7 +140,7 @@
                         </StackPanel>
                         <!-- 安裝 / 解除安裝 -->
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <Button Content="安裝"
+                            <Button Content="{DynamicResource L.Common.Install}"
                                     Command="{Binding DataContext.InstallCommand, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
                                     CommandParameter="{Binding}">
                                 <Button.Style>
@@ -153,7 +153,7 @@
                                     </Style>
                                 </Button.Style>
                             </Button>
-                            <Button Content="解除安裝" Style="{StaticResource DangerActionButtonStyle}"
+                            <Button Content="{DynamicResource L.Common.Uninstall}" Style="{StaticResource DangerActionButtonStyle}"
                                     Command="{Binding DataContext.UninstallCommand, RelativeSource={RelativeSource AncestorType=ScrollViewer}}"
                                     CommandParameter="{Binding}"
                                     Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVisibility}}"/>
@@ -163,7 +163,7 @@
                     <!-- 權限預告：安裝前告知所需權限 -->
                     <Border Background="{DynamicResource BrushSurface}" CornerRadius="6" Padding="12,8" Margin="0,16,0,0"
                             Visibility="{Binding Manifest.RequiresAdmin, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="此工具需要系統管理員權限；套用其變更時會出現 Windows 使用者帳戶控制（UAC）提示。"
+                        <TextBlock Text="{DynamicResource L.Library.UacWarning}"
                                    FontSize="{StaticResource FontSizeCaption}" TextWrapping="Wrap"
                                    Foreground="{DynamicResource BrushStatusAmber}"/>
                     </Border>
@@ -171,14 +171,14 @@
                     <Rectangle Height="1" Fill="{DynamicResource BrushShellSeparator}" Margin="0,18"/>
 
                     <!-- 詳細介紹 -->
-                    <TextBlock Text="詳細介紹" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold"
+                    <TextBlock Text="{DynamicResource L.Library.Description}" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold"
                                Foreground="{DynamicResource BrushForegroundSecondary}"/>
                     <TextBlock Text="{Binding Manifest.Description}" FontSize="{StaticResource FontSizeBody}" TextWrapping="Wrap"
                                LineHeight="22" Foreground="{DynamicResource BrushForegroundPrimary}"
                                Margin="0,8,0,0"/>
 
                     <!-- 執行資訊 -->
-                    <TextBlock Text="執行資訊" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold"
+                    <TextBlock Text="{DynamicResource L.Library.RunInfo}" FontSize="{StaticResource FontSizeBody}" FontWeight="SemiBold"
                                Foreground="{DynamicResource BrushForegroundSecondary}" Margin="0,20,0,8"/>
                     <Border Background="{DynamicResource BrushSurface}" CornerRadius="8" Padding="14,10">
                         <StackPanel>
@@ -187,7 +187,7 @@
                                     <ColumnDefinition Width="110"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Grid.Column="0" Text="進入點" FontSize="{StaticResource FontSizeCaption}"
+                                <TextBlock Grid.Column="0" Text="{DynamicResource L.Library.EntryPoint}" FontSize="{StaticResource FontSizeCaption}"
                                            Foreground="{DynamicResource BrushForegroundSecondary}"/>
                                 <TextBlock Grid.Column="1" Text="{Binding Manifest.Entry}" FontSize="{StaticResource FontSizeCaption}"
                                            Foreground="{DynamicResource BrushForegroundPrimary}" FontFamily="Consolas"/>
