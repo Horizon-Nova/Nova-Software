@@ -1,0 +1,440 @@
+<UserControl x:Class="Vaeron.HelixStudio.Features.AppsManagement.AppsManagementView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Vaeron.HelixStudio.Features.AppsManagement"
+             xmlns:components="clr-namespace:Vaeron.HelixStudio.Components"
+             Loaded="OnLoaded" Unloaded="OnUnloaded">
+    <UserControl.Resources>
+        <local:ToolStateToTextConverter x:Key="StateToText" />
+        <local:ToolStateToBrushConverter x:Key="StateToBrush" />
+        <local:ToolStateToSolidBrushConverter x:Key="StateToSolidBrush" />
+        <local:ToolStateToTextBrushConverter x:Key="StateToTextBrush" />
+        <local:ToolStateToActionButtonStyleConverter x:Key="StateToActionButtonStyle" />
+        <local:RunningToStartStopLabelConverter x:Key="StartStopLabel" />
+        <local:ToolStateToggleEnabledMultiConverter x:Key="StateToggleEnabledMulti" />
+        <local:RunningToRemoveTooltipConverter x:Key="RunningToRemoveTooltip" />
+        <local:ToolStateToRetryTooltipConverter x:Key="StateToRetryTooltip" />
+        <local:BoolToDetailButtonStyleConverter x:Key="BoolToDetailButtonStyle" />
+        <local:BoolToFlashBrushConverter x:Key="BoolToFlashBrush" />
+        <local:LockedToOpacityConverter x:Key="LockedToOpacityConverter" />
+        <local:LastStartedToDisplayConverter x:Key="LastStartedToDisplay" />
+        <local:UnlockCountdownConverter x:Key="UnlockCountdown" />
+        <local:StringEqualsVisibilityConverter x:Key="StringEqualsVisibilityConverter" />
+    </UserControl.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="已安裝工具" Style="{StaticResource BaseTextStyle}"
+                   FontSize="{StaticResource FontSizeH1}" FontWeight="Bold" Margin="0,0,0,8" />
+
+        <!-- 對齊 blueprint：搜尋框／重新整理靠左，只顯示執行中靠右——中間用 * 欄位撐開，
+             不是像之前那樣兩者緊貼在一起、右側留一大片空白。 -->
+        <Grid Grid.Row="1" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Style="{StaticResource CardBorderStyle}" Width="240" Height="{StaticResource ControlHeightMd}" Padding="8,0">
+                <DockPanel>
+                    <components:IconGlyph DockPanel.Dock="Left" IconData="{StaticResource IconSearchGeometry}"
+                                          Width="13" Height="13" Foreground="{DynamicResource Text3Brush}" Margin="0,0,6,0" />
+                    <Grid>
+                        <!-- 空搜尋框沒有任何線索告訴使用者要打什麼——這裡不走共用的
+                             AppTextBoxStyle Template（這顆 TextBox 本身就是客製透明背景，
+                             不套那個樣式），直接疊一層提示文字，Text 為空時才顯示。 -->
+                        <TextBlock Text="搜尋工具名稱" VerticalAlignment="Center" IsHitTestVisible="False"
+                                   Foreground="{DynamicResource Text3Brush}"
+                                   FontFamily="{StaticResource AppFontFamily}" FontSize="{StaticResource FontSizeBody}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SearchText}" Value="">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <TextBox x:Name="SearchBox" BorderThickness="0" Background="Transparent" VerticalContentAlignment="Center"
+                                 FontFamily="{StaticResource AppFontFamily}" FontSize="{StaticResource FontSizeBody}"
+                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+                </DockPanel>
+            </Border>
+            <Button Grid.Column="1" Style="{StaticResource IconButtonStyle}" Margin="8,0,0,0"
+                    Command="{Binding ApplyReloadCommand}" ToolTip="重新載入資料">
+                <components:IconGlyph IconData="{StaticResource IconRefreshCwGeometry}" Width="14" Height="14" />
+            </Button>
+
+            <StackPanel Grid.Column="3" Orientation="Horizontal">
+                <ToggleButton Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding ShowOnlyRunning}" />
+                <TextBlock Text="只顯示執行中" VerticalAlignment="Center" Margin="8,0,0,0"
+                           Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text2Brush}" FontWeight="SemiBold" />
+            </StackPanel>
+        </Grid>
+
+        <!-- 單一表格容器：一個外框＋sticky 表頭＋列與列之間細分隔線，對齊
+             blueprint AppsScreen.dc.html 的表格語彙，不是先前那種各自獨立卡片＋間距的清單。 -->
+        <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Background="{DynamicResource BgSidebarBrush}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="4" />
+                        <ColumnDefinition Width="66" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="58" />
+                        <ColumnDefinition Width="66" />
+                        <ColumnDefinition Width="92" />
+                        <ColumnDefinition Width="180" />
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.ColumnSpan="7" BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="0,0,0,1" />
+                    <TextBlock Grid.Column="1" Text="狀態" Margin="8,9" Style="{StaticResource BaseTextStyle}"
+                               FontSize="{StaticResource FontSizeXs}" FontWeight="Bold" Foreground="{DynamicResource Text2Brush}" />
+                    <TextBlock Grid.Column="2" Text="名稱" Margin="8,9" Style="{StaticResource BaseTextStyle}"
+                               FontSize="{StaticResource FontSizeXs}" FontWeight="Bold" Foreground="{DynamicResource Text2Brush}" />
+                    <TextBlock Grid.Column="3" Text="CPU" Margin="0,9" Style="{StaticResource BaseTextStyle}"
+                               FontSize="{StaticResource FontSizeXs}" FontWeight="Bold" Foreground="{DynamicResource Text2Brush}" />
+                    <TextBlock Grid.Column="4" Text="記憶體" Margin="0,9" Style="{StaticResource BaseTextStyle}"
+                               FontSize="{StaticResource FontSizeXs}" FontWeight="Bold" Foreground="{DynamicResource Text2Brush}" />
+                    <TextBlock Grid.Column="5" Text="上次啟動" Margin="0,9" Style="{StaticResource BaseTextStyle}"
+                               FontSize="{StaticResource FontSizeXs}" FontWeight="Bold" Foreground="{DynamicResource Text2Brush}" />
+                    <TextBlock Grid.Column="6" Text="操作" Margin="0,9,12,9" HorizontalAlignment="Right"
+                               Style="{StaticResource BaseTextStyle}" FontSize="{StaticResource FontSizeXs}"
+                               FontWeight="Bold" Foreground="{DynamicResource Text2Brush}" />
+                </Grid>
+
+                <Grid Grid.Row="1">
+                    <!-- 骨架屏：首次載入或篩選 debounce 期間顯示，取代先前純文字「載入中…」，
+                         對齊 blueprint appsSkeletonItems 的跳動色塊列版面。 -->
+                    <ItemsControl ItemsSource="{Binding SkeletonPlaceholders}"
+                                  Visibility="{Binding ShowSkeleton, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid MinHeight="38">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="4" />
+                                        <ColumnDefinition Width="66" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="58" />
+                                        <ColumnDefinition Width="66" />
+                                        <ColumnDefinition Width="92" />
+                                        <ColumnDefinition Width="180" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.ColumnSpan="7" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,0,0,1" VerticalAlignment="Bottom" />
+                                    <Border Grid.Column="1" Style="{StaticResource SkeletonBarStyle}" Width="46" Height="15" HorizontalAlignment="Left" Margin="8,0,0,0" />
+                                    <Border Grid.Column="2" Style="{StaticResource SkeletonBarStyle}" Width="140" Height="12" HorizontalAlignment="Left" Margin="8,0,12,0" />
+                                    <Border Grid.Column="3" Style="{StaticResource SkeletonBarStyle}" Width="30" Height="11" HorizontalAlignment="Left" />
+                                    <Border Grid.Column="4" Style="{StaticResource SkeletonBarStyle}" Width="40" Height="11" HorizontalAlignment="Left" />
+                                    <Border Grid.Column="5" Style="{StaticResource SkeletonBarStyle}" Width="56" Height="11" HorizontalAlignment="Left" />
+                                    <StackPanel Grid.Column="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,12,0">
+                                        <Border Style="{StaticResource SkeletonBarStyle}" Width="44" Height="{StaticResource ControlHeightSm}" Margin="0,0,6,0" />
+                                        <Border Style="{StaticResource SkeletonBarStyle}" Width="44" Height="{StaticResource ControlHeightSm}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- 第一次載入完成前不顯示「沒有符合條件」，避免使用者誤以為真的沒有工具——
+                         對齊 blueprint appsLoading 判準，ShowEmptyState 已經合一判斷過。 -->
+                    <TextBlock Text="沒有符合條件的工具" Style="{StaticResource BaseTextStyle}"
+                               Foreground="{DynamicResource Text2Brush}" HorizontalAlignment="Center" Margin="0,24,0,0"
+                               Visibility="{Binding ShowEmptyState, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                    <!-- 清單自己捲動，不外包 ScrollViewer（usage-patterns.md：外層 ScrollViewer
+                         會讓虛擬化失效）；ListBox 的預設選取視覺整個拿掉，讓每列看起來是表格列
+                         而不是可選取的清單項目——這份清單本身就靠列內按鈕操作，不需要選取態。 -->
+                    <ListBox ItemsSource="{Binding Tools}" BorderThickness="0" Background="Transparent"
+                             ScrollViewer.CanContentScroll="True"
+                             Visibility="{Binding ShowSkeleton, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Padding" Value="0" />
+                                <Setter Property="Focusable" Value="False" />
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ListBoxItem">
+                                            <ContentPresenter />
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <Grid Background="{Binding IsFlashed, Converter={StaticResource BoolToFlashBrush}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="4" />
+                                            <ColumnDefinition Width="66" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="58" />
+                                            <ColumnDefinition Width="66" />
+                                            <ColumnDefinition Width="92" />
+                                            <ColumnDefinition Width="180" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.ColumnSpan="7" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,0,0,1" VerticalAlignment="Bottom" />
+
+                                        <!-- 每列左側 4px 狀態色條，對齊 blueprint AppsScreen.dc.html -->
+                                        <Border Grid.Column="0" Background="{Binding Tool.State, Converter={StaticResource StateToSolidBrush}}" />
+
+                                        <!-- 只要涉及資料變動都統一用骨架動畫——對齊 blueprint 的 pendingNames：
+                                             啟動/停止/移除操作進行中時，狀態／CPU／記憶體／上次啟動／操作欄
+                                             整組換成跳動骨架色塊，不是只靠按鈕變灰這種表層提示；名稱欄不算
+                                             「這次操作變動的資料」，維持顯示真實文字，對齊 blueprint 同一慣例。 -->
+                                        <Border Grid.Column="1" Style="{StaticResource SkeletonBarStyle}" Width="46" Height="15"
+                                                HorizontalAlignment="Left" Margin="8,0,0,0"
+                                                Visibility="{Binding IsPending, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <Border Grid.Column="1" Background="{Binding Tool.State, Converter={StaticResource StateToBrush}}"
+                                                CornerRadius="999" Padding="7,3" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0"
+                                                Visibility="{Binding IsPending, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                            <TextBlock Text="{Binding Tool.State, Converter={StaticResource StateToText}}"
+                                                       Foreground="{Binding Tool.State, Converter={StaticResource StateToTextBrush}}"
+                                                       FontSize="{StaticResource FontSize2Xs}" FontWeight="Bold" />
+                                        </Border>
+
+                                        <TextBlock Grid.Column="2" Text="{Binding Tool.Name}" VerticalAlignment="Center"
+                                                   Style="{StaticResource BaseTextStyle}" Margin="8,8" FontWeight="SemiBold"
+                                                   TextTrimming="CharacterEllipsis" />
+
+                                        <Border Grid.Column="3" Style="{StaticResource SkeletonBarStyle}" Width="30" Height="11" HorizontalAlignment="Left"
+                                                Visibility="{Binding IsPending, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <TextBlock Grid.Column="3" Text="{Binding Tool.CpuPercent, StringFormat={}{0:F1}%}"
+                                                   VerticalAlignment="Center" Style="{StaticResource BaseTextStyle}"
+                                                   Foreground="{DynamicResource Text2Brush}" Margin="0,8"
+                                                   Visibility="{Binding IsPending, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+
+                                        <Border Grid.Column="4" Style="{StaticResource SkeletonBarStyle}" Width="40" Height="11" HorizontalAlignment="Left"
+                                                Visibility="{Binding IsPending, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <TextBlock Grid.Column="4" Text="{Binding Tool.MemoryMb, StringFormat={}{0:F0} MB}"
+                                                   VerticalAlignment="Center" Style="{StaticResource BaseTextStyle}"
+                                                   Foreground="{DynamicResource Text2Brush}" Margin="0,8"
+                                                   Visibility="{Binding IsPending, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+
+                                        <Border Grid.Column="5" Style="{StaticResource SkeletonBarStyle}" Width="56" Height="11" HorizontalAlignment="Left"
+                                                Visibility="{Binding IsPending, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <TextBlock Grid.Column="5" Text="{Binding Tool.LastStarted, Converter={StaticResource LastStartedToDisplay}}"
+                                                   VerticalAlignment="Center" Style="{StaticResource BaseTextStyle}"
+                                                   Foreground="{DynamicResource Text2Brush}" FontSize="{StaticResource FontSizeSm}" Margin="0,8"
+                                                   Visibility="{Binding IsPending, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+
+                                        <StackPanel Grid.Column="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,12,6"
+                                                    Visibility="{Binding IsPending, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <Border Style="{StaticResource SkeletonBarStyle}" Width="44" Height="{StaticResource ControlHeightSm}" Margin="0,0,6,0" />
+                                            <Border Style="{StaticResource SkeletonBarStyle}" Width="44" Height="{StaticResource ControlHeightSm}" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,12,6"
+                                                    Visibility="{Binding IsPending, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                            <Button Content="詳細"
+                                                    Style="{Binding IsExpanded, Converter={StaticResource BoolToDetailButtonStyle}}"
+                                                    Command="{Binding DataContext.ApplyToggleExpandCommand,
+                                                              RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                    CommandParameter="{Binding Tool}" Margin="0,0,4,0" />
+                                            <!-- IsEnabled 合一兩個條件：狀態不是 Error、指令目前沒有其他列在執行
+                                                 中（見 ToolStateToggleEnabledMultiConverter），避免同一顆按鈕在
+                                                 非同步操作還沒跑完時被連續點擊。 -->
+                                            <Button Content="{Binding Tool, Converter={StaticResource StartStopLabel}}"
+                                                    Style="{Binding Tool.State, Converter={StaticResource StateToActionButtonStyle}}"
+                                                    ToolTip="{Binding Tool.State, Converter={StaticResource StateToRetryTooltip}}"
+                                                    Command="{Binding DataContext.ApplyToggleStartStopCommand,
+                                                              RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                    CommandParameter="{Binding Tool}" Margin="0,0,4,0">
+                                                <Button.IsEnabled>
+                                                    <MultiBinding Converter="{StaticResource StateToggleEnabledMulti}">
+                                                        <Binding Path="Tool.State" />
+                                                        <Binding Path="DataContext.ApplyToggleStartStopCommand.IsRunning"
+                                                                 RelativeSource="{RelativeSource AncestorType=ListBox}" />
+                                                    </MultiBinding>
+                                                </Button.IsEnabled>
+                                            </Button>
+                                            <!-- 執行中無法移除的 ToolTip 之前漏掉——啟動/停止按鈕有對應提示，
+                                                 這顆卻沒有，使用者不知道為什麼按鈕變灰。 -->
+                                            <Button Content="移除" Style="{StaticResource DangerOutlineButtonStyle}"
+                                                    IsEnabled="{Binding Tool.IsRunning, Converter={StaticResource InverseBoolConverter},
+                                                                FallbackValue=True}"
+                                                    ToolTip="{Binding Tool.IsRunning, Converter={StaticResource RunningToRemoveTooltip}}"
+                                                    Command="{Binding DataContext.ApplyRemoveCommand,
+                                                              RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                    CommandParameter="{Binding Tool}" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- 該列下方 inline 展開，摘要／設定 兩個 tab -->
+                                    <Border Padding="12" Background="{DynamicResource BgSidebarBrush}"
+                                            BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0,0,0,1"
+                                            Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <StackPanel DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ListBox}}">
+                                            <!-- 摘要／設定分頁——對齊 blueprint 兩層底線：整條 tab 列容器本身有
+                                                 一條 border-bottom（BorderBrush2，分隔 tab 列跟下方內容），選中的
+                                                 那顆 tab 另外疊自己的 2px accent 底線——先前只做了後者，漏了前者，
+                                                 整條 tab 列下面應該要有一條底線，不是只有選中的字下面有。 -->
+                                            <Border BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="0,0,0,1" Margin="0,0,0,8">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Content="摘要"
+                                                        Command="{Binding ApplySelectTabCommand}" CommandParameter="summary">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource TabButtonStyle}">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding ExpandedTab}" Value="summary">
+                                                                    <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+                                                                    <Setter Property="BorderBrush" Value="{DynamicResource AccentSolidBrush}" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
+                                                <Button Content="設定" Margin="16,0,0,0"
+                                                        Command="{Binding ApplySelectTabCommand}" CommandParameter="settings">
+                                                    <Button.Style>
+                                                        <Style TargetType="Button" BasedOn="{StaticResource TabButtonStyle}">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding ExpandedTab}" Value="settings">
+                                                                    <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+                                                                    <Setter Property="BorderBrush" Value="{DynamicResource AccentSolidBrush}" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Button.Style>
+                                                </Button>
+                                            </StackPanel>
+                                            </Border>
+
+                                            <!-- 摘要 tab——對齊 blueprint 的兩欄 grid（56px 標籤欄＋內容欄），
+                                                 只有「開發者」「描述」兩列，沒有版本欄位，不是段落文字＋
+                                                 冒號拼接的寫法。 -->
+                                            <Grid Visibility="{Binding ExpandedTab, ConverterParameter=summary, Converter={StaticResource StringEqualsVisibilityConverter}}">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="56" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
+                                                <TextBlock Grid.Row="0" Grid.Column="0" Text="開發者" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text2Brush}" Margin="0,0,0,8" />
+                                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ExpandedTool.Developer, Mode=OneWay}" Style="{StaticResource BaseTextStyle}" Margin="0,0,0,8" />
+                                                <TextBlock Grid.Row="1" Grid.Column="0" Text="描述" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text2Brush}" />
+                                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ExpandedTool.Description}" Style="{StaticResource BaseTextStyle}" TextWrapping="Wrap" />
+                                            </Grid>
+
+                                            <!-- 設定 tab——對齊 blueprint 的 max-width:320px：欄位區塊限制窄寬度，
+                                                 開關緊貼在標籤右邊，不是先前那種讓 * 欄位撐到整張表格寬度、
+                                                 開關被推到最右邊、離標籤幾百像素遠的寫法。 -->
+                                            <StackPanel MaxWidth="320" HorizontalAlignment="Left"
+                                                        Visibility="{Binding ExpandedTab, ConverterParameter=settings, Converter={StaticResource StringEqualsVisibilityConverter}}">
+                                                <!-- 對齊 blueprint fieldClick：鎖定欄位（LockedFields 內、尚未解鎖）
+                                                     點擊不直接切換，改開解鎖 Modal；鎖定時額外顯示鎖頭圖示、
+                                                     文字與開關都調淡，讓使用者一眼看出這欄位鎖著。 -->
+                                                <Button Command="{Binding ApplyAutoStartFieldClickCommand}" CommandParameter="{Binding ExpandedTool}"
+                                                        Style="{StaticResource FieldRowButtonStyle}">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <components:IconGlyph IconData="{StaticResource IconLockGeometry}" Width="12" Height="12" Margin="0,0,6,0"
+                                                                                   Foreground="{DynamicResource Text3Brush}"
+                                                                                   Visibility="{Binding ExpandedTool.IsAutoStartLocked, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
+                                                            <TextBlock Text="開機自動啟動" VerticalAlignment="Center" Style="{StaticResource BaseTextStyle}"
+                                                                       Opacity="{Binding ExpandedTool.IsAutoStartLocked, Converter={StaticResource LockedToOpacityConverter}}" />
+                                                        </StackPanel>
+                                                        <ToggleButton Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}" IsHitTestVisible="False"
+                                                                      IsChecked="{Binding ExpandedTool.AutoStart, Mode=OneWay}"
+                                                                      Opacity="{Binding ExpandedTool.IsAutoStartLocked, Converter={StaticResource LockedToOpacityConverter}}" />
+                                                    </Grid>
+                                                </Button>
+                                                <Button Command="{Binding ApplyAutoRepairFieldClickCommand}" CommandParameter="{Binding ExpandedTool}"
+                                                        Style="{StaticResource FieldRowButtonStyle}" Margin="0,2,0,0">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <components:IconGlyph IconData="{StaticResource IconLockGeometry}" Width="12" Height="12" Margin="0,0,6,0"
+                                                                                   Foreground="{DynamicResource Text3Brush}"
+                                                                                   Visibility="{Binding ExpandedTool.IsAutoRepairLocked, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
+                                                            <TextBlock Text="自動修復（偵測到服務錯誤時嘗試自動重啟）" VerticalAlignment="Center" TextWrapping="Wrap" Style="{StaticResource BaseTextStyle}"
+                                                                       Opacity="{Binding ExpandedTool.IsAutoRepairLocked, Converter={StaticResource LockedToOpacityConverter}}" />
+                                                        </StackPanel>
+                                                        <ToggleButton Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}" IsHitTestVisible="False"
+                                                                      IsChecked="{Binding ExpandedTool.AutoRepair, Mode=OneWay}"
+                                                                      Opacity="{Binding ExpandedTool.IsAutoRepairLocked, Converter={StaticResource LockedToOpacityConverter}}" />
+                                                    </Grid>
+                                                </Button>
+
+                                                <TextBlock Text="{Binding ExpandedTool.UnlockExpiresAt, Converter={StaticResource UnlockCountdown}}"
+                                                           Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource SuccessTextBrush}" Margin="0,8,0,0"
+                                                           Visibility="{Binding ExpandedTool.IsUnlocked, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- 解鎖 Modal——對齊 blueprint keyModalOpen：置中覆蓋整個畫面的遮罩＋卡片，
+             不是先前那個貼著按鈕彈出的小 Popup。背景遮罩點擊＝取消，跟 blueprint
+             onClick={{closeKeyModal}} 同一個行為。 -->
+        <Grid x:Name="UnlockModalOverlay" Grid.Row="0" Grid.RowSpan="3" IsVisibleChanged="OnUnlockModalVisibleChanged"
+              Visibility="{Binding UnlockPopupOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Border Background="#4D000000">
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding ApplyCloseUnlockPopupCommand}" />
+                </Border.InputBindings>
+            </Border>
+            <Border Style="{StaticResource CardBorderStyle}" Width="340" Background="{DynamicResource BgSurfaceBrush}"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+                <StackPanel Margin="18,16,18,18">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <components:IconGlyph IconData="{StaticResource IconLockGeometry}" Width="15" Height="15" Margin="0,0,8,0" Foreground="{DynamicResource Text1Brush}" />
+                        <TextBlock Text="輸入模組金鑰" Style="{StaticResource BaseTextStyle}" FontSize="{StaticResource FontSizeLg}" FontWeight="Bold" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource BaseTextStyle}" FontSize="{StaticResource FontSizeSm}"
+                               Foreground="{DynamicResource Text2Brush}" TextWrapping="Wrap" Margin="0,4,0,12">
+                        <Run Text="「" /><Run Text="{Binding ExpandedTool.Name, Mode=OneWay}" FontWeight="Bold" /><Run Text="」有鎖定的設定欄位，輸入模組金鑰解鎖，解鎖後 3 分鐘內可修改，逾時自動重新鎖定。" />
+                    </TextBlock>
+                    <!-- 「模組金鑰」是輸入框內的浮水印提示，不是框上方另一行標籤——對齊 blueprint
+                         placeholder="模組金鑰"。PasswordBox.Password 不可綁定（見下方 code-behind
+                         註解），浮水印的顯示/隱藏改在 OnModuleKeyPasswordChanged 用程式碼切換。 -->
+                    <Grid>
+                        <TextBlock x:Name="ModuleKeyPlaceholder" Text="模組金鑰" Margin="8,0" VerticalAlignment="Center"
+                                   IsHitTestVisible="False" Foreground="{DynamicResource Text3Brush}"
+                                   FontFamily="{StaticResource AppFontFamily}" FontSize="{StaticResource FontSizeBase}" />
+                        <PasswordBox x:Name="ModuleKeyPasswordBox" Style="{StaticResource AppPasswordBoxStyle}"
+                                     PasswordChanged="OnModuleKeyPasswordChanged" />
+                    </Grid>
+                    <TextBlock Text="{Binding UnlockError}" Style="{StaticResource BaseTextStyle}" FontWeight="SemiBold"
+                               Foreground="{DynamicResource StatusErrorTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap"
+                               Visibility="{Binding UnlockError, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+                        <Button Content="取消" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,8,0"
+                                Command="{Binding ApplyCloseUnlockPopupCommand}" />
+                        <Button Content="解鎖" Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding ApplyUnlockFieldsCommand}" CommandParameter="{Binding ExpandedTool}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

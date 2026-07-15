@@ -1,0 +1,80 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!--
+        理論值不因主題（亮/暗）改變，換算自 .claude/blueprint/執行藍圖/styles/design-tokens.md 的 :root 靜態 token。
+        OKLCH 換算 sRGB 在建置階段用固定公式算一次寫死，不在執行期運算（見計畫書）。
+    -->
+
+    <!-- 字級（px 對應 WPF 邏輯單位，1:1 沿用 blueprint 數值） -->
+    <sys:Double x:Key="FontSizeH1">15</sys:Double>
+    <sys:Double x:Key="FontSizeXl">12.5</sys:Double>
+    <sys:Double x:Key="FontSizeLg">12</sys:Double>
+    <sys:Double x:Key="FontSizeMd">11</sys:Double>
+    <sys:Double x:Key="FontSizeBase">10.5</sys:Double>
+    <sys:Double x:Key="FontSizeBody">10</sys:Double>
+    <sys:Double x:Key="FontSizeSm">9.5</sys:Double>
+    <sys:Double x:Key="FontSizeXs">9</sys:Double>
+    <sys:Double x:Key="FontSize2Xs">8.5</sys:Double>
+
+    <!-- 控制項高度 -->
+    <sys:Double x:Key="ControlHeightSm">24</sys:Double>
+    <sys:Double x:Key="ControlHeightMd">27</sys:Double>
+
+    <!-- 字型家族：Noto Sans TC / PingFang TC / Microsoft JhengHei / system-ui fallback -->
+    <FontFamily x:Key="AppFontFamily">Noto Sans TC, PingFang TC, Microsoft JhengHei UI, Segoe UI</FontFamily>
+
+    <!-- 語意色（不因亮暗主題改變，直接 StaticResource） -->
+    <Color x:Key="OnAccentColor">#FFFFFFFF</Color>
+    <SolidColorBrush x:Key="OnAccentBrush" Color="{StaticResource OnAccentColor}" />
+
+    <Color x:Key="NotifyDotColor">#FFB71824</Color>
+    <SolidColorBrush x:Key="NotifyDotBrush" Color="{StaticResource NotifyDotColor}" />
+
+    <Color x:Key="SeverityErrorSolidColor">#FFDD503F</Color>
+    <SolidColorBrush x:Key="SeverityErrorSolidBrush" Color="{StaticResource SeverityErrorSolidColor}" />
+
+    <Color x:Key="SeverityWarningSolidColor">#FFE1A035</Color>
+    <SolidColorBrush x:Key="SeverityWarningSolidBrush" Color="{StaticResource SeverityWarningSolidColor}" />
+
+    <Color x:Key="SuccessTextColor">#FF007840</Color>
+    <SolidColorBrush x:Key="SuccessTextBrush" Color="{StaticResource SuccessTextColor}" />
+
+    <Color x:Key="VoltageDeviatedTextColor">#FFC53829</Color>
+    <SolidColorBrush x:Key="VoltageDeviatedTextBrush" Color="{StaticResource VoltageDeviatedTextColor}" />
+
+    <Color x:Key="DangerBorderColor">#FFFFB5A7</Color>
+    <SolidColorBrush x:Key="DangerBorderBrush" Color="{StaticResource DangerBorderColor}" />
+
+    <Color x:Key="DangerBgSoftColor">#FFFFE5DF</Color>
+    <SolidColorBrush x:Key="DangerBgSoftBrush" Color="{StaticResource DangerBgSoftColor}" />
+
+    <Color x:Key="TerminalBgColor">#FF0B0E10</Color>
+    <SolidColorBrush x:Key="TerminalBgBrush" Color="{StaticResource TerminalBgColor}" />
+
+    <Color x:Key="TerminalBtnBgColor">#FF1C2023</Color>
+    <SolidColorBrush x:Key="TerminalBtnBgBrush" Color="{StaticResource TerminalBtnBgColor}" />
+
+    <Color x:Key="TerminalBtnBgHoverColor">#FF2A2E31</Color>
+    <SolidColorBrush x:Key="TerminalBtnBgHoverBrush" Color="{StaticResource TerminalBtnBgHoverColor}" />
+
+    <Color x:Key="TerminalPromptColor">#FF9CA89E</Color>
+    <SolidColorBrush x:Key="TerminalPromptBrush" Color="{StaticResource TerminalPromptColor}" />
+
+    <Color x:Key="TerminalTextColor">#FFCBCFCC</Color>
+    <SolidColorBrush x:Key="TerminalTextBrush" Color="{StaticResource TerminalTextColor}" />
+
+    <Color x:Key="TerminalTextWarningColor">#FFE3AD4B</Color>
+    <SolidColorBrush x:Key="TerminalTextWarningBrush" Color="{StaticResource TerminalTextWarningColor}" />
+
+    <Color x:Key="TerminalTextErrorColor">#FFEA6C5A</Color>
+    <SolidColorBrush x:Key="TerminalTextErrorBrush" Color="{StaticResource TerminalTextErrorColor}" />
+
+    <Color x:Key="NeutralHover98Color">#FFF6F9FB</Color>
+    <SolidColorBrush x:Key="NeutralHover98Brush" Color="{StaticResource NeutralHover98Color}" />
+
+    <Color x:Key="NeutralHover95Color">#FFECEFF1</Color>
+    <SolidColorBrush x:Key="NeutralHover95Brush" Color="{StaticResource NeutralHover95Color}" />
+
+</ResourceDictionary>

@@ -1,0 +1,23 @@
+using Microsoft.EntityFrameworkCore;
+
+namespace Vaeron.HelixStudio.Features.Settings.Data;
+
+public sealed class SettingsDbContext(DbContextOptions<SettingsDbContext> options) : DbContext(options)
+{
+    public DbSet<app_settings> app_settings_rows => Set<app_settings>();
+}
+
+/// <summary>單列表，id 永遠是 1，見 configuration.md 的 SQLite 判準。</summary>
+public sealed class app_settings
+{
+    public int id { get; set; }
+    public string theme_mode { get; set; } = "Light";
+    public double accent_hue { get; set; } = 231;
+    public double accent_chroma { get; set; } = 0.11;
+    public int ui_scale { get; set; } = 100;
+    public string data_density { get; set; } = "Comfortable";
+    public bool sidebar_collapsed_default { get; set; }
+    public bool start_with_windows { get; set; }
+    public string startup_page { get; set; } = "apps";
+    public bool show_event_badge { get; set; } = true;
+}

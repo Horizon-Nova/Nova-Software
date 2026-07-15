@@ -1,0 +1,175 @@
+<UserControl x:Class="Vaeron.HelixStudio.Features.EventLog.EventLogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:Vaeron.HelixStudio.Features.EventLog"
+             xmlns:themes="clr-namespace:Vaeron.HelixStudio.Themes"
+             xmlns:components="clr-namespace:Vaeron.HelixStudio.Components"
+             Loaded="OnLoaded" Unloaded="OnUnloaded">
+    <UserControl.Resources>
+        <local:SeverityToTextConverter x:Key="SeverityToText" />
+        <local:SeverityToBrushConverter x:Key="SeverityToBrush" />
+        <local:CopyFeedbackToLabelConverter x:Key="CopyFeedbackToLabelConverter" />
+        <local:FilterOptionToButtonStyleConverter x:Key="FilterOptionToButtonStyle" />
+
+        <DataTemplate x:Key="TimeRangePillTemplate">
+            <Button Content="{Binding}" Margin="0,0,4,0"
+                    Command="{Binding DataContext.ApplySetTimeRangeFilterCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                    CommandParameter="{Binding}">
+                <Button.Style>
+                    <MultiBinding Converter="{StaticResource FilterOptionToButtonStyle}">
+                        <Binding Path="." />
+                        <Binding Path="DataContext.TimeRangeFilter" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                    </MultiBinding>
+                </Button.Style>
+            </Button>
+        </DataTemplate>
+
+        <DataTemplate x:Key="SeverityPillTemplate">
+            <Button Content="{Binding}" Margin="0,0,4,0"
+                    Command="{Binding DataContext.ApplySetSeverityFilterCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                    CommandParameter="{Binding}">
+                <Button.Style>
+                    <MultiBinding Converter="{StaticResource FilterOptionToButtonStyle}">
+                        <Binding Path="." />
+                        <Binding Path="DataContext.SeverityFilter" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                    </MultiBinding>
+                </Button.Style>
+            </Button>
+        </DataTemplate>
+    </UserControl.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="事件日誌" Style="{StaticResource BaseTextStyle}"
+                   FontSize="{StaticResource FontSizeH1}" FontWeight="Bold" Margin="0,0,0,8" />
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
+            <TextBox Width="240" Style="{StaticResource AppTextBoxStyle}"
+                     themes:TextBoxPlaceholder.Text="搜尋工具名稱或訊息"
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+            <ItemsControl ItemsSource="{Binding TimeRangeOptions}" ItemTemplate="{StaticResource TimeRangePillTemplate}" Margin="8,0,0,0">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+            <ItemsControl ItemsSource="{Binding SeverityOptions}" ItemTemplate="{StaticResource SeverityPillTemplate}" Margin="8,0,0,0">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </StackPanel>
+
+        <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="8" Margin="0,0,0,8">
+            <TextBlock Text="{Binding MinLevelBannerText}" Style="{StaticResource BaseTextStyle}"
+                       FontSize="{StaticResource FontSizeSm}" Foreground="{DynamicResource Text2Brush}" />
+        </Border>
+
+        <Grid Grid.Row="3">
+            <TextBlock Text="載入中…" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text2Brush}"
+                       HorizontalAlignment="Center" Margin="0,24,0,0"
+                       Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
+
+            <TextBlock Foreground="{DynamicResource Text2Brush}"
+                       HorizontalAlignment="Center" Margin="0,24,0,0">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource BaseTextStyle}">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding IsLoading}" Value="False" />
+                                    <Condition Binding="{Binding Events.Count}" Value="0" />
+                                </MultiDataTrigger.Conditions>
+                                <Setter Property="Visibility" Value="Visible" />
+                            </MultiDataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+                <Run Text="沒有符合條件的事件" />
+            </TextBlock>
+
+            <ListView ItemsSource="{Binding Events}" BorderThickness="0" Background="Transparent"
+                      Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                <!-- 整列可點擊展開，不是只有「操作」欄那顆小按鈕——blueprint 整列本身就是一個
+                     button。ListViewItem 沒有 Command 屬性可以直接綁，用 EventSetter 接
+                     code-behind 轉呼叫 ViewModel，跟 MainWindow.xaml.cs 的
+                     OnTitleBarMouseLeftButtonDown 是同一種「WPF 事件沒有 Command 對應」模式。 -->
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="Height" Value="{Binding DataContext.RowHeight, RelativeSource={RelativeSource AncestorType=ListView}}" />
+                        <Setter Property="Cursor" Value="Hand" />
+                        <EventSetter Event="MouseLeftButtonUp" Handler="OnRowMouseLeftButtonUp" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header=" " Width="4">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Background="{Binding Severity, Converter={StaticResource SeverityToBrush}}" Width="4" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="等級" Width="60">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border Background="{Binding Severity, Converter={StaticResource SeverityToBrush}}"
+                                            CornerRadius="3" Padding="6,2">
+                                        <TextBlock Text="{Binding Severity, Converter={StaticResource SeverityToText}}"
+                                                   Foreground="White" FontSize="{StaticResource FontSizeXs}" />
+                                    </Border>
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn Header="工具" Width="140" DisplayMemberBinding="{Binding ToolName}" />
+                        <GridViewColumn Header="訊息" Width="356" DisplayMemberBinding="{Binding Message}" />
+                        <GridViewColumn Header="時間" Width="140" DisplayMemberBinding="{Binding Timestamp}" />
+                        <!-- 整列已經可點擊展開（見 ItemContainerStyle 的 EventSetter），這裡只留一個
+                             不可互動的箭頭當視覺提示，不是另一顆會跟整列點擊搶事件的按鈕。 -->
+                        <GridViewColumn Header=" " Width="32">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <components:IconGlyph IconData="{StaticResource IconChevronDownGeometry}"
+                                                           Width="12" Height="12" Foreground="{DynamicResource Text3Brush}"
+                                                           HorizontalAlignment="Center" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Grid>
+
+        <Border Grid.Row="4" Style="{StaticResource CardBorderStyle}" Padding="12" Margin="0,8,0,0"
+                Background="{DynamicResource TerminalBgBrush}"
+                Visibility="{Binding ExpandedEvent, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}">
+            <StackPanel>
+                <TextBlock Text="{Binding ExpandedEvent.Command, StringFormat={}$ {0}}"
+                           Foreground="{DynamicResource TerminalTextBrush}"
+                           FontFamily="Consolas" FontSize="{StaticResource FontSizeSm}"
+                           Visibility="{Binding ExpandedEvent.Command, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
+                <TextBlock Text="{Binding ExpandedEvent.Output}" TextWrapping="Wrap"
+                           Foreground="{Binding ExpandedEvent.Severity, Converter={StaticResource SeverityToBrush}}"
+                           FontFamily="Consolas" FontSize="{StaticResource FontSizeSm}" Margin="0,4,0,0"
+                           Visibility="{Binding ExpandedEvent.Output, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
+                <TextBlock Text="{Binding ExpandedEvent.ExitCode, StringFormat=exit code {0}}"
+                           Foreground="{DynamicResource TerminalTextBrush}"
+                           FontFamily="Consolas" FontSize="{StaticResource FontSizeXs}" Margin="0,4,0,0"
+                           Visibility="{Binding ExpandedEvent.ExitCode, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
+                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                    <Button Content="{Binding CopyFeedback, Converter={StaticResource CopyFeedbackToLabelConverter}, FallbackValue=複製}"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            ToolTip="複製"
+                            Command="{Binding ApplyCopyOutputCommand}" CommandParameter="{Binding ExpandedEvent}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

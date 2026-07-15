@@ -1,0 +1,16 @@
+<UserControl x:Class="Vaeron.HelixStudio.Components.ProcessGatedBanner"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root">
+    <!--
+        跨功能共用「啞」元件：UsbVoltageControl／RemoteBatchTransfer 都需要「對應服務未執行」橫幅，
+        本身不呼叫任何 Domain/Facade，資料完全由綁定屬性（ShowBanner/BannerText）由宿主 Feature 的
+        ViewModel 提供——見 feature-structure.md 對 Components\ 的判準。
+    -->
+    <Border Background="{DynamicResource StatusWarningBgBrush}" Padding="8,4"
+            Visibility="{Binding ShowBanner, ElementName=Root, Converter={StaticResource BoolToVisibilityConverter}}">
+        <TextBlock Text="{Binding BannerText, ElementName=Root}"
+                   Foreground="{DynamicResource StatusWarningTextBrush}"
+                   FontSize="{StaticResource FontSizeSm}" />
+    </Border>
+</UserControl>
