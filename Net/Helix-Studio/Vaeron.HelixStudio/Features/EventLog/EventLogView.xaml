@@ -9,14 +9,13 @@
         <local:SeverityToTextConverter x:Key="SeverityToText" />
         <local:SeverityToBrushConverter x:Key="SeverityToBrush" />
         <local:CopyFeedbackToLabelConverter x:Key="CopyFeedbackToLabelConverter" />
-        <local:FilterOptionToButtonStyleConverter x:Key="FilterOptionToButtonStyle" />
 
         <DataTemplate x:Key="TimeRangePillTemplate">
             <Button Content="{Binding}" Margin="0,0,4,0"
                     Command="{Binding DataContext.ApplySetTimeRangeFilterCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                     CommandParameter="{Binding}">
                 <Button.Style>
-                    <MultiBinding Converter="{StaticResource FilterOptionToButtonStyle}">
+                    <MultiBinding Converter="{StaticResource ObjectEqualsToButtonStyle}">
                         <Binding Path="." />
                         <Binding Path="DataContext.TimeRangeFilter" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
                     </MultiBinding>
@@ -29,7 +28,7 @@
                     Command="{Binding DataContext.ApplySetSeverityFilterCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                     CommandParameter="{Binding}">
                 <Button.Style>
-                    <MultiBinding Converter="{StaticResource FilterOptionToButtonStyle}">
+                    <MultiBinding Converter="{StaticResource ObjectEqualsToButtonStyle}">
                         <Binding Path="." />
                         <Binding Path="DataContext.SeverityFilter" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
                     </MultiBinding>
@@ -44,14 +43,13 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="事件日誌" Style="{StaticResource BaseTextStyle}"
                    FontSize="{StaticResource FontSizeH1}" FontWeight="Bold" Margin="0,0,0,8" />
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
-            <TextBox Width="240" Style="{StaticResource AppTextBoxStyle}"
+            <TextBox Width="240" Style="{StaticResource AppSearchBoxStyle}"
                      themes:TextBoxPlaceholder.Text="搜尋工具名稱或訊息"
                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
             <ItemsControl ItemsSource="{Binding TimeRangeOptions}" ItemTemplate="{StaticResource TimeRangePillTemplate}" Margin="8,0,0,0">
@@ -72,14 +70,93 @@
         </Border>
 
         <Grid Grid.Row="3">
-            <TextBlock Text="載入中…" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text2Brush}"
-                       HorizontalAlignment="Center" Margin="0,24,0,0"
-                       Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
+            <components:TableSkeletonView Columns="{x:Static local:EventLogViewModel.SkeletonColumns}"
+                                          RowCount="6" RowHeight="{Binding RowHeight}"
+                                          Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
 
-            <TextBlock Foreground="{DynamicResource Text2Brush}"
-                       HorizontalAlignment="Center" Margin="0,24,0,0">
+            <DataGrid Style="{StaticResource AppDataGridStyle}" ItemsSource="{Binding Events}"
+                      Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                <!-- 整列可點擊展開 -->
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}">
+                        <Setter Property="Height" Value="{Binding DataContext.RowHeight, RelativeSource={RelativeSource AncestorType=DataGrid}}" />
+                        <Setter Property="Cursor" Value="Hand" />
+                        <Setter Property="DetailsVisibility">
+                            <Setter.Value>
+                                <MultiBinding Converter="{StaticResource ReferenceEqualsToVisibilityConverter}">
+                                    <Binding Path="." />
+                                    <Binding Path="DataContext.ExpandedEvent" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                </MultiBinding>
+                            </Setter.Value>
+                        </Setter>
+                        <EventSetter Event="MouseLeftButtonUp" Handler="OnRowMouseLeftButtonUp" />
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header=" " Width="4">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Background="{Binding Severity, Converter={StaticResource SeverityToBrush}}" Width="4" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="等級" Width="60">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Background="{Binding Severity, Converter={StaticResource SeverityToBrush}}"
+                                        CornerRadius="3" Padding="6,2" HorizontalAlignment="Left">
+                                    <TextBlock Text="{Binding Severity, Converter={StaticResource SeverityToText}}"
+                                               Foreground="White" FontSize="{StaticResource FontSizeXs}" />
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="工具" Width="140" Binding="{Binding ToolName}" />
+                    <DataGridTextColumn Header="訊息" Width="356" Binding="{Binding Message}" />
+                    <DataGridTextColumn Header="時間" Width="140" Binding="{Binding Timestamp, StringFormat=yyyy/MM/dd HH:mm:ss}" />
+                    <!-- 展開提示圖示 -->
+                    <DataGridTemplateColumn Header=" " Width="32">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <components:IconGlyph IconData="{StaticResource IconChevronDownGeometry}"
+                                                       Width="12" Height="12" Foreground="{DynamicResource Text3Brush}"
+                                                       HorizontalAlignment="Center" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+                <DataGrid.RowDetailsTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource TableRowDetailsBorderStyle}" Background="{DynamicResource TerminalBgBrush}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Command, StringFormat={}$ {0}}"
+                                           Foreground="{DynamicResource TerminalTextBrush}"
+                                           FontFamily="Consolas" FontSize="{StaticResource FontSizeSm}"
+                                           Visibility="{Binding Command, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
+                                <TextBlock Text="{Binding Output}" TextWrapping="Wrap"
+                                           Foreground="{Binding Severity, Converter={StaticResource SeverityToBrush}}"
+                                           FontFamily="Consolas" FontSize="{StaticResource FontSizeSm}" Margin="0,4,0,0"
+                                           Visibility="{Binding Output, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
+                                <TextBlock Text="{Binding ExitCode, StringFormat=exit code {0}}"
+                                           Foreground="{DynamicResource TerminalTextBrush}"
+                                           FontFamily="Consolas" FontSize="{StaticResource FontSizeXs}" Margin="0,4,0,0"
+                                           Visibility="{Binding ExitCode, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <Button Content="{Binding DataContext.CopyFeedback, RelativeSource={RelativeSource AncestorType=DataGrid}, Converter={StaticResource CopyFeedbackToLabelConverter}, FallbackValue=複製}"
+                                            Style="{StaticResource SecondaryButtonStyle}"
+                                            ToolTip="複製"
+                                            Command="{Binding DataContext.ApplyCopyOutputCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </DataGrid.RowDetailsTemplate>
+            </DataGrid>
+
+            <TextBlock>
                 <TextBlock.Style>
-                    <Style TargetType="TextBlock" BasedOn="{StaticResource BaseTextStyle}">
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource TableEmptyStateTextStyle}">
                         <Setter Property="Visibility" Value="Collapsed" />
                         <Style.Triggers>
                             <MultiDataTrigger>
@@ -94,82 +171,6 @@
                 </TextBlock.Style>
                 <Run Text="沒有符合條件的事件" />
             </TextBlock>
-
-            <ListView ItemsSource="{Binding Events}" BorderThickness="0" Background="Transparent"
-                      Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVisibilityConverter}}">
-                <!-- 整列可點擊展開，不是只有「操作」欄那顆小按鈕——blueprint 整列本身就是一個
-                     button。ListViewItem 沒有 Command 屬性可以直接綁，用 EventSetter 接
-                     code-behind 轉呼叫 ViewModel，跟 MainWindow.xaml.cs 的
-                     OnTitleBarMouseLeftButtonDown 是同一種「WPF 事件沒有 Command 對應」模式。 -->
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="ListViewItem">
-                        <Setter Property="Height" Value="{Binding DataContext.RowHeight, RelativeSource={RelativeSource AncestorType=ListView}}" />
-                        <Setter Property="Cursor" Value="Hand" />
-                        <EventSetter Event="MouseLeftButtonUp" Handler="OnRowMouseLeftButtonUp" />
-                    </Style>
-                </ListView.ItemContainerStyle>
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header=" " Width="4">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border Background="{Binding Severity, Converter={StaticResource SeverityToBrush}}" Width="4" />
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Header="等級" Width="60">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border Background="{Binding Severity, Converter={StaticResource SeverityToBrush}}"
-                                            CornerRadius="3" Padding="6,2">
-                                        <TextBlock Text="{Binding Severity, Converter={StaticResource SeverityToText}}"
-                                                   Foreground="White" FontSize="{StaticResource FontSizeXs}" />
-                                    </Border>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Header="工具" Width="140" DisplayMemberBinding="{Binding ToolName}" />
-                        <GridViewColumn Header="訊息" Width="356" DisplayMemberBinding="{Binding Message}" />
-                        <GridViewColumn Header="時間" Width="140" DisplayMemberBinding="{Binding Timestamp}" />
-                        <!-- 整列已經可點擊展開（見 ItemContainerStyle 的 EventSetter），這裡只留一個
-                             不可互動的箭頭當視覺提示，不是另一顆會跟整列點擊搶事件的按鈕。 -->
-                        <GridViewColumn Header=" " Width="32">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <components:IconGlyph IconData="{StaticResource IconChevronDownGeometry}"
-                                                           Width="12" Height="12" Foreground="{DynamicResource Text3Brush}"
-                                                           HorizontalAlignment="Center" />
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                    </GridView>
-                </ListView.View>
-            </ListView>
         </Grid>
-
-        <Border Grid.Row="4" Style="{StaticResource CardBorderStyle}" Padding="12" Margin="0,8,0,0"
-                Background="{DynamicResource TerminalBgBrush}"
-                Visibility="{Binding ExpandedEvent, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}">
-            <StackPanel>
-                <TextBlock Text="{Binding ExpandedEvent.Command, StringFormat={}$ {0}}"
-                           Foreground="{DynamicResource TerminalTextBrush}"
-                           FontFamily="Consolas" FontSize="{StaticResource FontSizeSm}"
-                           Visibility="{Binding ExpandedEvent.Command, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
-                <TextBlock Text="{Binding ExpandedEvent.Output}" TextWrapping="Wrap"
-                           Foreground="{Binding ExpandedEvent.Severity, Converter={StaticResource SeverityToBrush}}"
-                           FontFamily="Consolas" FontSize="{StaticResource FontSizeSm}" Margin="0,4,0,0"
-                           Visibility="{Binding ExpandedEvent.Output, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
-                <TextBlock Text="{Binding ExpandedEvent.ExitCode, StringFormat=exit code {0}}"
-                           Foreground="{DynamicResource TerminalTextBrush}"
-                           FontFamily="Consolas" FontSize="{StaticResource FontSizeXs}" Margin="0,4,0,0"
-                           Visibility="{Binding ExpandedEvent.ExitCode, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
-                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                    <Button Content="{Binding CopyFeedback, Converter={StaticResource CopyFeedbackToLabelConverter}, FallbackValue=複製}"
-                            Style="{StaticResource SecondaryButtonStyle}"
-                            ToolTip="複製"
-                            Command="{Binding ApplyCopyOutputCommand}" CommandParameter="{Binding ExpandedEvent}" />
-                </StackPanel>
-            </StackPanel>
-        </Border>
     </Grid>
 </UserControl>

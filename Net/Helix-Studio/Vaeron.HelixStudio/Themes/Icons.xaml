@@ -2,20 +2,9 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--
-        21 個圖示，直接從 .claude/blueprint/components/Icon.dc.html 的 <svg> 原始座標資料轉成
-        WPF PathGeometry——不是憑記憶猜 Segoe Fluent Icons 字元碼（先前那版的問題就是這樣來的）。
-        WPF 的 Path 迷你語言（M/L/H/V/C/A/Z 大寫絕對、小寫相對）跟 SVG path 語法幾乎一致，
-        <path> 元素的 d 屬性可以近乎逐字轉過來；<line>/<rect> 這類基本圖形換算成等價的 path 片段，
-        多個子圖形用空白分隔的多組 "M...Z" 串接在同一個 Figures 字串裡（WPF 支援同一個
-        PathGeometry 內有多個不相連的子圖形，跟 SVG 一個 d 屬性可以有多個 M 一樣）。
-
-        rect 的圓角（rx=1／2，原始 24 單位 viewBox）在最終渲染尺寸（App 內約 15–18px）幾乎看不出來，
-        這裡簡化成直角矩形，刻意的簡化不是漏做。
-
+        21 個線條圖示（PathGeometry）。
         用法：<components:IconGlyph IconData="{StaticResource IconMenuGeometry}" Width="16" Height="16" />
-        （IconGlyph 定義在 Components/IconGlyph.xaml，統一套 Stroke=目前 Foreground、
-        StrokeThickness=2、圓端點/圓轉角，對應 blueprint Icon.dc.html 的
-        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"。）
+        （IconGlyph 定義在 Components/IconGlyph.xaml，統一套 Stroke=目前 Foreground、StrokeThickness=2、圓端點/圓轉角。）
     -->
 
     <PathGeometry x:Key="IconMenuGeometry" Figures="M4,6 L20,6 M4,12 L20,12 M4,18 L20,18" />

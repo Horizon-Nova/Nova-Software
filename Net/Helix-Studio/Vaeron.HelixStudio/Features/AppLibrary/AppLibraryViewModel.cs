@@ -18,7 +18,10 @@ public sealed partial class AppLibraryViewModel(
     private int? _activeWorkspaceId;
 
     public ObservableCollection<LibraryAppSnapshot> Apps { get; } = [];
-    public ObservableCollection<LibraryCategorySnapshot> Categories { get; } = [];
+
+    /// <summary>分類清單：固定常數，不隨畫面重進而變動，故不放進 ApplyViewLoaded</summary>
+    public ObservableCollection<LibraryCategorySnapshot> Categories { get; } =
+        [new LibraryCategorySnapshot { Id = "all", Label = "全部" }, .. domain.LoadCategoryList()];
 
     [ObservableProperty]
     private string _searchText = "";
@@ -32,17 +35,15 @@ public sealed partial class AppLibraryViewModel(
     [ObservableProperty]
     private LibraryAppSnapshot? _expandedApp;
 
+    [ObservableProperty]
+    private bool _appsLoading = true;
+
     #region 生命週期
 
     public void ApplyViewLoaded()
     {
         domain.Changed += OnChanged;
         workspaceFacade.WorkspaceChanged += OnWorkspaceChanged;
-
-        Categories.Clear();
-        Categories.Add(new LibraryCategorySnapshot { Id = "all", Label = "全部" });
-        foreach (var c in domain.LoadCategoryList())
-            Categories.Add(c);
 
         RunSafe(ApplySnapshotAsync);
     }
@@ -65,6 +66,7 @@ public sealed partial class AppLibraryViewModel(
         {
             _all = items;
             ApplyFilter();
+            AppsLoading = false;
         });
     }
 
@@ -106,8 +108,7 @@ public sealed partial class AppLibraryViewModel(
         await ApplyImportFileAsync(dialog.FileName);
     }
 
-    /// <summary>拖放匯入與對話框匯入共用同一段邏輯——副檔名／大小驗證都在 Domain 端做
-    /// （見 ImportToolAsync），這裡只是換一種取得檔案路徑的方式，不重寫驗證規則。</summary>
+    /// <summary>匯入指定路徑的檔案（拖放／對話框共用）</summary>
     public async Task ApplyImportFileAsync(string filePath)
     {
         var (success, message) = await domain.ImportToolAsync(new ImportToolRequest { FilePath = filePath, WorkspaceId = _activeWorkspaceId });
@@ -144,8 +145,6 @@ public sealed partial class AppLibraryViewModel(
         var confirmed = await confirmationRuntime.AskAsync($"確定要從工具庫移除「{app.Name}」嗎？此動作無法復原。");
         if (!confirmed) return;
 
-        // CatalogId 對映 imported_catalog_entry.id 需要在 Domain 內部查表，這裡直接呼叫時用名稱比對
-        // 交由 Domain 之後擴充；目前先用內部查詢輔助方法透過名稱移除。
         var (success, message) = await domain.RemoveImportedByCatalogIdAsync(app.CatalogId);
         notificationRuntime.ApplyShowResult(success, message);
     }

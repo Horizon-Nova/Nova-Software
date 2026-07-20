@@ -7,8 +7,7 @@ using Vaeron.SharedKernel;
 
 namespace Vaeron.HelixStudio.Features.RemoteBatchTransfer;
 
-/// <summary>連線清單本身不分工作區（代表實體遠端機器，跨工作區共用），
-/// 但事件記錄仍要歸屬到目前工作區，故依賴 WorkspaceManagementFacade 取得記錄用的 workspaceId。</summary>
+/// <summary>遠端批次傳檔業務邏輯</summary>
 public sealed class RemoteBatchTransferDomain(
     RemoteBatchTransferRepository repo,
     RemoteTransferRepository transferRepo,
@@ -18,9 +17,7 @@ public sealed class RemoteBatchTransferDomain(
 {
     private readonly List<TransferTaskSnapshot> _sessionTasks = [];
 
-    /// <summary>連線狀態／上次任務結果只存在本次程式執行期間（跟 _sessionTasks 同一個判準），
-    /// 不落地——DB schema 若要正式承接這兩欄，屬 configuration.md 已知的「schema 變更需刪除
-    /// app.db 重建」流程，不在本次修正範圍內順帶加欄位。</summary>
+    /// <summary>連線狀態／上次任務結果（僅本次執行期間，不落地）</summary>
     private readonly Dictionary<int, ConnectionStatus> _connectionStatus = [];
     private readonly Dictionary<int, (string message, DateTimeOffset time)> _lastResults = [];
 
@@ -106,8 +103,7 @@ public sealed class RemoteBatchTransferDomain(
         return ResultContract.Ok("已更新連線");
     }
 
-    /// <summary>發布批次任務。允許部分派送：沒有可解析目的路徑的目標會被跳過並記錄，不擋下整批
-    /// （見 RemoteBatchTransfer.md 藍圖查證）。目前傳輸協定尚未決定，全部目標會誠實回報失敗。</summary>
+    /// <summary>發布批次任務（允許部分派送，缺路徑的目標會被跳過）</summary>
     public async Task<TransferTaskSnapshot> DispatchTaskAsync(
         TransferAction action, string sourcePath, string defaultDestPath, IReadOnlyList<(int connectionId, string name, string? destOverride)> targets)
     {

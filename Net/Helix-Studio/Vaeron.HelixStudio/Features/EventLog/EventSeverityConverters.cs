@@ -20,8 +20,7 @@ public sealed class SeverityToTextConverter : IValueConverter
         => System.Windows.Data.Binding.DoNothing;
 }
 
-/// <summary>複製按鈕文字：CopyFeedback 為空（尚未複製過）時顯示「複製」，複製後顯示
-/// ViewModel 設的回饋文字（「已複製」）——CopyFeedback 不會自動歸零，直接顯示目前狀態即可。</summary>
+/// <summary>複製按鈕文字</summary>
 public sealed class CopyFeedbackToLabelConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -29,19 +28,6 @@ public sealed class CopyFeedbackToLabelConverter : IValueConverter
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => System.Windows.Data.Binding.DoNothing;
-}
-
-/// <summary>Pill 篩選按鈕的選取視覺——比對按鈕自身的選項字串跟 ViewModel 目前的篩選值，
-/// 兩者分屬不同 DataContext，只能用 MultiBinding；選中用 PrimaryButtonStyle，其餘 Secondary。</summary>
-public sealed class FilterOptionToButtonStyleConverter : IMultiValueConverter
-{
-    public object? Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
-        => values is [string option, string current] && option == current
-            ? System.Windows.Application.Current.TryFindResource("PrimaryButtonStyle")
-            : System.Windows.Application.Current.TryFindResource("SecondaryButtonStyle");
-
-    public object[] ConvertBack(object? value, Type[] targetTypes, object? parameter, CultureInfo culture)
-        => throw new NotSupportedException();
 }
 
 public sealed class SeverityToBrushConverter : IValueConverter

@@ -9,18 +9,12 @@
         Background="{DynamicResource BgPageBrush}"
         FontFamily="{StaticResource AppFontFamily}" FontSize="{StaticResource FontSizeBody}"
         Loaded="OnLoaded" Closed="OnClosed" SourceInitialized="OnSourceInitialized">
-    <!-- 不用 Windows 預設視窗外觀——整個標題列（含最小化/最大化/關閉）都是自己畫的，
-         對齊 blueprint Layout.dc.html 頂部列本身就內建這三顆按鈕（blueprint 裡因為是瀏覽器
-         分頁裝不下真的視窗控制，標成「原型內非功能性」；這裡是真正的桌面應用，三顆按鈕要
-         真的可以按）。WindowChrome 只用來拿到縮放邊框／Aero 貼齊，CaptionHeight 刻意設 0，
-         標題列拖曳改成頂部列自己在 MouseLeftButtonDown 呼叫 DragMove()，這樣服務橫幅
-         （Grid.Row=0，高度會變動）不會誤算進標題列拖曳區。 -->
+    <!-- 自繪標題列：CaptionHeight=0，拖曳改由頂部列自己的 MouseLeftButtonDown 處理 -->
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome CaptionHeight="0" ResizeBorderThickness="6" CornerRadius="0" GlassFrameThickness="0" />
     </shell:WindowChrome.WindowChrome>
 
-    <!-- Ctrl+B 摺疊/展開側邊欄——之前只有按鈕 ToolTip 上寫著「(Ctrl+B)」，快捷鍵本身
-         沒有真的接上去，是看起來能用、按了沒反應的死設計。 -->
+    <!-- Ctrl+B 摺疊/展開側邊欄 -->
     <Window.InputBindings>
         <KeyBinding Key="B" Modifiers="Control" Command="{Binding ApplyToggleSidebarCommand}" />
     </Window.InputBindings>
@@ -30,45 +24,9 @@
         <local:NavKeyEqualsConverter x:Key="NavKeyEquals" />
         <local:LastCharConverter x:Key="LastCharConverter" />
 
-        <!-- 側邊欄導覽項目——不是 SecondaryButtonStyle 那種一般卡片按鈕：圓角照 blueprint
-             Layout.dc.html 導覽項目的 border-radius:2px（幾乎是直角），padding 照
-             "7px 14px 7px 11px"，未選取文字色是 text-2、選取時 accent-text——這些都跟
-             全 App 通用按鈕不同，Template 要自己整份覆寫。 -->
-        <Style x:Key="NavItemButtonStyle" TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
-            <!-- 覆寫掉繼承自 PrimaryButtonStyle 的固定 Height="27"（ControlHeightMd）——
-                 那個高度是給一般按鈕／輸入框用的控制項高度 token，nav item 是 15px icon + 7,7
-                 上下 padding，需要 29px 才夠，硬套固定 27px 會讓 icon 被裁掉。blueprint 的
-                 nav item 本來就是內容自動撐高，不是套用這個 token，這裡改回 Auto 才對。 -->
-            <Setter Property="Height" Value="Auto" />
-            <Setter Property="HorizontalAlignment" Value="Stretch" />
-            <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <!-- 側邊欄導覽項目樣式：共用 SidebarNavButtonStyle，這裡只加選取狀態判斷 -->
+        <Style x:Key="NavItemButtonStyle" TargetType="Button" BasedOn="{StaticResource SidebarNavButtonStyle}">
             <Setter Property="Margin" Value="6,0,6,2" />
-            <Setter Property="Padding" Value="11,7,14,7" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="Transparent" />
-            <Setter Property="Foreground" Value="{DynamicResource Text2Brush}" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <!-- 直角，不套 CornerRadius——非對稱邊框寬度（只有左邊 3px）疊加 CornerRadius
-                             是 WPF Border 的已知渲染缺陷，兩次嘗試（邊框本身套圓角／強調色條套局部圓角）
-                             都還是有裁切，2px 的圓角本來就趨近直角、肉眼幾乎無法分辨，直接拿掉圓角
-                             才是乾淨、不會再有裁切問題的做法。 -->
-                        <Grid>
-                            <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True" />
-                            <Rectangle Width="3" HorizontalAlignment="Left" Fill="{TemplateBinding BorderBrush}" SnapsToDevicePixels="True" />
-                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                              Margin="{TemplateBinding Padding}" />
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="{DynamicResource BgHoverBrush}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
             <Style.Triggers>
                 <DataTrigger Value="True">
                     <DataTrigger.Binding>
@@ -98,8 +56,7 @@
             </Button>
         </DataTemplate>
 
-        <!-- 工作區切換器——對齊 blueprint 的自訂按鈕＋覆蓋清單，不是原生 ComboBox
-             （原生下拉的外觀跟 blueprint 手刻的卡片式清單完全是兩種視覺語言）。 -->
+        <!-- 工作區切換器按鈕樣式 -->
         <Style x:Key="WorkspaceSwitcherButtonStyle" TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
             <Setter Property="Padding" Value="12,4" />
@@ -120,10 +77,6 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
-            <!-- 側邊欄收合成 56px 圖示列時，外層 Grid 還留著 14+14 margin、這顆按鈕還留著
-                 12+12 padding——兩者相加已經吃掉 52px，只剩 4px 可用寬度，連一個字都擠不下，
-                 這正是收合後工作區代表字完全空白（不是顯示錯字、是真的沒有可用空間畫）的成因。
-                 收合時把 padding 縮到 2,4，讓單一字元有位置顯示。 -->
             <Style.Triggers>
                 <DataTrigger Binding="{Binding SidebarCollapsed}" Value="True">
                     <Setter Property="Padding" Value="2,4" />
@@ -137,11 +90,14 @@
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Height" Value="Auto" />
+            <Setter Property="MinHeight" Value="{StaticResource ControlHeightMd}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
-                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="12,9" />
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="Center" Margin="12,9" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -153,17 +109,13 @@
             </Setter>
         </Style>
 
-        <!-- 視窗控制（最小化/最大化/關閉）——圖示跟 blueprint 一致（minus/square/x），
-             但這裡是真正可以按的，不是 blueprint 那種「原型內非功能性」的展示用按鈕。 -->
+        <!-- 視窗控制按鈕樣式（最小化/最大化/關閉） -->
         <Style x:Key="WindowControlButtonStyle" TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
         </Style>
     </Window.Resources>
 
-    <!-- ClipToBounds：介面縮放 (UiScale) 套在內層 Grid 的 LayoutTransform 上，縮放後的內容
-         尺寸可能超出視窗目前大小（尤其 125%以上），交給使用者自行把視窗拉大來配合，不是
-         WPF 這裡的責任；但至少要裁乾淨，不能讓縮放後的內容整片蓋出視窗邊界疊到別的東西上。 -->
     <Border BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" ClipToBounds="True">
         <Grid>
             <Grid.LayoutTransform>
@@ -176,16 +128,13 @@
                 <RowDefinition Height="32" />
             </Grid.RowDefinitions>
 
-            <!-- 對應服務未執行時的橫幅——比照 blueprint Layout.dc.html：畫在殼層最頂端（頂部列
-                 上方），依「目前作用中畫面」計算要不要顯示，不是各子畫面各自畫一個。 -->
+            <!-- 對應服務未執行時的橫幅 -->
             <components:ProcessGatedBanner Grid.Row="0"
                 ShowBanner="{Binding ShowServiceBanner}" BannerText="{Binding ServiceBannerText}" />
 
             <!-- 頂部列（自繪標題列，空白處可拖曳視窗、雙擊最大化/還原） -->
             <Border Grid.Row="1" Background="{DynamicResource BgSurfaceBrush}" BorderBrush="{DynamicResource BorderBrush2}"
                     BorderThickness="0,0,0,1" MouseLeftButtonDown="OnTitleBarMouseLeftButtonDown">
-                <!-- blueprint 頂部列左右邊距對稱各 16px（padding:0 16px）——DockPanel 本身的
-                     Margin 就是唯一負責邊距的地方，不需要任一顆按鈕自己再疊加邊界間距。 -->
                 <DockPanel Margin="16,0" LastChildFill="False">
                     <Button DockPanel.Dock="Left" Style="{StaticResource IconButtonStyle}"
                             Command="{Binding ApplyToggleSidebarCommand}" ToolTip="切換側邊欄 (Ctrl+B)">
@@ -204,10 +153,6 @@
                         <components:IconGlyph IconData="{StaticResource IconChevronRightGeometry}" Width="15" Height="15" />
                     </Button>
 
-                    <!-- blueprint 頂部列全部按鈕統一 gap:10px（含視窗控制三顆之間），不是各自隨意
-                         留白——這裡用每個元素自己的右邊 Margin="0,0,10,0" 模擬那個統一間距；
-                         最後一顆（關閉）不再額外疊邊界間距，DockPanel 本身的 16px Margin
-                         已經是唯一負責邊界距離的地方。 -->
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" WindowChrome.IsHitTestVisibleInChrome="True">
                         <Grid VerticalAlignment="Center" Margin="0,0,10,0">
                             <Button Style="{StaticResource IconButtonStyle}"
@@ -215,8 +160,6 @@
                                     ToolTip="{Binding UnreadEventCount, StringFormat=事件（{0} 筆未讀）}">
                                 <components:IconGlyph IconData="{StaticResource IconBellGeometry}" Width="15" Height="15" />
                             </Button>
-                            <!-- 「有未讀」且「使用者沒關掉這個徽章」兩個條件合一在 HasVisibleUnreadBadge，
-                                 對齊設定畫面「顯示未讀事件徽章」開關的即時套用。 -->
                             <Ellipse Width="8" Height="8" Fill="{DynamicResource NotifyDotBrush}"
                                      HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,2,2,0"
                                      IsHitTestVisible="False"
@@ -244,32 +187,25 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <!-- 側邊欄：摺疊時縮成 56px 圖示列（保留圖示、隱藏文字），不是整個隱藏；
-                     展開時寬度是 EffectiveSidebarWidth（可拖曳調整，見下方 Thumb），不是固定值。 -->
+                <!-- 側邊欄 -->
                 <Border Grid.Column="0" Width="{Binding EffectiveSidebarWidth}"
                         Background="{DynamicResource BgSidebarBrush}" BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="0,0,1,0">
                     <DockPanel Margin="0,14" LastChildFill="True">
-                        <!-- 底部提示文字——摺疊狀態沒有空間放文字，比照「TOOLS」標籤同樣的
-                             可見度判準隱藏。 -->
+                        <!-- 底部提示文字 -->
                         <TextBlock DockPanel.Dock="Bottom" Text="快捷鍵 Ctrl+B 摺疊/展開，拖曳調整側邊欄"
                                    Margin="14,10,14,0" TextWrapping="Wrap" TextAlignment="Center"
                                    Foreground="{DynamicResource Text3Brush}" FontSize="{StaticResource FontSizeXs}"
                                    Visibility="{Binding SidebarCollapsed, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
                     <StackPanel>
-                        <!-- 工作區切換器：比照 blueprint 放在側邊欄第一個元素，自訂按鈕＋覆蓋清單。
-                             Margin 固定不隨摺疊變動——「摺疊時要挪出空間」這件事只由
-                             WorkspaceSwitcherButtonStyle 自己的 Padding trigger 負責，
-                             不需要外層 Grid 也跟著另開一個 trigger，同一個關注點只在一處決定。 -->
+                        <!-- 工作區切換器 -->
                         <Grid Margin="14,0,14,14">
-                            <!-- 展開/摺疊是兩種語意完全不同的呈現（一個要顯示完整名稱＋下拉箭頭、
-                                 一個只顯示單一代表字並置中），不是同一份排版套幾個屬性 Trigger
-                                 硬改出來的——那種寫法會變成好幾個 DataTrigger 分散在不同元素上，
-                                 沒有一處看得出「摺疊時長怎樣」的完整樣子，前一版的置中沒置中
-                                 就是這樣才出的 bug（借用展開狀態的 DockPanel 靠左排版，置中只是
-                                 巧合）。改成兩塊互斥、各自對自己排版負全責的內容，用 Visibility
-                                 二選一切換，不共用容器。 -->
+                            <Border Style="{StaticResource CardBorderStyle}" CornerRadius="8" Padding="12,9"
+                                    Visibility="{Binding IsSwitchingWorkspace, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <Border Style="{StaticResource SkeletonBarStyle}" Width="64" Height="12" HorizontalAlignment="Left" />
+                            </Border>
                             <Button x:Name="SwitcherButton" Style="{StaticResource WorkspaceSwitcherButtonStyle}"
-                                    Command="{Binding ApplyToggleSwitcherCommand}">
+                                    Command="{Binding ApplyToggleSwitcherCommand}"
+                                    Visibility="{Binding IsSwitchingWorkspace, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                 <Grid>
                                     <DockPanel Visibility="{Binding SidebarCollapsed, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                         <components:IconGlyph DockPanel.Dock="Right" IconData="{StaticResource IconChevronDownGeometry}"
@@ -281,17 +217,12 @@
                                                Visibility="{Binding SidebarCollapsed, Converter={StaticResource BoolToVisibilityConverter}}" />
                                 </Grid>
                             </Button>
-                            <!-- AllowsTransparency=True 是必要的：Popup 預設(false)會被建立成一般非分層視窗，
-                                 Windows 會在外層加一個系統預設的黑色視窗框，蓋在我們自己畫的圓角 Border 外面、
-                                 不受圓角控制——這就是黑框的成因，不是 CardBorderStyle 的顏色設錯。 -->
-                            <Popup IsOpen="{Binding SwitcherOpen}" PlacementTarget="{Binding ElementName=SwitcherButton}"
+                            <Popup IsOpen="{Binding SwitcherOpen, Mode=TwoWay}" PlacementTarget="{Binding ElementName=SwitcherButton}"
                                    Placement="Bottom" StaysOpen="False" AllowsTransparency="True"
                                    Width="{Binding ElementName=SwitcherButton, Path=ActualWidth}"
                                    VerticalOffset="6">
                                 <Border Style="{StaticResource CardBorderStyle}" Background="{DynamicResource BgSurfaceBrush}" Padding="0">
                                     <Grid>
-                                        <!-- 只有一個工作區時 OtherWorkspaces 必然是空集合——這時彈出視窗不能只顯示一個
-                                             看不出內容的空白細條（看起來能點、點了沒反應的死設計），改顯示誠實的提示文字。 -->
                                         <TextBlock Text="尚無其他產線，請至設定新增" Margin="12,10" TextWrapping="Wrap"
                                                    Foreground="{DynamicResource Text3Brush}" FontSize="{StaticResource FontSizeSm}"
                                                    Visibility="{Binding OtherWorkspaces.Count, Converter={StaticResource CountToEmptyVisibilityConverter}}" />
@@ -321,9 +252,7 @@
                     </DockPanel>
                 </Border>
 
-                <!-- 側邊欄拖曳調整寬度的把手——疊在側邊欄右緣，摺疊時沒有意義所以隱藏。
-                     對齊 blueprint startResize/onDragMove：拖曳只改寬度、不影響摺疊狀態，
-                     兩者是獨立的兩件事。 -->
+                <!-- 側邊欄拖曳調整寬度把手 -->
                 <Thumb Grid.Column="0" HorizontalAlignment="Right" Width="6" Cursor="SizeWE"
                        Background="Transparent" DragDelta="OnSidebarResizeDragDelta"
                        Visibility="{Binding SidebarCollapsed, Converter={StaticResource InverseBoolToVisibilityConverter}}">
@@ -346,16 +275,29 @@
                 </Thumb>
 
                 <!-- 內容區 -->
-                <ContentControl Grid.Column="1" Content="{Binding CurrentView}" />
+                <Grid Grid.Column="1">
+                    <ContentControl Content="{Binding CurrentView}" />
+                    <Border Background="{DynamicResource BgPageBrush}" Padding="20"
+                            Visibility="{Binding IsNavigating, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <components:SkeletonScreen RowCount="8" />
+                    </Border>
+                </Grid>
             </Grid>
 
-            <!-- 底部狀態列——對齊 blueprint：工作區名稱前有個 6x6 小方點狀態指示、
-                 右側順序固定「RAM·CPU｜事件N·版本」（Dock=Right 的子項目宣告順序跟視覺順序
-                 相反：越早宣告越靠右，所以最右邊的版本號寫在最前面）。「事件 N」原本誤綁
-                 UnreadEventCount（未讀數，鈴鐺紅點用的那個），blueprint 這裡其實是
-                 ws.eventCount（工作區累計事件總數），跟未讀數是兩個不同欄位。 -->
+            <!-- 底部狀態列 -->
             <Border Grid.Row="3" Background="{DynamicResource AccentSolidBrush}">
-                <DockPanel Margin="12,0" LastChildFill="False">
+                <Grid>
+                <Border Padding="12,0" Visibility="{Binding IsSwitchingWorkspace, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Border Background="{DynamicResource SkeletonOnAccentBrush}" CornerRadius="4" Width="180" Height="11" HorizontalAlignment="Left">
+                        <Border.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard Storyboard="{StaticResource SkeletonPulseStoryboard}" />
+                            </EventTrigger>
+                        </Border.Triggers>
+                    </Border>
+                </Border>
+                <DockPanel Margin="12,0" LastChildFill="False"
+                           Visibility="{Binding IsSwitchingWorkspace, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
                         <Border Width="6" Height="6" CornerRadius="2" Background="{DynamicResource AccentOnSolidBrush}"
                                 VerticalAlignment="Center" />
@@ -366,21 +308,10 @@
                                VerticalAlignment="Center" Foreground="{DynamicResource AccentOnSolidBrush}"
                                FontSize="{StaticResource FontSizeSm}" Margin="16,0,0,0" />
 
-                    <!-- 版本號是應用程式層級的常數，不是每個工作區各自的欄位——WorkspaceSnapshot
-                         沒有 Version（也不該有，blueprint 的假資料把它掛在 workspace 物件上只是
-                         mock 資料方便，不代表真實資料模型），這裡維持字面值。 -->
                     <TextBlock DockPanel.Dock="Right" Text="v1.0.0" VerticalAlignment="Center"
                                Foreground="{DynamicResource AccentOnSolidBrush}" FontSize="{StaticResource FontSizeSm}" Margin="0,0,12,0" />
                     <TextBlock DockPanel.Dock="Right" Text="·" VerticalAlignment="Center"
                                Foreground="{DynamicResource AccentOnSolidBrush}" FontSize="{StaticResource FontSizeSm}" Opacity="0.6" Margin="0,0,12,0" />
-                    <!-- Content="{Binding ..., StringFormat=事件 {0}}" 之前只顯示數字、「事件」
-                         兩個字整個消失——Button.Content 是 object 型別，StringFormat 套用在
-                         object-typed 目標上不會可靠地保留格式字串裡的字面前綴文字，跟
-                         TextBlock.Text（string 型別，下面 RAM/CPU 那組就是這樣寫、正常顯示）
-                         不是同一回事。改成 Button 內包一個 TextBlock，把 StringFormat 綁在
-                         Text 上，跟 RAM/CPU 用同一種寫法，才會穩定顯示前綴文字。blueprint 這顆
-                         按鈕的字面就帶底線（text-decoration:underline，不是只有 hover 才有），
-                         之前漏掉，這裡補上 TextDecorations="Underline"。 -->
                     <Button DockPanel.Dock="Right" Style="{StaticResource SecondaryButtonStyle}"
                             FontSize="{StaticResource FontSizeSm}" Background="Transparent" BorderThickness="0" Padding="0"
                             Foreground="{DynamicResource AccentOnSolidBrush}" Margin="0,0,12,0"
@@ -389,8 +320,6 @@
                     </Button>
                     <TextBlock DockPanel.Dock="Right" Text="|" VerticalAlignment="Center"
                                Foreground="{DynamicResource AccentOnSolidBrush}" FontSize="{StaticResource FontSizeSm}" Opacity="0.6" Margin="0,0,12,0" />
-                    <!-- blueprint 原文是「RAM {值} · CPU {值}」，標題在數值前面——先前寫反成
-                         「值 MB · 值% CPU」（標題在後），這裡改正。 -->
                     <TextBlock DockPanel.Dock="Right" VerticalAlignment="Center" Foreground="{DynamicResource AccentOnSolidBrush}"
                                FontSize="{StaticResource FontSizeSm}" Margin="0,0,12,0">
                         <Run Text="RAM " />
@@ -399,6 +328,7 @@
                         <Run Text="{Binding CpuPercent, StringFormat={}{0:F0}%}" />
                     </TextBlock>
                 </DockPanel>
+                </Grid>
             </Border>
         </Grid>
     </Border>

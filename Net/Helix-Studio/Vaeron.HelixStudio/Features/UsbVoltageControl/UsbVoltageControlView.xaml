@@ -61,83 +61,101 @@
                        HorizontalAlignment="Center" Margin="0,24,0,0"
                        Visibility="{Binding DevicesLoading, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
 
-            <ListView ItemsSource="{Binding Devices}" BorderThickness="0" Background="Transparent"
+            <DataGrid Style="{StaticResource AppDataGridStyle}" ItemsSource="{Binding Devices}"
                       Visibility="{Binding DevicesLoading, Converter={StaticResource InverseBoolToVisibilityConverter}}">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header=" " Width="24">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Ellipse Width="8" Height="8" Fill="{Binding ., Converter={StaticResource DeviceStatusToDotBrush}}" />
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Header="名稱" Width="140" DisplayMemberBinding="{Binding Name}" />
-                        <GridViewColumn Header="種類" Width="100" DisplayMemberBinding="{Binding Kind}" />
-                        <GridViewColumn Header="上次中斷" Width="120" DisplayMemberBinding="{Binding LastInterruption}" />
-                        <GridViewColumn Header="連線" Width="70">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Border CornerRadius="999" Padding="6,1"
-                                            Background="{Binding Connected, Converter={StaticResource ConnectedToBrushConverter}}">
-                                        <TextBlock Text="{Binding Connected, Converter={StaticResource ConnectedToTextConverter}}"
-                                                   FontSize="{StaticResource FontSizeXs}" />
-                                    </Border>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Header="電壓" Width="80" DisplayMemberBinding="{Binding Voltage, StringFormat={}{0:F2}V}" />
-                        <GridViewColumn Header="目標" Width="70" DisplayMemberBinding="{Binding Target, StringFormat={}{0:F2}V}" />
-                        <GridViewColumn Header="不支援電源管理" Width="120">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <TextBlock Text="不支援電源管理" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}"
-                                               Visibility="{Binding SupportsPowerControl, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Header="操作" Width="180">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Button Content="套用修正" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,4,0"
-                                                Command="{Binding DataContext.ApplyQuickApplyCommand,
-                                                          RelativeSource={RelativeSource AncestorType=ListView}}"
-                                                CommandParameter="{Binding}">
-                                            <Button.Visibility>
-                                                <MultiBinding Converter="{StaticResource ShowApplyButton}">
-                                                    <Binding Path="." />
-                                                    <Binding Path="DataContext.GlobalAutoCorrectEnabled" RelativeSource="{RelativeSource AncestorType=ListView}" />
-                                                    <Binding Path="DataContext.IsServiceRunning" RelativeSource="{RelativeSource AncestorType=ListView}" />
-                                                </MultiBinding>
-                                            </Button.Visibility>
-                                        </Button>
-                                        <Button Content="詳細" Style="{StaticResource SecondaryButtonStyle}"
-                                                IsEnabled="{Binding SupportsPowerControl}"
-                                                ToolTip="{Binding SupportsPowerControl, Converter={StaticResource NoPowerControlTooltipConverter}}"
-                                                Command="{Binding DataContext.ApplyToggleExpandCommand,
-                                                          RelativeSource={RelativeSource AncestorType=ListView}}"
-                                                CommandParameter="{Binding}" />
-                                    </StackPanel>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                    </GridView>
-                </ListView.View>
-            </ListView>
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}">
+                        <Setter Property="DetailsVisibility">
+                            <Setter.Value>
+                                <MultiBinding Converter="{StaticResource ReferenceEqualsToVisibilityConverter}">
+                                    <Binding Path="." />
+                                    <Binding Path="DataContext.ExpandedDevice" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                </MultiBinding>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </DataGrid.RowStyle>
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header=" " Width="24">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Ellipse Width="8" Height="8" Fill="{Binding ., Converter={StaticResource DeviceStatusToDotBrush}}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="名稱" Width="140" Binding="{Binding Name}" />
+                    <DataGridTextColumn Header="種類" Width="100" Binding="{Binding Kind}" />
+                    <DataGridTextColumn Header="上次中斷" Width="120" Binding="{Binding LastInterruption}" />
+                    <DataGridTemplateColumn Header="連線" Width="70">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="6" Padding="6,1"
+                                        Background="{Binding Connected, Converter={StaticResource ConnectedToBrushConverter}}">
+                                    <TextBlock Text="{Binding Connected, Converter={StaticResource ConnectedToTextConverter}}"
+                                               FontSize="{StaticResource FontSizeXs}" />
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="電壓" Width="80" Binding="{Binding Voltage, StringFormat={}{0:F2}V}" />
+                    <DataGridTextColumn Header="目標" Width="70" Binding="{Binding Target, StringFormat={}{0:F2}V}" />
+                    <DataGridTemplateColumn Header="不支援電源管理" Width="120">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="不支援電源管理" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}"
+                                           Visibility="{Binding SupportsPowerControl, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="操作" Width="180">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="套用修正" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,4,0"
+                                            Command="{Binding DataContext.ApplyQuickApplyCommand,
+                                                      RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}">
+                                        <Button.Visibility>
+                                            <MultiBinding Converter="{StaticResource ShowApplyButton}">
+                                                <Binding Path="." />
+                                                <Binding Path="DataContext.GlobalAutoCorrectEnabled" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                                <Binding Path="DataContext.IsServiceRunning" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                            </MultiBinding>
+                                        </Button.Visibility>
+                                    </Button>
+                                    <Button Content="詳細" Style="{StaticResource SecondaryButtonStyle}"
+                                            IsEnabled="{Binding SupportsPowerControl}"
+                                            ToolTip="{Binding SupportsPowerControl, Converter={StaticResource NoPowerControlTooltipConverter}}"
+                                            Command="{Binding DataContext.ApplyToggleExpandCommand,
+                                                      RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                            CommandParameter="{Binding}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+                <DataGrid.RowDetailsTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource TableRowDetailsBorderStyle}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBox Width="80" Style="{StaticResource AppTextBoxStyle}"
+                                         Text="{Binding DataContext.ManualTargetVoltage, RelativeSource={RelativeSource AncestorType=DataGrid}, StringFormat=F2}" />
+                                <Button Content="5V" Style="{StaticResource SecondaryButtonStyle}" Margin="4,0,0,0"
+                                        Command="{Binding DataContext.ApplySetPresetCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="5" />
+                                <Button Content="9V" Style="{StaticResource SecondaryButtonStyle}" Margin="4,0,0,0"
+                                        Command="{Binding DataContext.ApplySetPresetCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="9" />
+                                <Button Content="12V" Style="{StaticResource SecondaryButtonStyle}" Margin="4,0,0,0"
+                                        Command="{Binding DataContext.ApplySetPresetCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="12" />
+                                <Button Content="20V" Style="{StaticResource SecondaryButtonStyle}" Margin="4,0,0,0"
+                                        Command="{Binding DataContext.ApplySetPresetCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}" CommandParameter="20" />
+                                <Button Content="套用" Style="{StaticResource PrimaryButtonStyle}" Margin="8,0,0,0"
+                                        Command="{Binding DataContext.ApplySetTargetVoltageCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding}" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </DataGrid.RowDetailsTemplate>
+            </DataGrid>
         </Grid>
-
-        <Border Grid.Row="5" VerticalAlignment="Bottom" Style="{StaticResource CardBorderStyle}" Padding="12"
-                Visibility="{Binding ExpandedDevice, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}">
-            <StackPanel Orientation="Horizontal">
-                <TextBox Width="80" Style="{StaticResource AppTextBoxStyle}" Text="{Binding ManualTargetVoltage, StringFormat=F2}" />
-                <Button Content="5V" Style="{StaticResource SecondaryButtonStyle}" Margin="4,0,0,0" Command="{Binding ApplySetPresetCommand}" CommandParameter="5" />
-                <Button Content="9V" Style="{StaticResource SecondaryButtonStyle}" Margin="4,0,0,0" Command="{Binding ApplySetPresetCommand}" CommandParameter="9" />
-                <Button Content="12V" Style="{StaticResource SecondaryButtonStyle}" Margin="4,0,0,0" Command="{Binding ApplySetPresetCommand}" CommandParameter="12" />
-                <Button Content="20V" Style="{StaticResource SecondaryButtonStyle}" Margin="4,0,0,0" Command="{Binding ApplySetPresetCommand}" CommandParameter="20" />
-                <Button Content="套用" Style="{StaticResource PrimaryButtonStyle}" Margin="8,0,0,0"
-                        Command="{Binding ApplySetTargetVoltageCommand}" CommandParameter="{Binding ExpandedDevice}" />
-            </StackPanel>
-        </Border>
     </Grid>
 </UserControl>

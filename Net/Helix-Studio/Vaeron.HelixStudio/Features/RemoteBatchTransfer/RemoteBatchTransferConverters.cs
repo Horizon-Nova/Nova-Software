@@ -14,9 +14,7 @@ public sealed class TaskLogToggleLabelConverter : IValueConverter
         => Binding.DoNothing;
 }
 
-/// <summary>把「這一列所屬的任務」跟「這一列本身」打包成 (task, target) tuple，供
-/// ApplyRetryTargetCommand 使用——單一目標重試需要任務層級的來源路徑/動作，兩者分屬不同
-/// DataContext，只能用 MultiBinding 打包。</summary>
+/// <summary>(task, target) 配對打包，供單一目標重試使用</summary>
 public sealed class TaskTargetPairConverter : IMultiValueConverter
 {
     public object? Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
@@ -70,7 +68,7 @@ public sealed class AuthMethodToTextConverter : IValueConverter
         => Binding.DoNothing;
 }
 
-/// <summary>覆寫路徑徽章文字——「已覆寫」或「使用預設」，比對 blueprint 逐台目的路徑覆寫面板。</summary>
+/// <summary>覆寫路徑徽章文字</summary>
 public sealed class OverrideBadgeConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

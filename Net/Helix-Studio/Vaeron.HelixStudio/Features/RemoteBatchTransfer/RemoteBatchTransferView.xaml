@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Vaeron.HelixStudio.Features.RemoteBatchTransfer"
              xmlns:contracts="clr-namespace:Vaeron.HelixStudio.Features.RemoteBatchTransfer.Contracts"
+             xmlns:themes="clr-namespace:Vaeron.HelixStudio.Themes"
              Loaded="OnLoaded" Unloaded="OnUnloaded">
     <UserControl.Resources>
         <local:BoolToActionButtonStyleConverter x:Key="BoolToActionButtonStyleConverter" />
@@ -29,7 +30,8 @@
             <!-- 遠端連線 -->
             <TextBlock Text="遠端連線" FontWeight="Bold" Style="{StaticResource BaseTextStyle}" Margin="0,8,0,4" />
             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                <TextBox Width="200" Style="{StaticResource AppTextBoxStyle}" Text="{Binding ConnectionSearchText, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox Width="200" Style="{StaticResource AppSearchBoxStyle}" themes:TextBoxPlaceholder.Text="搜尋連線名稱或位址"
+                         Text="{Binding ConnectionSearchText, UpdateSourceTrigger=PropertyChanged}" />
                 <Button Content="全選已連線" Style="{StaticResource SecondaryButtonStyle}" Margin="4,0,0,0" Command="{Binding ApplySelectAllConnectedCommand}" />
                 <Button Content="清除選取" Style="{StaticResource SecondaryButtonStyle}" Margin="4,0,0,0" Command="{Binding ApplyClearSelectionCommand}" />
                 <Button Content="全部重新測試" Style="{StaticResource SecondaryButtonStyle}" Margin="4,0,0,0" Command="{Binding ApplyTestAllCommand}" />
@@ -70,7 +72,7 @@
                                         </TextBlock>
                                         <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                                             <Border Background="{Binding Connection.Status, Converter={StaticResource ConnectionStatusToBrush}}"
-                                                    CornerRadius="999" Padding="6,1">
+                                                    CornerRadius="6" Padding="6,1">
                                                 <TextBlock Text="{Binding Connection.Status, Converter={StaticResource ConnectionStatusToText}}"
                                                            FontSize="{StaticResource FontSizeXs}" />
                                             </Border>

@@ -15,7 +15,7 @@ public sealed class usb_target_voltage
     public double target_voltage { get; set; }
 }
 
-/// <summary>單列表，id 永遠是 1——全域自動修正開關。</summary>
+/// <summary>單列表：全域自動修正開關</summary>
 public sealed class usb_global_setting
 {
     public int id { get; set; }

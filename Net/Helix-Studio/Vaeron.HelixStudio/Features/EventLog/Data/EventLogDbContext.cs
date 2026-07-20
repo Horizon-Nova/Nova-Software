@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Vaeron.HelixStudio.Features.EventLog.Data;
 
@@ -8,11 +9,19 @@ public sealed class EventLogDbContext(DbContextOptions<EventLogDbContext> option
     public DbSet<log_settings> log_settings_rows => Set<log_settings>();
     public DbSet<read_marker> read_markers => Set<read_marker>();
 
-    /// <summary>read_marker 沒有 EF 慣例能自動辨識的 "id" 欄位（自然鍵是 workspace_id 本身，
-    /// 一個工作區一列）——EF Core 的預設鍵值慣例只認得 "Id" 或 "{類別名}Id" 命名，兩者都不符，
-    /// 不明確指定會在 EnsureCreatedAsync 時丟 ModelValidator 例外，故這裡明確指定主鍵。</summary>
+    /// <summary>DateTimeOffset 可查詢的字串轉換器（可排序、與既有資料格式相容）</summary>
+    private static readonly ValueConverter<DateTimeOffset, string> DateTimeOffsetToSortableString = new(
+        v => v.ToString("yyyy-MM-dd HH:mm:ss.fffffffzzz"),
+        v => DateTimeOffset.Parse(v, System.Globalization.CultureInfo.InvariantCulture));
+
+    /// <summary>read_marker 主鍵設定</summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
-        => modelBuilder.Entity<read_marker>().HasKey(x => x.workspace_id);
+    {
+        modelBuilder.Entity<read_marker>().HasKey(x => x.workspace_id);
+
+        modelBuilder.Entity<event_entry>().Property(x => x.timestamp).HasConversion(DateTimeOffsetToSortableString);
+        modelBuilder.Entity<read_marker>().Property(x => x.last_read_at).HasConversion(DateTimeOffsetToSortableString);
+    }
 }
 
 public sealed class event_entry
@@ -28,7 +37,7 @@ public sealed class event_entry
     public string? output { get; set; }
 }
 
-/// <summary>單列表，id 永遠是 1——全域日誌設定，見 configuration.md 的 SQLite 判準。</summary>
+/// <summary>單列表：全域日誌設定</summary>
 public sealed class log_settings
 {
     public int id { get; set; }
@@ -36,7 +45,7 @@ public sealed class log_settings
     public int retention_days { get; set; } = 30;
 }
 
-/// <summary>每個工作區一列——上次已讀時間，用來算未讀徽章數，不用整數加減。</summary>
+/// <summary>每工作區一列：上次已讀時間</summary>
 public sealed class read_marker
 {
     public int workspace_id { get; set; }

@@ -15,8 +15,7 @@ public sealed class AuditLogging(string logDirectory)
         }
         catch (IOException)
         {
-            // 寫日誌失敗不能讓應用程式崩潰，靜默放棄這一筆——Log 是 fire-and-forget，
-            // 沒有回傳值可用來反映失敗，刻意選擇吞掉而非拋出。
+            // 寫入失敗時靜默放棄
         }
     }
 

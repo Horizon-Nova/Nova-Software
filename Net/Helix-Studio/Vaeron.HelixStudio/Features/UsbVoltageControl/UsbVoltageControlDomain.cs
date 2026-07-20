@@ -24,9 +24,7 @@ public sealed class UsbVoltageControlDomain(
 
     #region 統一的查詢方法
 
-    /// <summary>回傳裝置清單＋硬體介面狀態訊息。裝置清單目前必為空（見
-    /// Data\UsbDeviceVoltageRepository.cs 的待接說明），message 誠實告知原因，
-    /// 不是回傳「找不到裝置」這種容易被誤解成裝置真的不存在的訊息。</summary>
+    /// <summary>裝置清單＋硬體介面狀態訊息</summary>
     public async Task<(IReadOnlyList<UsbDeviceSnapshot> devices, string hardwareStatusMessage)> LoadDeviceListAsync()
     {
         var (_, message, connectedDevices) = await deviceRepo.ListConnectedDevicesAsync();
@@ -79,10 +77,7 @@ public sealed class UsbVoltageControlDomain(
         return ResultContract.Ok(enabled ? "已啟用自動修正" : "已停用自動修正");
     }
 
-    /// <summary>對齊 blueprint 的 maybeAutoCorrect：全域自動修正開啟時，掃描已連線／支援電源
-    /// 管理、且電壓偏離目標的裝置，直接套用既有目標電壓（不是重新決定目標值），逐筆記錄事件。
-    /// 裝置清單目前恆為空（硬體介面未串接，見 UsbDeviceVoltageRepository），這裡先把邏輯骨架
-    /// 寫完整，之後串接硬體介面時這段不需要再改，只是掃描得到的清單會開始有東西可掃。</summary>
+    /// <summary>掃描並修正電壓偏離目標的裝置</summary>
     public async Task<int> ApplyAutoCorrectScanAsync()
     {
         if (!await LoadGlobalAutoCorrectAsync()) return 0;

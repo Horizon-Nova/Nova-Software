@@ -2,12 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
-    <!--
-        理論值不因主題（亮/暗）改變，換算自 .claude/blueprint/執行藍圖/styles/design-tokens.md 的 :root 靜態 token。
-        OKLCH 換算 sRGB 在建置階段用固定公式算一次寫死，不在執行期運算（見計畫書）。
-    -->
-
-    <!-- 字級（px 對應 WPF 邏輯單位，1:1 沿用 blueprint 數值） -->
+    <!-- 字級 -->
     <sys:Double x:Key="FontSizeH1">15</sys:Double>
     <sys:Double x:Key="FontSizeXl">12.5</sys:Double>
     <sys:Double x:Key="FontSizeLg">12</sys:Double>
@@ -22,12 +17,17 @@
     <sys:Double x:Key="ControlHeightSm">24</sys:Double>
     <sys:Double x:Key="ControlHeightMd">27</sys:Double>
 
-    <!-- 字型家族：Noto Sans TC / PingFang TC / Microsoft JhengHei / system-ui fallback -->
+    <!-- 字型家族 -->
     <FontFamily x:Key="AppFontFamily">Noto Sans TC, PingFang TC, Microsoft JhengHei UI, Segoe UI</FontFamily>
 
-    <!-- 語意色（不因亮暗主題改變，直接 StaticResource） -->
+    <!-- 語意色 -->
     <Color x:Key="OnAccentColor">#FFFFFFFF</Color>
     <SolidColorBrush x:Key="OnAccentBrush" Color="{StaticResource OnAccentColor}" />
+
+    <!-- 疊在強調色底部狀態列上的骨架屏色塊（半透明白）：SkeletonBrush 是給中性 bg-surface/bg-sidebar
+         背景用的灰階色，疊在 AccentSolidBrush 這種飽和底色上會看不清楚，需要獨立一份 -->
+    <Color x:Key="SkeletonOnAccentColor">#4DFFFFFF</Color>
+    <SolidColorBrush x:Key="SkeletonOnAccentBrush" Color="{StaticResource SkeletonOnAccentColor}" />
 
     <Color x:Key="NotifyDotColor">#FFB71824</Color>
     <SolidColorBrush x:Key="NotifyDotBrush" Color="{StaticResource NotifyDotColor}" />

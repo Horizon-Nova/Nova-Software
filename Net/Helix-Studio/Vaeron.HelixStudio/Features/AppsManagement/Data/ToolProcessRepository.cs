@@ -7,10 +7,7 @@ public enum ToolRuntimeStatus { Stopped, Starting, Running, Unresponsive, Error 
 
 public sealed record ToolRuntimeState(ToolRuntimeStatus Status, double CpuPercent, double MemoryMb, nint WindowHandle);
 
-/// <summary>子行程掛載機制（EXE + Job Object），對齊
-/// .claude/blueprint/執行藍圖/藍圖_外部模組工具隔離架構定案.md 判定的唯一模組擴充機制。
-/// 純記憶體內狀態，不碰 DbContext——依 repositories.md「Repository 是技術差異對 Domain
-/// 唯一隱藏的地方」的定位，行程/Job Object 互動歸類進本 Feature 的 Data\ 資料夾。</summary>
+/// <summary>子行程生命週期管理（EXE + Job Object）</summary>
 public sealed class ToolProcessRepository
 {
     private sealed class RunningEntry
@@ -28,10 +25,7 @@ public sealed class ToolProcessRepository
 
     public DateTimeOffset? GetStartedAt(int toolId) => _running.TryGetValue(toolId, out var e) ? e.StartedAt : null;
 
-    /// <summary>啟動子行程。用檔案存在檢查取代 try...catch 包 Process.Start——正常情境下
-    /// entryPath 不存在是預期會發生的失敗（工具被移除/未安裝完整），提前擋下比拋例外再處理乾淨；
-    /// 極少數的競態/權限問題仍可能讓 Process.Start 丟例外，交由 App 層級全域例外處理常式兜底
-    /// （見 viewmodels.md／domain.md 對「唯一攔截點在 SharedKernel」的判斷，這裡沒有更好的分層選擇）。</summary>
+    /// <summary>啟動子行程</summary>
     public (bool success, string message) Start(int toolId, string entryPath, string args)
     {
         if (IsRunning(toolId)) return (false, "已在執行中");
@@ -125,7 +119,7 @@ public sealed class ToolProcessRepository
         return new ToolRuntimeState(status, cpuPercent, entry.Process.WorkingSet64 / 1024.0 / 1024.0, entry.Process.MainWindowHandle);
     }
 
-    /// <summary>App 關閉時清理所有仍在執行的子行程——不刪除工具自己的狀態檔（App 離開，不是工具離開）。</summary>
+    /// <summary>App 關閉時清理所有仍在執行的子行程</summary>
     public void DisposeAllRunning()
     {
         foreach (var entry in _running.Values)

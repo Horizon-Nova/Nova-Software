@@ -77,9 +77,7 @@ public sealed class WorkspaceManagementRepository(IDbContextFactory<WorkspaceMan
         await db.SaveChangesAsync();
     }
 
-    /// <summary>新增工作區＋（若這是第一個工作區）指定為目前作用中——單一交易，
-    /// 取代 Domain 原本分兩次呼叫 InsertWorkspaceAsync/InsertActiveWorkspaceAsync 的寫法
-    /// （repositories.md：跨表寫入永遠是 Repository 上的一個方法，內部自己開交易）。</summary>
+    /// <summary>新增工作區＋首筆自動設為作用中（單一交易）</summary>
     public async Task<int> InsertWorkspaceAndActivateIfFirstAsync(workspace data)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
@@ -103,8 +101,7 @@ public sealed class WorkspaceManagementRepository(IDbContextFactory<WorkspaceMan
         return data.id;
     }
 
-    /// <summary>刪除工作區＋（若刪的是目前作用中的工作區）重新指派作用中工作區——單一交易，
-    /// 取代 Domain 原本分三次呼叫的寫法，理由同上。</summary>
+    /// <summary>刪除工作區＋重新指派作用中工作區（單一交易）</summary>
     public async Task<bool> DeleteWorkspaceAndReassignActiveAsync(int id)
     {
         await using var db = await dbFactory.CreateDbContextAsync();

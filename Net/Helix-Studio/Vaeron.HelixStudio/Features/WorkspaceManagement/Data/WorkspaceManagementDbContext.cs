@@ -18,7 +18,7 @@ public sealed class workspace
     public bool is_deleted { get; set; }
 }
 
-/// <summary>單列表，id 永遠是 1——目前選取的工作區，見 configuration.md 的 SQLite 判準。</summary>
+/// <summary>單列表：目前選取的工作區</summary>
 public sealed class active_workspace
 {
     public int id { get; set; }

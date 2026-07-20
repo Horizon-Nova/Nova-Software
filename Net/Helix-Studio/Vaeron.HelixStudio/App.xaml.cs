@@ -23,8 +23,7 @@ using Vaeron.SharedKernel;
 
 namespace Vaeron.HelixStudio;
 
-/// <summary>Generic Host 輕量整合（solution-structure.md）：Host 只提供 DI／組態，
-/// 不接管 WPF 生命週期——host.Start() 取得服務，視窗生命週期仍由 WPF Application 自己管理。</summary>
+/// <summary>應用程式進入點：Generic Host 組裝、DI 註冊、啟動流程</summary>
 public partial class App : Application
 {
     private IHost? _host;
@@ -68,16 +67,7 @@ public partial class App : Application
         mainWindow.Show();
     }
 
-    /// <summary>configuration.md「必須」條款：每個 Feature 的 DbContext 各自呼叫
-    /// Database.EnsureCreated() 建自己的表。全部 7 個 Feature 共用同一個實體 app.db 檔案，
-    /// 這裡刻意不直接呼叫 DbContext.Database.EnsureCreatedAsync()——那個 API 在 SQLite
-    /// provider 上是用「這個檔案裡有沒有『任何』資料表」當判斷依據，不是「這個 DbContext
-    /// 自己的表存不存在」；7 個 DbContext 共用同一個檔案時，第一個呼叫會建好自己的表，
-    /// 之後其餘 6 個呼叫都會看到「檔案已經有表了」而整批跳過，不會建自己的表，
-    /// 造成後面的 Feature 第一次查詢直接撞「no such table」（實測撞到這個問題）。
-    /// 改用 GenerateCreateScript() 產生這個 DbContext 自己模型的 DDL，把 "CREATE TABLE "
-    /// 改寫成 "CREATE TABLE IF NOT EXISTS " 再執行——每個 DbContext 各自只建自己的表，
-    /// 且對已存在的表是 no-op，重複啟動也安全。</summary>
+    /// <summary>各 Feature DbContext 建表（共用 app.db，逐一 CREATE TABLE IF NOT EXISTS）</summary>
     private async Task EnsureDatabasesCreatedAsync()
     {
         var services = _host!.Services;
@@ -99,11 +89,7 @@ public partial class App : Application
         await db.Database.ExecuteSqlRawAsync(script);
     }
 
-    /// <summary>全新安裝時 app.db 沒有任何工作區列，側邊欄工作區切換器會綁定到 null 顯示空白
-    /// （blueprint 的 seed/workspaces.js 永遠至少有一筆，這裡是真實資料庫，沒有這個保證）。
-    /// 只在「一筆工作區都沒有」時建立唯一一個預設工作區並設為 active——
-    /// WorkspaceManagementRepository.InsertWorkspaceAndActivateIfFirstAsync 已經處理「第一筆自動
-    /// 設為 active」，這裡只需要在啟動時觸發那個路徑一次，不是額外發明新邏輯。</summary>
+    /// <summary>首次啟動建立預設工作區</summary>
     private async Task EnsureDefaultWorkspaceAsync()
     {
         var workspaceFacade = _host!.Services.GetRequiredService<Features.WorkspaceManagement.WorkspaceManagementFacade>();
@@ -135,11 +121,7 @@ public partial class App : Application
         }
     }
 
-    /// <summary>App 層級最後一道防線——viewmodels.md／domain.md／repositories.md 明訂各層禁止
-    /// try...catch，技術例外的唯一攔截點是 SharedKernel；但 SharedKernel 只包裝它自己白名單內的
-    /// 操作，不是每一種可能的執行期例外都有機會先被它攔到（例如 P/Invoke、Clipboard 這類極少數
-    /// 剩餘風險，見各 ViewModel/Repository 內的說明註解）。這裡是應用程式最外層的兜底，
-    /// 記錄後不讓整個程式崩潰，跟分層的「業務語意判斷」是不同性質的兩件事。</summary>
+    /// <summary>全域未處理例外處理</summary>
     private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         var audit = _host?.Services.GetService<AuditLogging>();

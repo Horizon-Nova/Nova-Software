@@ -24,11 +24,7 @@ public sealed partial class RemoteBatchTransferViewModel(
     public ObservableCollection<TransferTaskSnapshot> Tasks { get; } = [];
     public ObservableCollection<string> SourceBrowseEntries { get; } = [];
 
-    /// <summary>連線清單搜尋用 ICollectionView 包住 Connections，不是另建一份過濾後的清單——
-    /// 這樣勾選狀態（SelectableConnection 實例本身）在搜尋文字變動時不會被重建、不會遺失。
-    /// 必須是 [ObservableProperty]，不能是純 CLR 屬性——ApplyViewLoaded() 才會真的指派值，
-    /// View 建構當下（DataContext 剛設好那一刻）這裡還是 null，沒有變更通知的話 XAML 的
-    /// ItemsSource 綁定會永遠停在最初評估到的 null，畫面上連線清單會整個是空的。</summary>
+    /// <summary>連線清單搜尋用集合檢視</summary>
     [ObservableProperty] private ICollectionView _connectionsView = null!;
 
     [ObservableProperty] private bool _isServiceRunning;
@@ -141,9 +137,7 @@ public sealed partial class RemoteBatchTransferViewModel(
         });
     }
 
-    /// <summary>逐台連線的勾選/覆寫路徑是純 UI 狀態（SelectableConnection 自身的 ObservableProperty），
-    /// 不會經過 domain.Changed 這條「重查快照」路徑——要讓「發布設定」面板與發布按鈕狀態即時反映
-    /// 使用者剛剛的勾選動作，只能在這裡訂閱逐個項目的 PropertyChanged 自行轉拋。</summary>
+    /// <summary>連線勾選/覆寫路徑變動時轉拋通知</summary>
     private void OnConnectionSelectionChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName is nameof(SelectableConnection.IsSelected) or nameof(SelectableConnection.DestPathOverride))
@@ -264,8 +258,7 @@ public sealed partial class RemoteBatchTransferViewModel(
         RefreshSourceBrowseEntries();
     }
 
-    /// <summary>回到上一層目錄——對齊 blueprint 樹狀瀏覽器可以往上層重選的行為，
-    /// 原本的「單層鑽入」只能一直往下，沒有回頭路。</summary>
+    /// <summary>回到上一層目錄</summary>
     [RelayCommand]
     private void ApplyBrowseUp()
     {
@@ -304,7 +297,7 @@ public sealed partial class RemoteBatchTransferViewModel(
         TaskLogOpen = true;
     }
 
-    /// <summary>重試單一失敗目標——沿用該任務原本的來源/目的路徑與動作，只重新派送這一台。</summary>
+    /// <summary>重試單一失敗目標</summary>
     [RelayCommand]
     private async Task ApplyRetryTargetAsync((TransferTaskSnapshot task, TransferTargetSnapshot target) item)
     {

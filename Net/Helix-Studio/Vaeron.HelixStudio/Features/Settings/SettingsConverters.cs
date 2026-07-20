@@ -5,33 +5,42 @@ using Vaeron.HelixStudio.Features.WorkspaceManagement.Contracts;
 
 namespace Vaeron.HelixStudio.Features.Settings;
 
-/// <summary>分類側邊導覽 pill 的選取視覺——比對這個分類鍵跟目前選取的分類鍵，兩者分屬不同
-/// DataContext，只能用 MultiBinding。獨立於 EventLog 的同類轉換器，不跨 Feature 共用同一個
-/// 類別（solution-structure.md 依賴法：Feature 之間不得互相引用，即使邏輯重複幾行也一樣）。</summary>
-public sealed class CategoryKeyToButtonStyleConverter : IMultiValueConverter
-{
-    public object? Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
-        => values is [string key, string current] && key == current
-            ? Application.Current.TryFindResource("PrimaryButtonStyle")
-            : Application.Current.TryFindResource("SecondaryButtonStyle");
-
-    public object[] ConvertBack(object? value, Type[] targetTypes, object? parameter, CultureInfo culture)
-        => throw new NotSupportedException();
-}
-
-/// <summary>比對這一列工作區的 Id 跟目前正在編輯／要求刪除的工作區 Id——用於決定該列要不要
-/// 顯示編輯表單或刪除確認 popup。</summary>
+/// <summary>工作區列 Id 比對（編輯／刪除狀態），用於 Visibility 綁定</summary>
 public sealed class WorkspaceRowMatchesConverter : IMultiValueConverter
 {
     public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
-        => values is [int rowId, WorkspaceSnapshot target] && rowId == target.Id;
+        => values is [int rowId, WorkspaceSnapshot target] && rowId == target.Id ? Visibility.Visible : Visibility.Collapsed;
 
     public object[] ConvertBack(object? value, Type[] targetTypes, object? parameter, CultureInfo culture)
         => throw new NotSupportedException();
 }
 
-/// <summary>刪除確認輸入框是否已打對名稱——「輸入完整名稱才能刪除」的高摩擦力確認，
-/// 打對之前確認按鈕維持停用。</summary>
+/// <summary>工作區是否為目前使用中，用於 Visibility 綁定</summary>
+public sealed class WorkspaceIsActiveConverter : IMultiValueConverter
+{
+    public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
+        => values is [int id, int active] && id == active ? Visibility.Visible : Visibility.Collapsed;
+
+    public object[] ConvertBack(object? value, Type[] targetTypes, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+/// <summary>工作區列是否處於編輯或刪除確認狀態，用於 Table 展開列</summary>
+public sealed class WorkspaceRowExpandedConverter : IMultiValueConverter
+{
+    public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (values is not [int rowId, _, _]) return Visibility.Collapsed;
+        var editing = values[1] as WorkspaceSnapshot;
+        var deleting = values[2] as WorkspaceSnapshot;
+        return editing?.Id == rowId || deleting?.Id == rowId ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    public object[] ConvertBack(object? value, Type[] targetTypes, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+/// <summary>刪除確認輸入是否匹配名稱</summary>
 public sealed class DeleteConfirmEnabledConverter : IMultiValueConverter
 {
     public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)

@@ -3,24 +3,73 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:eventLog="clr-namespace:Vaeron.HelixStudio.Features.EventLog"
              xmlns:local="clr-namespace:Vaeron.HelixStudio.Features.Settings"
+             xmlns:root="clr-namespace:Vaeron.HelixStudio"
+             xmlns:components="clr-namespace:Vaeron.HelixStudio.Components"
+             xmlns:themes="clr-namespace:Vaeron.HelixStudio.Themes"
              Loaded="OnLoaded" Unloaded="OnUnloaded">
     <UserControl.Resources>
         <eventLog:SeverityToTextConverter x:Key="SeverityToText" />
-        <local:CategoryKeyToButtonStyleConverter x:Key="CategoryKeyToButtonStyle" />
+        <root:NavKeyEqualsConverter x:Key="NavKeyEquals" />
         <local:WorkspaceRowMatchesConverter x:Key="WorkspaceRowMatches" />
+        <local:WorkspaceIsActiveConverter x:Key="WorkspaceIsActive" />
+        <local:WorkspaceRowExpandedConverter x:Key="WorkspaceRowExpanded" />
         <local:DeleteConfirmEnabledConverter x:Key="DeleteConfirmEnabled" />
         <local:CountGreaterThanOneConverter x:Key="CountGreaterThanOne" />
         <local:CheckUpdateLabelConverter x:Key="CheckUpdateLabel" />
 
+        <!-- 設定列標籤＋說明文字，統一放列的左半邊 -->
+        <Style x:Key="SettingRowLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextStyle}">
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <Style x:Key="SettingRowSubtitleStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextStyle}">
+            <Setter Property="Foreground" Value="{DynamicResource Text3Brush}" />
+            <Setter Property="FontSize" Value="{StaticResource FontSizeXs}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="0,2,0,0" />
+        </Style>
+        <!-- 「僅供展示」這類小標籤：對齊 blueprint SettingsScreen.dc.html 無邊框、底色 bg-hover。
+             CornerRadius 刻意不用 999——WPF 的 Border.CornerRadius 不像 CSS border-radius 會自動夾到
+             「不超過邊長一半」，徽章實際高度只有約 13~15px，設 999 會讓兩端圓角弧線互相重疊蓋過直邊，
+             視覺上塌成橢圓形；6 已低於此徽章任何合理字型渲染下高度的一半，兩端仍呈現全圓角的膠囊形。 -->
+        <Style x:Key="InlineBadgeStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource BgHoverBrush}" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="7,1" />
+            <Setter Property="Margin" Value="8,0,0,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <!-- 「全域」標籤：套用警示色而非中性灰，對齊 blueprint 第 313 行 -->
+        <Style x:Key="InlineBadgeWarningStyle" TargetType="Border" BasedOn="{StaticResource InlineBadgeStyle}">
+            <Setter Property="Background" Value="{DynamicResource StatusWarningBgBrush}" />
+        </Style>
+        <!-- 分類標題（工作區管理／外觀／電源…）：對齊 blueprint 各 settings-cat-* 節點，
+             fs-xs／700／accent-label，不是頁面主標題那種大字體黑體 -->
+        <Style x:Key="CategorySectionHeaderStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextStyle}">
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontSize" Value="{StaticResource FontSizeXs}" />
+            <Setter Property="Foreground" Value="{DynamicResource AccentLabelBrush}" />
+        </Style>
+
         <DataTemplate x:Key="CategoryNavTemplate">
-            <Button Content="{Binding Label}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left" Margin="0,1,0,0"
+            <Button Content="{Binding Label}"
                     Command="{Binding DataContext.ApplySelectCategoryCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                     CommandParameter="{Binding Key}">
                 <Button.Style>
-                    <MultiBinding Converter="{StaticResource CategoryKeyToButtonStyle}">
-                        <Binding Path="Key" />
-                        <Binding Path="DataContext.SelectedCategoryKey" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
-                    </MultiBinding>
+                    <Style TargetType="Button" BasedOn="{StaticResource SidebarNavButtonStyle}">
+                        <Style.Triggers>
+                            <DataTrigger Value="True">
+                                <DataTrigger.Binding>
+                                    <MultiBinding Converter="{StaticResource NavKeyEquals}">
+                                        <Binding Path="Key" />
+                                        <Binding Path="DataContext.SelectedCategoryKey" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                    </MultiBinding>
+                                </DataTrigger.Binding>
+                                <Setter Property="Background" Value="{DynamicResource AccentTintBrush}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource AccentSolidBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AccentTextBrush}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
                 </Button.Style>
             </Button>
         </DataTemplate>
@@ -36,8 +85,8 @@
         <StackPanel Grid.Column="0" Margin="0,0,12,0">
             <TextBlock Text="設定" Style="{StaticResource BaseTextStyle}"
                        FontSize="{StaticResource FontSizeH1}" FontWeight="Bold" Margin="0,0,0,12" />
-            <TextBox Style="{StaticResource AppTextBoxStyle}" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                     ToolTip="搜尋設定項目" Margin="0,0,0,8" />
+            <TextBox Style="{StaticResource AppSearchBoxStyle}" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                     themes:TextBoxPlaceholder.Text="搜尋設定項目" ToolTip="搜尋設定項目" Margin="0,0,0,8" />
             <ItemsControl ItemsSource="{Binding Categories}" ItemTemplate="{StaticResource CategoryNavTemplate}" />
             <TextBlock Text="沒有符合條件的設定項目" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text3Brush}"
                        TextWrapping="Wrap" Margin="0,8,0,0"
@@ -45,152 +94,307 @@
         </StackPanel>
 
         <ScrollViewer x:Name="ContentScroller" Grid.Column="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel MaxWidth="640">
+            <StackPanel MaxWidth="720">
 
                 <!-- 工作區管理 -->
                 <Border x:Name="Section_workspace" Visibility="{Binding IsWorkspaceCategoryVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel>
-                        <TextBlock Text="工作區（產線）管理" FontWeight="Bold" Style="{StaticResource BaseTextStyle}" Margin="0,0,0,4" />
-                        <ItemsControl ItemsSource="{Binding Workspaces}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <StackPanel Margin="0,0,0,4">
-                                        <Border Style="{StaticResource CardBorderStyle}" Padding="8">
-                                            <DockPanel>
-                                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                                                    <Button Content="切換" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,4,0"
-                                                            Command="{Binding DataContext.ApplySwitchWorkspaceCommand,
-                                                                      RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                            CommandParameter="{Binding Workspace}" />
-                                                    <Button Content="編輯" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,4,0"
-                                                            Command="{Binding DataContext.ApplyStartEditWorkspaceCommand,
-                                                                      RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                            CommandParameter="{Binding Workspace}" />
-                                                    <Button Content="刪除" Style="{StaticResource SecondaryButtonStyle}"
-                                                            ToolTip="至少要保留一個工作區"
-                                                            Command="{Binding DataContext.ApplyRequestDeleteWorkspaceCommand,
-                                                                      RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                            CommandParameter="{Binding Workspace}">
-                                                        <Button.IsEnabled>
-                                                            <Binding Path="DataContext.Workspaces.Count" RelativeSource="{RelativeSource AncestorType=ItemsControl}"
-                                                                     Converter="{StaticResource CountGreaterThanOne}" />
-                                                        </Button.IsEnabled>
-                                                    </Button>
-                                                </StackPanel>
-                                                <StackPanel>
-                                                    <TextBlock Style="{StaticResource BaseTextStyle}">
-                                                        <Run Text="{Binding Workspace.Name, Mode=OneWay}" FontWeight="Bold" />
-                                                        <Run Text=" · " Foreground="{DynamicResource Text3Brush}" />
-                                                        <Run Text="{Binding EventCount, Mode=OneWay, StringFormat={}{0} 筆事件}" Foreground="{DynamicResource Text3Brush}" />
-                                                    </TextBlock>
+                        <Border BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="0,0,0,1" Padding="0,0,0,10" Margin="0,0,0,2">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="工作區（產線）管理" Style="{StaticResource CategorySectionHeaderStyle}" VerticalAlignment="Center" />
+                            <Button Grid.Column="1" Content="＋ 新增工作區" Style="{StaticResource SecondaryButtonStyle}" VerticalAlignment="Center"
+                                    Command="{Binding ApplyToggleAddWorkspaceCommand}" />
+                        </Grid>
+                        </Border>
+
+                        <!-- 新增工作區表單：點「＋新增工作區」才展開 -->
+                        <Border Style="{StaticResource CardBorderStyle}" Padding="8" Margin="0,0,0,8"
+                                Visibility="{Binding IsAddingWorkspace, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="140" />
+                                    <ColumnDefinition Width="8" />
+                                    <ColumnDefinition Width="220" />
+                                    <ColumnDefinition Width="8" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="8" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" Style="{StaticResource AppTextBoxStyle}" themes:TextBoxPlaceholder.Text="名稱"
+                                         Text="{Binding NewWorkspaceName, UpdateSourceTrigger=PropertyChanged}" />
+                                <TextBox Grid.Column="2" Style="{StaticResource AppTextBoxStyle}" themes:TextBoxPlaceholder.Text="描述（選填）"
+                                         Text="{Binding NewWorkspaceDescription, UpdateSourceTrigger=PropertyChanged}" />
+                                <Button Grid.Column="4" Content="新增" Style="{StaticResource PrimaryButtonStyle}"
+                                        Command="{Binding ApplyAddWorkspaceCommand}" />
+                                <Button Grid.Column="6" Content="取消" Style="{StaticResource SecondaryButtonStyle}"
+                                        Command="{Binding ApplyToggleAddWorkspaceCommand}" />
+                            </Grid>
+                        </Border>
+
+                        <!-- 工作區清單表格：比照「已安裝工具」的表格結構，DataGrid 包一層 CardBorderStyle -->
+                        <Border Style="{StaticResource CardBorderStyle}" Padding="0">
+                            <DataGrid Style="{StaticResource AppDataGridStyle}" ItemsSource="{Binding Workspaces}">
+                                <DataGrid.RowStyle>
+                                    <Style TargetType="DataGridRow" BasedOn="{StaticResource DataGridRowStyle}">
+                                        <Setter Property="DetailsVisibility">
+                                            <Setter.Value>
+                                                <MultiBinding Converter="{StaticResource WorkspaceRowExpanded}">
+                                                    <Binding Path="Workspace.Id" />
+                                                    <Binding Path="DataContext.EditingWorkspace" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                                    <Binding Path="DataContext.DeleteTarget" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                                </MultiBinding>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </DataGrid.RowStyle>
+                                <DataGrid.Columns>
+                                    <DataGridTemplateColumn Header="使用中" Width="66">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <!-- 點圓點切換工作區，範圍僅限這一欄，不會誤觸展開列內的動作 -->
+                                                <Border Cursor="Hand" Background="Transparent" Padding="8,0">
+                                                    <Border.InputBindings>
+                                                        <MouseBinding MouseAction="LeftClick"
+                                                                      Command="{Binding DataContext.ApplySwitchWorkspaceCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                                      CommandParameter="{Binding Workspace}" />
+                                                    </Border.InputBindings>
+                                                    <Ellipse Width="8" Height="8" Fill="{DynamicResource AccentSolidBrush}" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                        <Ellipse.Visibility>
+                                                            <MultiBinding Converter="{StaticResource WorkspaceIsActive}">
+                                                                <Binding Path="Workspace.Id" />
+                                                                <Binding Path="DataContext.ActiveWorkspaceId" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                                            </MultiBinding>
+                                                        </Ellipse.Visibility>
+                                                    </Ellipse>
+                                                </Border>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTemplateColumn Header="名稱" Width="*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Workspace.Name, Mode=OneWay}" FontWeight="Bold" Style="{StaticResource BaseTextStyle}" />
                                                     <TextBlock Text="{Binding Workspace.Description}" Style="{StaticResource BaseTextStyle}"
                                                                Foreground="{DynamicResource Text2Brush}" />
                                                 </StackPanel>
-                                            </DockPanel>
-                                        </Border>
-
-                                        <!-- 編輯表單 -->
-                                        <Border Style="{StaticResource CardBorderStyle}" Padding="8" Margin="0,2,0,0">
-                                            <Border.Visibility>
-                                                <MultiBinding Converter="{StaticResource WorkspaceRowMatches}">
-                                                    <Binding Path="Workspace.Id" />
-                                                    <Binding Path="DataContext.EditingWorkspace" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
-                                                </MultiBinding>
-                                            </Border.Visibility>
-                                            <StackPanel DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                        Orientation="Horizontal">
-                                                <TextBox Width="140" Style="{StaticResource AppTextBoxStyle}" Text="{Binding EditWorkspaceName, UpdateSourceTrigger=PropertyChanged}" />
-                                                <TextBox Width="200" Style="{StaticResource AppTextBoxStyle}" Margin="4,0,0,0"
-                                                         Text="{Binding EditWorkspaceDescription, UpdateSourceTrigger=PropertyChanged}" />
-                                                <Button Content="儲存" Style="{StaticResource PrimaryButtonStyle}" Margin="4,0,0,0"
-                                                        Command="{Binding ApplySaveEditWorkspaceCommand}" />
-                                                <Button Content="取消" Style="{StaticResource SecondaryButtonStyle}" Margin="4,0,0,0"
-                                                        Command="{Binding ApplyCancelEditWorkspaceCommand}" />
-                                            </StackPanel>
-                                        </Border>
-
-                                        <!-- 刪除確認：輸入完整名稱才能刪除 -->
-                                        <Border Style="{StaticResource CardBorderStyle}" Padding="8" Margin="0,2,0,0"
-                                                Background="{DynamicResource StatusErrorBgBrush}">
-                                            <Border.Visibility>
-                                                <MultiBinding Converter="{StaticResource WorkspaceRowMatches}">
-                                                    <Binding Path="Workspace.Id" />
-                                                    <Binding Path="DataContext.DeleteTarget" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
-                                                </MultiBinding>
-                                            </Border.Visibility>
-                                            <StackPanel DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ItemsControl}}">
-                                                <TextBlock Style="{StaticResource BaseTextStyle}" TextWrapping="Wrap">
-                                                    <Run Text="此動作無法復原，且會一併刪除此工作區底下的所有事件記錄。請輸入「" />
-                                                    <Run Text="{Binding DeleteTarget.Name, Mode=OneWay}" FontWeight="Bold" />
-                                                    <Run Text="」以確認刪除。" />
-                                                </TextBlock>
-                                                <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                                    <TextBox Width="160" Style="{StaticResource AppTextBoxStyle}" Text="{Binding DeleteConfirmText, UpdateSourceTrigger=PropertyChanged}" />
-                                                    <Button Content="確認刪除" Style="{StaticResource PrimaryButtonStyle}" Margin="4,0,0,0"
-                                                            Command="{Binding ApplyConfirmDeleteWorkspaceCommand}">
-                                                        <Button.IsEnabled>
-                                                            <MultiBinding Converter="{StaticResource DeleteConfirmEnabled}">
-                                                                <Binding Path="DeleteConfirmText" />
-                                                                <Binding Path="DeleteTarget" />
-                                                            </MultiBinding>
-                                                        </Button.IsEnabled>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                    <DataGridTextColumn Header="事件數" Width="80" Binding="{Binding EventCount, Mode=OneWay}" />
+                                    <DataGridTemplateColumn Header="操作" Width="80">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button Style="{StaticResource IconButtonStyle}" ToolTip="編輯工作區"
+                                                            Command="{Binding DataContext.ApplyStartEditWorkspaceCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding Workspace}">
+                                                        <components:IconGlyph IconData="{StaticResource IconPencilGeometry}" Width="14" Height="14" />
                                                     </Button>
-                                                    <Button Content="取消" Style="{StaticResource SecondaryButtonStyle}" Margin="4,0,0,0"
-                                                            Command="{Binding ApplyCancelDeleteWorkspaceCommand}" />
+                                                    <Button Style="{StaticResource IconButtonStyle}" Margin="4,0,0,0"
+                                                            ToolTip="刪除此工作區（至少要保留一個工作區）"
+                                                            Command="{Binding DataContext.ApplyRequestDeleteWorkspaceCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                            CommandParameter="{Binding Workspace}">
+                                                        <Button.IsEnabled>
+                                                            <Binding Path="DataContext.Workspaces.Count" RelativeSource="{RelativeSource AncestorType=DataGrid}"
+                                                                     Converter="{StaticResource CountGreaterThanOne}" />
+                                                        </Button.IsEnabled>
+                                                        <components:IconGlyph IconData="{StaticResource IconTrashGeometry}" Width="14" Height="14" />
+                                                    </Button>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                                <DataGrid.RowDetailsTemplate>
+                                    <DataTemplate>
+                                        <Border Style="{StaticResource TableRowDetailsBorderStyle}">
+                                            <StackPanel>
+                                                <!-- 編輯表單 -->
+                                                <StackPanel Orientation="Horizontal">
+                                                    <StackPanel.Visibility>
+                                                        <MultiBinding Converter="{StaticResource WorkspaceRowMatches}">
+                                                            <Binding Path="Workspace.Id" />
+                                                            <Binding Path="DataContext.EditingWorkspace" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                                        </MultiBinding>
+                                                    </StackPanel.Visibility>
+                                                    <Grid DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=DataGrid}}">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="140" />
+                                                            <ColumnDefinition Width="8" />
+                                                            <ColumnDefinition Width="220" />
+                                                            <ColumnDefinition Width="8" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="8" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBox Grid.Column="0" Style="{StaticResource AppTextBoxStyle}" Text="{Binding EditWorkspaceName, UpdateSourceTrigger=PropertyChanged}" />
+                                                        <TextBox Grid.Column="2" Style="{StaticResource AppTextBoxStyle}"
+                                                                 Text="{Binding EditWorkspaceDescription, UpdateSourceTrigger=PropertyChanged}" />
+                                                        <Button Grid.Column="4" Content="儲存" Style="{StaticResource PrimaryButtonStyle}"
+                                                                Command="{Binding ApplySaveEditWorkspaceCommand}" />
+                                                        <Button Grid.Column="6" Content="取消" Style="{StaticResource SecondaryButtonStyle}"
+                                                                Command="{Binding ApplyCancelEditWorkspaceCommand}" />
+                                                    </Grid>
+                                                </StackPanel>
+
+                                                <!-- 刪除確認：輸入完整名稱才能刪除 -->
+                                                <StackPanel>
+                                                    <StackPanel.Visibility>
+                                                        <MultiBinding Converter="{StaticResource WorkspaceRowMatches}">
+                                                            <Binding Path="Workspace.Id" />
+                                                            <Binding Path="DataContext.DeleteTarget" RelativeSource="{RelativeSource AncestorType=DataGrid}" />
+                                                        </MultiBinding>
+                                                    </StackPanel.Visibility>
+                                                    <StackPanel DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=DataGrid}}">
+                                                        <TextBlock Style="{StaticResource BaseTextStyle}" TextWrapping="Wrap" Foreground="{DynamicResource StatusErrorTextBrush}">
+                                                            <Run Text="此動作無法復原，且會一併刪除此工作區底下的所有事件記錄。請輸入「" />
+                                                            <Run Text="{Binding DeleteTarget.Name, Mode=OneWay}" FontWeight="Bold" />
+                                                            <Run Text="」以確認刪除。" />
+                                                        </TextBlock>
+                                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                            <TextBox Width="160" Style="{StaticResource AppTextBoxStyle}" Text="{Binding DeleteConfirmText, UpdateSourceTrigger=PropertyChanged}" />
+                                                            <Button Content="確認刪除" Style="{StaticResource PrimaryButtonStyle}" Margin="4,0,0,0"
+                                                                    Command="{Binding ApplyConfirmDeleteWorkspaceCommand}">
+                                                                <Button.IsEnabled>
+                                                                    <MultiBinding Converter="{StaticResource DeleteConfirmEnabled}">
+                                                                        <Binding Path="DeleteConfirmText" />
+                                                                        <Binding Path="DeleteTarget" />
+                                                                    </MultiBinding>
+                                                                </Button.IsEnabled>
+                                                            </Button>
+                                                            <Button Content="取消" Style="{StaticResource SecondaryButtonStyle}" Margin="4,0,0,0"
+                                                                    Command="{Binding ApplyCancelDeleteWorkspaceCommand}" />
+                                                        </StackPanel>
+                                                    </StackPanel>
                                                 </StackPanel>
                                             </StackPanel>
                                         </Border>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,16">
-                            <TextBox Width="140" Style="{StaticResource AppTextBoxStyle}" Text="{Binding NewWorkspaceName, UpdateSourceTrigger=PropertyChanged}" />
-                            <TextBox Width="200" Style="{StaticResource AppTextBoxStyle}" Margin="4,0,0,0"
-                                     Text="{Binding NewWorkspaceDescription, UpdateSourceTrigger=PropertyChanged}" />
-                            <Button Content="新增工作區" Style="{StaticResource PrimaryButtonStyle}" Margin="4,0,0,0"
-                                    Command="{Binding ApplyAddWorkspaceCommand}" />
-                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGrid.RowDetailsTemplate>
+                            </DataGrid>
+                        </Border>
                     </StackPanel>
                 </Border>
 
                 <!-- 外觀 -->
                 <Border x:Name="Section_appearance" Visibility="{Binding IsAppearanceCategoryVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel>
-                        <TextBlock Text="外觀" FontWeight="Bold" Style="{StaticResource BaseTextStyle}" Margin="0,16,0,4" />
-                        <TextBlock Text="以下設定套用到整個軟體，所有工作區共用" Style="{StaticResource BaseTextStyle}"
-                                   Foreground="{DynamicResource Text3Brush}" FontSize="{StaticResource FontSizeXs}" Margin="0,0,0,8" />
+                        <TextBlock Text="外觀" Style="{StaticResource CategorySectionHeaderStyle}" Margin="0,16,0,0" />
+                        <TextBlock Text="以下設定套用到整個軟體，所有工作區共用，不是單一工作區各自的設定" Style="{StaticResource SettingRowSubtitleStyle}" />
 
-                        <TextBlock Text="主題模式" Style="{StaticResource BaseTextStyle}" Margin="0,0,0,4" />
-                        <StackPanel Orientation="Horizontal">
-                            <Border Width="72" Height="44" CornerRadius="6" Background="#FFF7F5F2" Margin="0,0,8,0" Cursor="Hand">
-                                <Border.InputBindings>
-                                    <MouseBinding MouseAction="LeftClick" Command="{Binding ApplySelectThemeCommand}" CommandParameter="light" />
-                                </Border.InputBindings>
-                                <TextBlock Text="淺色" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#FF1E1B18" />
-                            </Border>
-                            <Border Width="72" Height="44" CornerRadius="6" Background="#FF1E1B18" Cursor="Hand">
-                                <Border.InputBindings>
-                                    <MouseBinding MouseAction="LeftClick" Command="{Binding ApplySelectThemeCommand}" CommandParameter="dark" />
-                                </Border.InputBindings>
-                                <TextBlock Text="深色" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" />
-                            </Border>
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="介面縮放（Zoom）" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="以畫面縮放調整整體介面大小，非個別元件尺寸" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <ComboBox Width="80" ItemsSource="{Binding UiScaleOptions}" SelectedItem="{Binding UiScalePercent}" />
+                                <TextBlock Text="%" VerticalAlignment="Center" Margin="4,0,0,0" Style="{StaticResource BaseTextStyle}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Margin="0,16,0,0">
+                            <TextBlock Text="主題模式" Style="{StaticResource SettingRowLabelStyle}" />
+                            <TextBlock Text="套用到全部畫面的背景與文字色（含目前的強調色小圓點預覽）" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            <!-- 尺寸／圓角／邊框粗細／底色對齊 blueprint SettingsScreen.dc.html 第 756 行 cardStyle 與
+                                 THEME_TOKENS（Layout.dc.html 第 549-550 行）：底色與邊框色是兩套主題各自實際的
+                                 BgPageBrush／BorderBrush2，不隨目前主題切換，固定寫死代表「另一個主題長怎樣」 -->
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                <Border Width="132" Height="80" CornerRadius="6" Margin="0,0,16,0" Cursor="Hand"
+                                        Background="#FFFBFCFD">
+                                    <Border.InputBindings>
+                                        <MouseBinding MouseAction="LeftClick" Command="{Binding ApplySelectThemeCommand}" CommandParameter="light" />
+                                    </Border.InputBindings>
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Setter Property="BorderBrush" Value="#FFD4D8DB" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsDarkMode}" Value="False">
+                                                    <Setter Property="BorderThickness" Value="2.5" />
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource AccentSolidBrush}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Grid Margin="10">
+                                        <TextBlock Text="亮色" Foreground="#FF171B1F" Style="{StaticResource BaseTextStyle}" FontWeight="Bold"
+                                                   HorizontalAlignment="Left" VerticalAlignment="Center" />
+                                        <Ellipse Width="16" Height="16" Fill="{DynamicResource AccentSolidBrush}"
+                                                 HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Border>
+                                <Border Width="132" Height="80" CornerRadius="6" Cursor="Hand"
+                                        Background="#FF090C0D">
+                                    <Border.InputBindings>
+                                        <MouseBinding MouseAction="LeftClick" Command="{Binding ApplySelectThemeCommand}" CommandParameter="dark" />
+                                    </Border.InputBindings>
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Setter Property="BorderBrush" Value="#FF2A2E31" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsDarkMode}" Value="True">
+                                                    <Setter Property="BorderThickness" Value="2.5" />
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource AccentSolidBrush}" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <Grid Margin="10">
+                                        <TextBlock Text="暗色" Foreground="#FFEDEEF0" Style="{StaticResource BaseTextStyle}" FontWeight="Bold"
+                                                   HorizontalAlignment="Left" VerticalAlignment="Center" />
+                                        <Ellipse Width="16" Height="16" Fill="{DynamicResource AccentSolidBrush}"
+                                                 HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                    </Grid>
+                                </Border>
+                            </StackPanel>
                         </StackPanel>
 
-                        <CheckBox Content="精簡密度" IsChecked="{Binding IsCompactDensity}" Margin="0,12,0,0" />
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <TextBlock Text="介面縮放" VerticalAlignment="Center" Width="120" Style="{StaticResource BaseTextStyle}" />
-                            <ComboBox Width="80" ItemsSource="{Binding UiScaleOptions}" SelectedItem="{Binding UiScalePercent}" />
-                            <TextBlock Text="%" VerticalAlignment="Center" Margin="4,0,0,0" Style="{StaticResource BaseTextStyle}" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <TextBlock Text="強調色 Hue" VerticalAlignment="Center" Width="120" Style="{StaticResource BaseTextStyle}" />
-                            <Slider Width="160" Minimum="0" Maximum="360" Value="{Binding AccentHue}" />
-                        </StackPanel>
-                        <!-- 沒有「套用」按鈕——每個控件一改就立刻生效並存檔，對齊 blueprint 沒有
-                             套用步驟的即時套用模型（見 ViewModel 的 On*Changed 局部方法）。 -->
-                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                            <Button Content="重設外觀為預設值" Style="{StaticResource SecondaryButtonStyle}"
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="資料密度" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="表格與清單的每列高度" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <Border Grid.Column="1" Style="{StaticResource SegmentedButtonGroupBorderStyle}" HorizontalAlignment="Right">
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Content="舒適" Tag="7,0,0,7"
+                                            Command="{Binding ApplySelectDensityCommand}" CommandParameter="comfortable">
+                                        <Button.Style>
+                                            <MultiBinding Converter="{StaticResource ObjectEqualsToSegmentedButtonStyle}">
+                                                <Binding Path="DensityKey" />
+                                                <Binding Source="comfortable" />
+                                            </MultiBinding>
+                                        </Button.Style>
+                                    </Button>
+                                    <Button Content="精簡" Tag="0,7,7,0"
+                                            Command="{Binding ApplySelectDensityCommand}" CommandParameter="compact">
+                                        <Button.Style>
+                                            <MultiBinding Converter="{StaticResource ObjectEqualsToSegmentedButtonStyle}">
+                                                <Binding Path="DensityKey" />
+                                                <Binding Source="compact" />
+                                            </MultiBinding>
+                                        </Button.Style>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                            <Button Content="重設外觀為預設值" Style="{StaticResource TextButtonStyle}"
                                     Command="{Binding ApplyResetAppearanceCommand}" />
                         </StackPanel>
                     </StackPanel>
@@ -199,113 +403,344 @@
                 <!-- 電源（僅供展示） -->
                 <Border x:Name="Section_power" Visibility="{Binding IsPowerCategoryVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel>
-                        <TextBlock Text="電源（僅供展示，無實際 OS API 接入）" FontWeight="Bold" Style="{StaticResource BaseTextStyle}"
-                                   Foreground="{DynamicResource Text2Brush}" Margin="0,16,0,4" />
+                        <TextBlock Text="電源" Style="{StaticResource CategorySectionHeaderStyle}" Margin="0,16,0,0" />
                         <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <TextBlock Text="電源模式" VerticalAlignment="Center" Width="160" Style="{StaticResource BaseTextStyle}" />
-                            <ComboBox Width="100" ItemsSource="{Binding PowerModeOptions}" SelectedItem="{Binding PowerMode}" />
+                            <Border Style="{StaticResource InlineBadgeStyle}" Margin="0"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}" /></Border>
+                            <TextBlock Text="此原型版本尚未連接系統電源功能，以下設定不會實際生效" Style="{StaticResource SettingRowSubtitleStyle}" Margin="6,0,0,0" />
                         </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <TextBlock Text="插電時進入睡眠（分鐘，0＝永不）" VerticalAlignment="Center" Width="160" Style="{StaticResource BaseTextStyle}" />
-                            <ComboBox Width="100" ItemsSource="{Binding SleepMinutesOptions}" SelectedItem="{Binding AcSleepMinutes}" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <TextBlock Text="電池電力時進入睡眠（分鐘）" VerticalAlignment="Center" Width="160" Style="{StaticResource BaseTextStyle}" />
-                            <ComboBox Width="100" ItemsSource="{Binding SleepMinutesOptions}" SelectedItem="{Binding BatterySleepMinutes}" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <TextBlock Text="螢幕逾時（分鐘）" VerticalAlignment="Center" Width="160" Style="{StaticResource BaseTextStyle}" />
-                            <ComboBox Width="100" ItemsSource="{Binding SleepMinutesOptions}" SelectedItem="{Binding ScreenTimeoutMinutes}" />
-                        </StackPanel>
-                        <CheckBox Content="休眠" IsChecked="{Binding HibernateEnabled}" Margin="0,8,0,0" />
-                        <CheckBox Content="快速啟動" IsChecked="{Binding FastStartupEnabled}" Margin="0,4,0,0" />
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <TextBlock Text="按下電源按鈕時" VerticalAlignment="Center" Width="160" Style="{StaticResource BaseTextStyle}" />
-                            <ComboBox Width="120" ItemsSource="{Binding PowerButtonActionOptions}" SelectedItem="{Binding PowerButtonAction}" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <TextBlock Text="闔上筆電螢幕時" VerticalAlignment="Center" Width="160" Style="{StaticResource BaseTextStyle}" />
-                            <ComboBox Width="120" ItemsSource="{Binding PowerButtonActionOptions}" SelectedItem="{Binding LidCloseAction}" />
-                        </StackPanel>
+
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="目前電源模式" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="影響 CPU 效能與整體省電程度" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <Border Grid.Column="1" Style="{StaticResource SegmentedButtonGroupBorderStyle}" HorizontalAlignment="Right">
+                                <!-- AlternationCount 開啟 AlternationIndex（預設 0 時停用），設大於實際項目數避免被 mod 循環，
+                                     搭配 SegmentCornerRadiusConverter 讓頭尾兩顆自己畫圓角（理由見 SegmentedButtonStyle 註解）。 -->
+                                <ItemsControl ItemsSource="{Binding PowerModeOptions}" AlternationCount="100">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Content="{Binding}"
+                                                    Command="{Binding DataContext.ApplySelectPowerModeCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}">
+                                                <Button.Tag>
+                                                    <MultiBinding Converter="{StaticResource SegmentCornerRadiusConverter}">
+                                                        <Binding Path="(ItemsControl.AlternationIndex)" RelativeSource="{RelativeSource AncestorType=ContentPresenter}" />
+                                                        <Binding Path="DataContext.PowerModeOptions.Length" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                                    </MultiBinding>
+                                                </Button.Tag>
+                                                <Button.Style>
+                                                    <MultiBinding Converter="{StaticResource ObjectEqualsToSegmentedButtonStyle}">
+                                                        <Binding Path="." />
+                                                        <Binding Path="DataContext.PowerMode" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                                    </MultiBinding>
+                                                </Button.Style>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Border>
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="插電時，進入睡眠" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="接上電源時，閒置多久後進入睡眠" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding SleepMinutesOptions}" SelectedItem="{Binding AcSleepMinutes}" />
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="電池電力時，進入睡眠" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="使用電池時，閒置多久後進入睡眠" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding SleepMinutesOptions}" SelectedItem="{Binding BatterySleepMinutes}" />
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="螢幕逾時" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="閒置多久後關閉螢幕（不影響是否進入睡眠）" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding SleepMinutesOptions}" SelectedItem="{Binding ScreenTimeoutMinutes}" />
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="休眠（Hibernate）" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="允許系統在深度省電時將記憶體內容寫入磁碟並關機" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <ToggleButton Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}" VerticalAlignment="Center"
+                                          AutomationProperties.Name="休眠（Hibernate）" IsChecked="{Binding HibernateEnabled}" />
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="快速啟動（Fast Startup）" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="縮短開機時間；產線設備建議關閉，避免週邊裝置未正確重新初始化" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <ToggleButton Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}" VerticalAlignment="Center"
+                                          AutomationProperties.Name="快速啟動（Fast Startup）" IsChecked="{Binding FastStartupEnabled}" />
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="按下電源按鈕時" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="實體電源鍵被按下時執行的動作" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <ComboBox Grid.Column="1" Width="140" VerticalAlignment="Center" ItemsSource="{Binding PowerButtonActionOptions}" SelectedItem="{Binding PowerButtonAction}" />
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="闔上筆電螢幕時" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="僅適用於筆記型電腦；桌上型主機無此項目可忽略" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <ComboBox Grid.Column="1" Width="140" VerticalAlignment="Center" ItemsSource="{Binding PowerButtonActionOptions}" SelectedItem="{Binding LidCloseAction}" />
+                        </Grid>
                     </StackPanel>
                 </Border>
 
                 <!-- 一般 -->
                 <Border x:Name="Section_general" Visibility="{Binding IsGeneralCategoryVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel>
-                        <TextBlock Text="一般" FontWeight="Bold" Style="{StaticResource BaseTextStyle}" Margin="0,16,0,4" />
-                        <CheckBox Content="預設摺疊側邊欄" IsChecked="{Binding SidebarCollapsedByDefault}" Margin="0,4,0,0" />
-                        <CheckBox Content="開機時自動啟動本軟體" IsChecked="{Binding StartWithWindows}" Margin="0,4,0,0" />
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <TextBlock Text="啟動時開啟頁面（僅供展示）" VerticalAlignment="Center" Width="180" Style="{StaticResource BaseTextStyle}" />
-                            <ComboBox Width="100" ItemsSource="{Binding StartupPageOptions}" SelectedItem="{Binding StartupPage}" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <TextBlock Text="介面語言（僅供展示）" VerticalAlignment="Center" Width="180" Style="{StaticResource BaseTextStyle}" />
-                            <ComboBox Width="100" ItemsSource="{Binding LanguageOptions}" SelectedItem="{Binding Language}" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <TextBlock Text="閒置鎖定（分鐘，0＝永不，僅供展示）" VerticalAlignment="Center" Width="180" Style="{StaticResource BaseTextStyle}" />
-                            <ComboBox Width="100" ItemsSource="{Binding IdleLockMinutesOptions}" SelectedItem="{Binding IdleLockMinutes}" />
-                        </StackPanel>
-                        <Button Content="儲存" Style="{StaticResource PrimaryButtonStyle}" Margin="0,8,0,0"
-                                Command="{Binding ApplySaveGeneralCommand}" HorizontalAlignment="Left" />
+                        <TextBlock Text="一般" Style="{StaticResource CategorySectionHeaderStyle}" Margin="0,16,0,0" />
+
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="介面語言" Style="{StaticResource SettingRowLabelStyle}" />
+                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}" /></Border>
+                                </StackPanel>
+                                <TextBlock Text="套用到全部畫面與選單的顯示語言" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding LanguageOptions}" SelectedItem="{Binding Language}" />
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="啟動時開啟頁面" Style="{StaticResource SettingRowLabelStyle}" />
+                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}" /></Border>
+                                </StackPanel>
+                                <TextBlock Text="軟體啟動後預設顯示的畫面" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding StartupPageOptions}" SelectedItem="{Binding StartupPage}" />
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="閒置鎖定" Style="{StaticResource SettingRowLabelStyle}" />
+                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}" /></Border>
+                                </StackPanel>
+                                <TextBlock Text="無操作一段時間後鎖定畫面" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding IdleLockMinutesOptions}" SelectedItem="{Binding IdleLockMinutes}" />
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="預設摺疊側邊欄" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="立即套用，也會是下次開啟時的狀態" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <ToggleButton Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}" VerticalAlignment="Center"
+                                          AutomationProperties.Name="預設摺疊側邊欄" IsChecked="{Binding SidebarCollapsedByDefault}" />
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="開機時自動啟動本軟體" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="隨系統啟動，於背景待命" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <ToggleButton Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}" VerticalAlignment="Center"
+                                          AutomationProperties.Name="開機時自動啟動本軟體" IsChecked="{Binding StartWithWindows}" />
+                        </Grid>
                     </StackPanel>
                 </Border>
 
                 <!-- 通知 -->
                 <Border x:Name="Section_notifications" Visibility="{Binding IsNotificationsCategoryVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel>
-                        <TextBlock Text="通知" FontWeight="Bold" Style="{StaticResource BaseTextStyle}" Margin="0,16,0,4" />
-                        <CheckBox Content="顯示未讀事件徽章" IsChecked="{Binding ShowEventBadge}" Margin="0,4,0,0" />
+                        <TextBlock Text="通知" Style="{StaticResource CategorySectionHeaderStyle}" Margin="0,16,0,0" />
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="顯示未讀事件徽章" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="關閉後，上方通知鈴鐺不會再顯示紅點數字" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <ToggleButton Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}" VerticalAlignment="Center"
+                                          AutomationProperties.Name="顯示未讀事件徽章" IsChecked="{Binding ShowEventBadge}" />
+                        </Grid>
                     </StackPanel>
                 </Border>
 
                 <!-- 日誌 -->
                 <Border x:Name="Section_log" Visibility="{Binding IsLogCategoryVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel>
-                        <TextBlock Text="日誌" FontWeight="Bold" Style="{StaticResource BaseTextStyle}" Margin="0,16,0,4" />
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <TextBlock Text="最低記錄等級（全域）" VerticalAlignment="Center" Width="160" Style="{StaticResource BaseTextStyle}" />
-                            <ComboBox Width="180" ItemsSource="{Binding LogLevelOptions}" SelectedItem="{Binding MinLogLevel}">
+                        <TextBlock Text="日誌" Style="{StaticResource CategorySectionHeaderStyle}" Margin="0,16,0,0" />
+
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="最低記錄等級" Style="{StaticResource SettingRowLabelStyle}" />
+                                    <Border Style="{StaticResource InlineBadgeWarningStyle}"><TextBlock Text="全域" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource StatusWarningTextBrush}" /></Border>
+                                </StackPanel>
+                                <TextBlock Text="低於此等級的事件不會被記錄，套用到所有工作區——調低門檻會讓其他工作區的事件也一起停止記錄，不限於目前選取的工作區" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <ComboBox Grid.Column="1" Width="140" VerticalAlignment="Center" ItemsSource="{Binding LogLevelOptions}" SelectedItem="{Binding MinLogLevel}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding Converter={StaticResource SeverityToText}}" />
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <TextBlock Text="記錄保留期限（天，-1＝永久）" VerticalAlignment="Center" Width="160" Style="{StaticResource BaseTextStyle}" />
-                            <ComboBox Width="100" ItemsSource="{Binding RetentionDaysOptions}" SelectedItem="{Binding RetentionDays}" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <TextBlock Text="輸出位置" VerticalAlignment="Center" Width="160" Style="{StaticResource BaseTextStyle}" />
-                            <TextBlock Text="{Binding ExportPathDisplay}" VerticalAlignment="Center" Style="{StaticResource BaseTextStyle}"
-                                       Foreground="{DynamicResource Text3Brush}" Margin="0,0,8,0" />
-                            <Button Content="瀏覽…" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False"
-                                    ToolTip="原型範疇未提供資料夾選擇對話框" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <TextBlock Text="編碼（僅供展示）" VerticalAlignment="Center" Width="160" Style="{StaticResource BaseTextStyle}" />
-                            <ComboBox Width="100" ItemsSource="{Binding EncodingOptions}" SelectedItem="{Binding Encoding}" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <TextBlock Text="時區（僅供展示）" VerticalAlignment="Center" Width="160" Style="{StaticResource BaseTextStyle}" />
-                            <TextBox Width="160" Style="{StaticResource AppTextBoxStyle}" Text="{Binding TimeZone}" />
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                            <Button Content="儲存日誌設定" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding ApplySaveLogSettingsCommand}" />
-                            <Button Content="匯出事件記錄" Style="{StaticResource SecondaryButtonStyle}" Margin="8,0,0,0"
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="記錄保留期限" Style="{StaticResource SettingRowLabelStyle}" />
+                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}" /></Border>
+                                </StackPanel>
+                                <TextBlock Text="超過此天數的日誌會自動清除" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding RetentionDaysOptions}" SelectedItem="{Binding RetentionDays}" />
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="輸出位置" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="匯出日誌與事件記錄時的存放資料夾" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding ExportPathDisplay}" VerticalAlignment="Center" Style="{StaticResource BaseTextStyle}"
+                                           Foreground="{DynamicResource Text3Brush}" Margin="0,0,8,0" />
+                                <Button Content="瀏覽…" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False"
+                                        ToolTip="原型範疇未提供資料夾選擇對話框" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="編碼" Style="{StaticResource SettingRowLabelStyle}" />
+                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}" /></Border>
+                                </StackPanel>
+                                <TextBlock Text="匯出檔案使用的文字編碼" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding EncodingOptions}" SelectedItem="{Binding Encoding}" />
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="時區" Style="{StaticResource SettingRowLabelStyle}" />
+                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}" /></Border>
+                                </StackPanel>
+                                <TextBlock Text="匯出記錄之時間戳記所使用的時區" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <TextBox Grid.Column="1" Width="160" VerticalAlignment="Center" Style="{StaticResource AppTextBoxStyle}" Text="{Binding TimeZone}" />
+                        </Grid>
+
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="匯出事件記錄" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="依上述設定，下載目前工作區的完整事件記錄，不受「事件日誌」頁面當下的搜尋／篩選影響" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="匯出" Style="{StaticResource SecondaryButtonStyle}" VerticalAlignment="Center"
                                     Command="{Binding ApplyExportEventsCommand}" />
-                        </StackPanel>
+                        </Grid>
                     </StackPanel>
                 </Border>
 
                 <!-- 關於 -->
                 <Border x:Name="Section_about" Visibility="{Binding IsAboutCategoryVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel>
-                        <TextBlock Text="關於" FontWeight="Bold" Style="{StaticResource BaseTextStyle}" Margin="0,16,0,4" />
+                        <TextBlock Text="關於" Style="{StaticResource CategorySectionHeaderStyle}" Margin="0,16,0,4" />
                         <TextBlock Style="{StaticResource BaseTextStyle}">
                             <Run Text="版本：" /><Run Text="{Binding VersionText, Mode=OneWay}" />
                         </TextBlock>
@@ -315,20 +750,48 @@
                         <TextBlock Style="{StaticResource BaseTextStyle}">
                             <Run Text="平台：" /><Run Text="{Binding PlatformText, Mode=OneWay}" />
                         </TextBlock>
-                        <TextBlock Style="{StaticResource BaseTextStyle}">
-                            <Run Text="授權：" /><Run Text="已啟用（一般金鑰／無到期欄位）" />
-                        </TextBlock>
-                        <TextBlock Style="{StaticResource BaseTextStyle}">
-                            <Run Text="到期日：" /><Run Text="無到期日" />
-                        </TextBlock>
-                        <TextBlock Style="{StaticResource BaseTextStyle}">
+
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="授權類型" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="隨此軟體安裝提供，不需另外啟用" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="已啟用（一般金鑰／無到期欄位）" Style="{StaticResource BaseTextStyle}" VerticalAlignment="Center" />
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="到期日" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="系統啟動時自動驗證授權狀態" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" Text="無到期日" Style="{StaticResource BaseTextStyle}" VerticalAlignment="Center" />
+                        </Grid>
+
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="法律與授權文件" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="隱私權政策、服務條款、第三方軟體授權清單等，見左側「法律」分類" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Style="{StaticResource BaseTextStyle}" Margin="0,12,0,0">
                             <Run Text="工作區 ID：" /><Run Text="{Binding ActiveWorkspaceId, Mode=OneWay}" />
                         </TextBlock>
-                        <Button Content="法律與授權文件" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False"
-                                HorizontalAlignment="Left" Margin="0,4,0,0"
-                                ToolTip="原型範疇：內容待補" />
+
                         <Button Content="{Binding IsCheckingUpdate, Converter={StaticResource CheckUpdateLabel}, FallbackValue=檢查更新}"
-                                Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Left" Margin="0,8,0,0"
+                                Style="{StaticResource SecondaryButtonStyle}" HorizontalAlignment="Left" Margin="0,16,0,0"
                                 IsEnabled="{Binding IsCheckingUpdate, Converter={StaticResource InverseBoolConverter}}"
                                 Command="{Binding ApplyCheckUpdateCommand}" />
                     </StackPanel>
@@ -337,27 +800,106 @@
                 <!-- 使用說明 -->
                 <Border x:Name="Section_help" Visibility="{Binding IsHelpCategoryVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel>
-                        <TextBlock Text="使用說明（原型範圍：內容待補）" FontWeight="Bold" Style="{StaticResource BaseTextStyle}"
-                                   Foreground="{DynamicResource Text2Brush}" Margin="0,16,0,4" />
-                        <Button Content="操作手冊" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" HorizontalAlignment="Left" Margin="0,2,0,0" />
-                        <Button Content="常見問題 FAQ" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" HorizontalAlignment="Left" Margin="0,2,0,0" />
-                        <Button Content="鍵盤快速鍵" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" HorizontalAlignment="Left" Margin="0,2,0,0" />
-                        <Button Content="版本更新紀錄 Changelog" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" HorizontalAlignment="Left" Margin="0,2,0,0" />
-                        <Button Content="系統需求" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" HorizontalAlignment="Left" Margin="0,2,0,0" />
-                        <Button Content="意見回饋／錯誤回報" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" HorizontalAlignment="Left" Margin="0,2,0,0" />
-                        <Button Content="聯絡技術支援" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" HorizontalAlignment="Left" Margin="0,2,0,0" />
+                        <TextBlock Text="使用說明" Style="{StaticResource CategorySectionHeaderStyle}" Margin="0,16,0,0" />
+                        <TextBlock Text="原型範圍：內容待補" Style="{StaticResource SettingRowSubtitleStyle}" />
+
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="操作手冊／使用者指南" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="完整功能操作說明" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="開啟" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" VerticalAlignment="Center" ToolTip="原型範圍：內容待補" />
+                        </Grid>
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="常見問題（FAQ）" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="使用上常見問題與排除方式" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="開啟" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" VerticalAlignment="Center" ToolTip="原型範圍：內容待補" />
+                        </Grid>
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="鍵盤快速鍵" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="常用操作的快速鍵列表" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="查看" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" VerticalAlignment="Center" ToolTip="原型範圍：內容待補" />
+                        </Grid>
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="版本更新紀錄（Changelog）" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="各版本的變更與修正內容" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="查看" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" VerticalAlignment="Center" ToolTip="原型範圍：內容待補" />
+                        </Grid>
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="系統需求" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="建議的作業系統與硬體規格" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="查看" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" VerticalAlignment="Center" ToolTip="原型範圍：內容待補" />
+                        </Grid>
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="意見回饋／錯誤回報" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="回報問題或提出功能建議" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="開啟" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" VerticalAlignment="Center" ToolTip="原型範圍：內容待補" />
+                        </Grid>
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="聯絡技術支援" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="遇到問題時的聯繫窗口與方式" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="查看" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" VerticalAlignment="Center" ToolTip="原型範圍：內容待補" />
+                        </Grid>
                     </StackPanel>
                 </Border>
 
                 <!-- 法律 -->
                 <Border x:Name="Section_legal" Visibility="{Binding IsLegalCategoryVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel>
-                        <TextBlock Text="法律（原型範圍：內容待補）" FontWeight="Bold" Style="{StaticResource BaseTextStyle}"
-                                   Foreground="{DynamicResource Text2Brush}" Margin="0,16,0,4" />
-                        <Button Content="隱私權政策" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" HorizontalAlignment="Left" Margin="0,2,0,0" />
-                        <Button Content="服務條款／使用條款" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" HorizontalAlignment="Left" Margin="0,2,0,0" />
-                        <Button Content="第三方軟體授權清單" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" HorizontalAlignment="Left" Margin="0,2,0,0" />
-                        <Button Content="資料保留與稽核政策" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" HorizontalAlignment="Left" Margin="0,2,0,16" />
+                        <TextBlock Text="法律" Style="{StaticResource CategorySectionHeaderStyle}" Margin="0,16,0,0" />
+                        <TextBlock Text="原型範圍：內容待補" Style="{StaticResource SettingRowSubtitleStyle}" />
+
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="隱私權政策" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="說明本軟體如何處理與保存使用者／產線資料" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="查看" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" VerticalAlignment="Center" ToolTip="原型範圍：內容待補" />
+                        </Grid>
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="服務條款／使用條款" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="使用本軟體須遵守的條款" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="查看" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" VerticalAlignment="Center" ToolTip="原型範圍：內容待補" />
+                        </Grid>
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="第三方軟體授權清單" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="本軟體使用的開源套件與授權條款" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="查看" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" VerticalAlignment="Center" ToolTip="原型範圍：內容待補" />
+                        </Grid>
+                        <Grid Margin="0,12,0,16">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <TextBlock Text="資料保留與稽核政策" Style="{StaticResource SettingRowLabelStyle}" />
+                                <TextBlock Text="事件記錄與匯出資料的保留規範，供稽核參考" Style="{StaticResource SettingRowSubtitleStyle}" />
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="查看" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False" VerticalAlignment="Center" ToolTip="原型範圍：內容待補" />
+                        </Grid>
                     </StackPanel>
                 </Border>
             </StackPanel>

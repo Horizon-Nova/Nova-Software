@@ -17,10 +17,7 @@ namespace Vaeron.HelixStudio;
 
 public sealed record NavItem(string Key, string Label, bool HasIcon);
 
-/// <summary>App 根層級的殼層協調者——不是 Feature，持有全部畫面 View 的參考（已由 DI 注入完成
-/// 各自的 ViewModel 建構），依導覽 key 切換 CurrentView。用直接持有 View 實例、不透過
-/// DataTemplate 隱式建立——DataTemplate 隱式建立需要目標型別有無參建構子，跟這裡每個 Feature
-/// View 的建構子強制注入 ViewModel（reference-implementation.md 既定模式）互斥，故不採用。</summary>
+/// <summary>殼層協調者：導覽切換、工作區狀態、資源用量</summary>
 public sealed partial class MainShellViewModel(
     AppsManagementView appsView,
     AppLibraryView libraryView,
@@ -39,9 +36,13 @@ public sealed partial class MainShellViewModel(
     private Dictionary<string, object> _pages = [];
     private string? _currentKey;
 
-    /// <summary>本機資源用量（RAM/CPU）是殼層自己讀取本進程數值，不是工作區資料的一部分——
-    /// 不塞進 WorkspaceSnapshot（contracts.md：Snapshot 只承載該 Feature 自己的資料形狀），
-    /// 用獨立 Timer 輪詢，跟工作區切換/事件變更的節奏無關。</summary>
+    /// <summary>骨架屏最短可視時間</summary>
+    private static readonly TimeSpan MinVisibleLoadingDuration = TimeSpan.FromMilliseconds(400);
+
+    /// <summary>換頁過渡骨架屏可視時間</summary>
+    private static readonly TimeSpan NavTransitionDuration = TimeSpan.FromMilliseconds(420);
+
+    /// <summary>本機資源用量輪詢計時器</summary>
     private readonly DispatcherTimer _resourceStatsTimer = new() { Interval = TimeSpan.FromSeconds(2) };
     private readonly Process _currentProcess = Process.GetCurrentProcess();
     private TimeSpan _lastCpuTime = TimeSpan.Zero;
@@ -64,17 +65,13 @@ public sealed partial class MainShellViewModel(
 
     [ObservableProperty] private object? _currentView;
     [ObservableProperty] private bool _sidebarCollapsed;
-    /// <summary>展開時側邊欄的實際寬度，可拖曳調整（比照 blueprint sidebarWidth state，
-    /// 180–280px 範圍），跟摺疊時固定 56px 是兩件事——EffectiveSidebarWidth 才是 View 實際
-    /// 綁定的寬度，這個欄位只在展開狀態下才有意義。</summary>
+    /// <summary>側邊欄展開寬度（180–280px）</summary>
     [ObservableProperty] private double _sidebarWidth = 224;
     [ObservableProperty] private WorkspaceSnapshot? _activeWorkspace;
     [ObservableProperty] private IReadOnlyList<WorkspaceSnapshot> _workspaces = [];
     [ObservableProperty] private int _runningToolCount;
     [ObservableProperty] private int _unreadEventCount;
-    /// <summary>底部狀態列「事件 N」顯示的是這個工作區累計事件總數（blueprint 的 ws.eventCount），
-    /// 跟通知鈴鐺上的未讀紅點數（UnreadEventCount，對應 ws.eventBadge）是兩個不同的數字，
-    /// 不能共用同一個屬性——已讀完事件後未讀數會歸零，但底部的累計總數不會跟著變。</summary>
+    /// <summary>工作區事件總數（底部狀態列）</summary>
     [ObservableProperty] private int _totalEventCount;
     [ObservableProperty] private bool _canGoBack;
     [ObservableProperty] private bool _canGoForward;
@@ -84,24 +81,23 @@ public sealed partial class MainShellViewModel(
     [ObservableProperty] private bool _showServiceBanner;
     [ObservableProperty] private string _serviceBannerText = "";
     [ObservableProperty] private bool _switcherOpen;
-    /// <summary>設定畫面「介面縮放」的即時套用結果——MainWindow 的 LayoutTransform 綁這個值。
-    /// 1.0 = 100%，來源是 SettingsFacade（唯一入口，見 SettingsFacade 的 doc comment）。</summary>
+    /// <summary>切換工作區骨架屏</summary>
+    [ObservableProperty] private bool _isSwitchingWorkspace;
+    /// <summary>換頁過渡骨架屏</summary>
+    [ObservableProperty] private bool _isNavigating;
+    /// <summary>介面縮放比例（1.0 = 100%）</summary>
     [ObservableProperty] private double _uiScale = 1.0;
-    /// <summary>設定畫面「顯示未讀事件徽章」的即時套用結果——鈴鐺紅點的 Visibility 除了看
-    /// UnreadEventCount，還要看這個開關有沒有被關掉。</summary>
+    /// <summary>未讀事件徽章顯示開關</summary>
     [ObservableProperty] private bool _showEventBadge = true;
 
-    /// <summary>對齊 blueprint 的 otherWorkspaces：切換清單只列出「不是目前作用中」的工作區，
-    /// 目前作用中的已經顯示在按鈕本體上，不需要在清單裡重複出現一次。</summary>
+    /// <summary>非目前作用中的工作區清單</summary>
     public IEnumerable<WorkspaceSnapshot> OtherWorkspaces
         => Workspaces.Where(w => ActiveWorkspace is null || w.Id != ActiveWorkspace.Id);
 
-    /// <summary>View 實際綁定的側邊欄寬度——摺疊時固定 56px（圖示列），展開時用可拖曳調整的
-    /// SidebarWidth。兩個來源合一成一個屬性，View 端不需要再自己判斷摺疊狀態決定要看哪個值。</summary>
+    /// <summary>側邊欄實際寬度（摺疊 56px／展開 SidebarWidth）</summary>
     public double EffectiveSidebarWidth => SidebarCollapsed ? 56 : SidebarWidth;
 
-    /// <summary>頂部列鈴鐺紅點實際要不要顯示——除了「有未讀」，還要「使用者沒有把這個徽章關掉」，
-    /// 兩個條件合一成一個屬性，View 端只需要綁這一個，不必自己再組 MultiBinding。</summary>
+    /// <summary>未讀徽章是否顯示</summary>
     public bool HasVisibleUnreadBadge => ShowEventBadge && UnreadEventCount > 0;
 
     partial void OnSidebarCollapsedChanged(bool value) => OnPropertyChanged(nameof(EffectiveSidebarWidth));
@@ -109,8 +105,7 @@ public sealed partial class MainShellViewModel(
     partial void OnShowEventBadgeChanged(bool value) => OnPropertyChanged(nameof(HasVisibleUnreadBadge));
     partial void OnUnreadEventCountChanged(int value) => OnPropertyChanged(nameof(HasVisibleUnreadBadge));
 
-    /// <summary>拖曳側邊欄右緣調整寬度，對齊 blueprint startResize/onDragMove 的
-    /// Math.max(180, Math.min(280, ...)) 夾限，避免拖到太窄擠壞導覽項目、或太寬吃掉內容區。</summary>
+    /// <summary>拖曳調整側邊欄寬度</summary>
     public void ApplyResizeSidebar(double deltaX)
         => SidebarWidth = Math.Clamp(SidebarWidth + deltaX, 180, 280);
 
@@ -135,13 +130,12 @@ public sealed partial class MainShellViewModel(
         _resourceStatsTimer.Start();
         OnResourceStatsTick(this, EventArgs.Empty);
 
-        ApplyNavigate("apps");
+        ApplyNavigateImmediate("apps");
         _ = ApplyRefreshStatusBarAsync();
         _ = ApplySettingsSnapshotAsync();
     }
 
-    /// <summary>與 ApplyShellLoaded() 成對——即使 Shell/Facade 皆為 Singleton、實務上洩漏風險低，
-    /// 訂閱與解除訂閱仍要當一對稽核（viewmodels.md 必須條款），不因為這裡剛好風險低就跳過。</summary>
+    /// <summary>解除 ApplyShellLoaded 的訂閱</summary>
     public void ApplyShellUnloaded()
     {
         workspaceFacade.WorkspaceChanged -= OnWorkspaceChanged;
@@ -156,11 +150,7 @@ public sealed partial class MainShellViewModel(
     private async void OnStatusChanged() => await ApplyRefreshStatusBarAsync();
     private async void OnSettingsChanged() => await ApplySettingsSnapshotAsync();
 
-    /// <summary>SettingsFacade 是殼層讀取「介面縮放」「顯示未讀事件徽章」「側邊欄摺疊」
-    /// 這幾個跨畫面設定的唯一入口（見 SettingsFacade 的 doc comment）。側邊欄摺疊在 blueprint
-    /// 裡不是獨立的「下次啟動預設值」，是跟這裡的 SidebarCollapsed 同一顆狀態（Settings 畫面
-    /// 的開關呼叫的是同一個 onToggleSidebar）——所以這裡讀到的值直接套用，不是只在啟動時讀一次；
-    /// 真正維持兩邊同步的另一半在 ApplySetSidebarCollapsed，每次即時切換都會寫回資料庫。</summary>
+    /// <summary>套用介面縮放／未讀徽章／側邊欄摺疊設定</summary>
     private async Task ApplySettingsSnapshotAsync()
     {
         var settings = await settingsFacade.LoadSettingsAsync();
@@ -203,14 +193,9 @@ public sealed partial class MainShellViewModel(
         ApplyServiceBanner();
     }
 
-    /// <summary>對齊 blueprint Layout.dc.html 的 serviceBanner：依「目前作用中畫面」＋「該畫面
-    /// 對應服務是否執行中」計算，畫在殼層頂部（頂部列上方），不是各子畫面各自畫一個——
-    /// 之前 UsbVoltageControl／RemoteBatchTransfer 子畫面各自內嵌 ProcessGatedBanner 是誤植，
-    /// 已移除，橫幅只在這一個地方決定要不要顯示。</summary>
+    /// <summary>依目前畫面與服務狀態計算頂部服務橫幅</summary>
     private void ApplyServiceBanner()
     {
-        // 比照 blueprint `usbApp &amp;&amp; usbApp.state !== 'running'`：工具根本沒安裝在這個工作區時
-        // (tool 為 null) 不顯示橫幅，只有「有裝但目前沒在跑」才顯示——沒裝跟停用是兩件不同的事。
         var usbTool = _lastTools.FirstOrDefault(t => t.Name == "USB 防休眠控制");
         var vncTool = _lastTools.FirstOrDefault(t => t.Name == "遠端批次傳檔");
 
@@ -222,39 +207,52 @@ public sealed partial class MainShellViewModel(
         };
     }
 
-    [RelayCommand]
-    private void ApplyNavigate(string key)
+    /// <summary>啟動導覽，不經過換頁過渡骨架屏</summary>
+    private void ApplyNavigateImmediate(string key)
     {
         if (_currentKey == key) return;
-
         if (_currentKey is not null) _backStack.Push(_currentKey);
         _forwardStack.Clear();
         SetCurrent(key);
     }
 
+    /// <summary>換頁過渡</summary>
     [RelayCommand]
-    private void ApplyGoBack()
+    private async Task ApplyNavigateAsync(string key)
     {
-        if (_backStack.Count == 0) return;
-        if (_currentKey is not null) _forwardStack.Push(_currentKey);
-        SetCurrent(_backStack.Pop());
+        if (_currentKey == key) return;
+        IsNavigating = true;
+        await Task.Delay(NavTransitionDuration);
+        ApplyNavigateImmediate(key);
+        IsNavigating = false;
     }
 
     [RelayCommand]
-    private void ApplyGoForward()
+    private async Task ApplyGoBackAsync()
+    {
+        if (_backStack.Count == 0) return;
+        IsNavigating = true;
+        await Task.Delay(NavTransitionDuration);
+        if (_currentKey is not null) _forwardStack.Push(_currentKey);
+        SetCurrent(_backStack.Pop());
+        IsNavigating = false;
+    }
+
+    [RelayCommand]
+    private async Task ApplyGoForwardAsync()
     {
         if (_forwardStack.Count == 0) return;
+        IsNavigating = true;
+        await Task.Delay(NavTransitionDuration);
         if (_currentKey is not null) _backStack.Push(_currentKey);
         SetCurrent(_forwardStack.Pop());
+        IsNavigating = false;
     }
 
     [RelayCommand]
     private void ApplyToggleSidebar() => ApplySetSidebarCollapsed(!SidebarCollapsed);
 
-    /// <summary>側邊欄摺疊/展開的唯一寫入點——不管是頂部漢堡選單、Ctrl+B、還是摺疊時點工作區
-    /// 切換器，全部走這裡，不是各自直接改 SidebarCollapsed。blueprint 的「預設摺疊側邊欄」
-    /// 開關（Settings 畫面）跟這裡是同一顆狀態，所以每次即時切換都要順便寫回資料庫，
-    /// 不是只在應用程式啟動時讀一次——兩邊要一直保持同步。</summary>
+    /// <summary>側邊欄摺疊狀態的唯一寫入點</summary>
     private void ApplySetSidebarCollapsed(bool collapsed)
     {
         SidebarCollapsed = collapsed;
@@ -262,9 +260,9 @@ public sealed partial class MainShellViewModel(
     }
 
     [RelayCommand]
-    private void ApplyFocusSearch()
+    private async Task ApplyFocusSearchAsync()
     {
-        ApplyNavigate("apps");
+        await ApplyNavigateAsync("apps");
         appsView.FocusSearchBox();
     }
 
@@ -272,11 +270,18 @@ public sealed partial class MainShellViewModel(
     private async Task ApplySwitchWorkspaceAsync(WorkspaceSnapshot workspace)
     {
         SwitcherOpen = false;
+        IsSwitchingWorkspace = true;
+
+        var stopwatch = Stopwatch.StartNew();
         await workspaceFacade.SwitchActiveWorkspaceAsync(workspace.Id);
+        var remaining = MinVisibleLoadingDuration - stopwatch.Elapsed;
+        if (remaining > TimeSpan.Zero)
+            await Task.Delay(remaining);
+
+        IsSwitchingWorkspace = false;
     }
 
-    /// <summary>側邊欄摺疊時按這顆鈕不是開切換清單彈窗（56px 圖示列擠不下清單卡片），
-    /// 是先把側邊欄展開，讓使用者看得到完整介面再自己決定要不要切換工作區。</summary>
+    /// <summary>切換工作區選單顯示（摺疊時先展開側邊欄）</summary>
     [RelayCommand]
     private void ApplyToggleSwitcher()
     {

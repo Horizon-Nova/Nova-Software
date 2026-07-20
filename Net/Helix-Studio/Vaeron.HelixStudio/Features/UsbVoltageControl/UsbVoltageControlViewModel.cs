@@ -128,8 +128,7 @@ public sealed partial class UsbVoltageControlViewModel(
     private void ApplyToggleExpand(UsbDeviceSnapshot device)
         => ExpandedDevice = ReferenceEquals(ExpandedDevice, device) ? null : device;
 
-    /// <summary>「套用修正」快速按鈕——套用裝置目前已存的目標電壓，不是重新決定目標值，
-    /// 跟「詳細」展開後手動輸入新目標是兩件不同的事，不共用同一個命令。</summary>
+    /// <summary>套用裝置既有目標電壓</summary>
     [RelayCommand]
     private async Task ApplyQuickApplyAsync(UsbDeviceSnapshot device)
     {

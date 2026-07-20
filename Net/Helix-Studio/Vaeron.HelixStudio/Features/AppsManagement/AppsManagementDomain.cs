@@ -12,7 +12,7 @@ public sealed class AppsManagementDomain(
     ToolProcessRepository processRepo,
     EventLogFacade eventLog)
 {
-    private const string ModuleUnlockKey = "000000"; // 示範用固定金鑰，見 blueprint AppsScreen.dc.html
+    private const string ModuleUnlockKey = "000000";
     private static readonly TimeSpan UnlockDuration = TimeSpan.FromMinutes(3);
 
     private readonly Dictionary<int, DateTimeOffset> _unlockExpiry = [];

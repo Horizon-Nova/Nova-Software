@@ -76,8 +76,6 @@ public sealed class AppLibraryDomain(
 
         repo.StageImportFile(request.FilePath, destPath);
 
-        // 同名重新匯入視為版本更新，不是每次都重置回 1.0.0——blueprint 的 bumpVersion 邏輯：
-        // 找不到既有項目（真的是全新匯入）才用 1.0.0，找得到就把既有版本號的修訂號 +1。
         var existing = await repo.QueryByNameAsync(name);
         var nextVersion = existing is null ? "1.0.0" : BumpPatchVersion(existing.version);
 
@@ -95,8 +93,6 @@ public sealed class AppLibraryDomain(
             imported_at = DateTimeOffset.UtcNow,
         });
 
-        // 重新匯入的工具若已經裝在目前作用中的工作區，直接同步套用新版本，不必使用者
-        // 再多點一次「更新」——比照 blueprint「重新匯入同名封裝視為更新」的預期行為。
         if (request.WorkspaceId is { } workspaceId)
         {
             var installed = (await appsManagement.LoadInstalledToolListAsync(workspaceId))
@@ -120,8 +116,7 @@ public sealed class AppLibraryDomain(
         return ResultContract.Ok(existing is null ? $"已匯入「{entry.name}」" : $"已更新「{entry.name}」至 v{entry.version}");
     }
 
-    /// <summary>語意單純的修訂號 +1（X.Y.Z → X.Y.(Z+1)），解析失敗（版本字串格式不符預期）
-    /// 誠實退回 1.0.0，不假裝算得出來。</summary>
+    /// <summary>修訂號 +1（X.Y.Z → X.Y.(Z+1)）</summary>
     private static string BumpPatchVersion(string version)
     {
         var parts = version.Split('.');
@@ -163,9 +158,7 @@ public sealed class AppLibraryDomain(
         });
     }
 
-    /// <summary>從目前工作區移除這個工具的安裝，跟 RemoveImportedByCatalogIdAsync 是完全不同的
-    /// 動作——這個只讓工具從「這個工作區」消失（其他工作區、或工具庫本身都不受影響）；
-    /// RemoveImportedByCatalogIdAsync 是把整個目錄項目刪掉，兩者不能合併成同一個方法。</summary>
+    /// <summary>從目前工作區移除工具安裝</summary>
     public async Task<(bool success, string message)> RemoveFromWorkspaceAsync(string appName, int workspaceId)
     {
         var installed = (await appsManagement.LoadInstalledToolListAsync(workspaceId))

@@ -6,7 +6,7 @@ using Vaeron.HelixStudio.Features.UsbVoltageControl.Contracts;
 
 namespace Vaeron.HelixStudio.Features.UsbVoltageControl;
 
-/// <summary>裝置列狀態色點——偏離目標紅色、正常綠色、未連線灰色，比對 blueprint `barColor`。</summary>
+/// <summary>裝置列狀態色點</summary>
 public sealed class DeviceStatusToDotBrushConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value switch
@@ -48,15 +48,14 @@ public sealed class NoPowerControlTooltipConverter : IValueConverter
         => Binding.DoNothing;
 }
 
-/// <summary>只有「非自動模式或服務停止」且「裝置確實偏離目標」時才顯示「套用修正」主要按鈕，
-/// 其餘情況（已經自動修正、或本來就在容許範圍內）不顯示，不讓一顆按鈕身兼兩種語意。</summary>
+/// <summary>「套用修正」按鈕顯示條件</summary>
 public sealed class ShowApplyButtonConverter : IMultiValueConverter
 {
     public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (values is not [UsbDeviceSnapshot device, bool globalAutoCorrect, bool serviceRunning]) return false;
-        if (!device.Connected || !device.SupportsPowerControl || device.IsWithinTolerance) return false;
-        return !globalAutoCorrect || !serviceRunning;
+        if (values is not [UsbDeviceSnapshot device, bool globalAutoCorrect, bool serviceRunning]) return Visibility.Collapsed;
+        if (!device.Connected || !device.SupportsPowerControl || device.IsWithinTolerance) return Visibility.Collapsed;
+        return !globalAutoCorrect || !serviceRunning ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public object[] ConvertBack(object? value, Type[] targetTypes, object? parameter, CultureInfo culture)

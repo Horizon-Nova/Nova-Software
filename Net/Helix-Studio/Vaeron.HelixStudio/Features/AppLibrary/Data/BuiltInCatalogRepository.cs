@@ -7,10 +7,7 @@ public sealed record BuiltInCatalogEntry(
     string CatalogId, string Name, string CategoryId, string Description, string Version,
     string Developer, long FileSizeBytes, string Requirements, string EntryPath, DateTimeOffset LastUpdated);
 
-/// <summary>讀隨 exe 出貨的唯讀 Catalog\ 目錄（每個子資料夾一個 tool.json），
-/// 不進資料庫——見 configuration.md「唯讀預設組態」判準與 AppLibrary.md 藍圖查證。
-/// 目前 Catalog\ 底下沒有內建工具（沒有 UsbPowerGuard 這類子行程 exe 隨這次建置一起出貨），
-/// 讀不到子資料夾時誠實回傳空清單，不是錯誤。</summary>
+/// <summary>讀取隨 exe 出貨的唯讀 Catalog 目錄</summary>
 public sealed class BuiltInCatalogRepository(string catalogRoot)
 {
     private sealed record ToolManifestJson(

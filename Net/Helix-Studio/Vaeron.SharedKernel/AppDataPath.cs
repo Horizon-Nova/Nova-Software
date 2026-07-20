@@ -14,7 +14,7 @@ public sealed class AppDataPath(string appName)
     public string LogDirectory => Path.Combine(LocalRoot, "logs");
     public string CacheDirectory => Path.Combine(LocalRoot, "cache");
 
-    /// <summary>首次啟動時建立完整目錄結構——見 configuration.md「必須」條款。</summary>
+    /// <summary>建立完整目錄結構</summary>
     public void EnsureDirectoriesExist()
     {
         Directory.CreateDirectory(RoamingRoot);

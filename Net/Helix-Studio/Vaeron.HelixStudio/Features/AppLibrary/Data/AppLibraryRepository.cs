@@ -30,7 +30,7 @@ public sealed class AppLibraryRepository(IDbContextFactory<AppLibraryDbContext> 
 
     #region 基本 CRUD 操作
 
-    /// <summary>Upsert by name——同名匯入視為更新（版本升級），見 AppLibrary.md 藍圖查證。</summary>
+    /// <summary>Upsert by name</summary>
     public async Task<imported_catalog_entry> InsertImportedEntryAsync(imported_catalog_entry data)
     {
         await using var db = await dbFactory.CreateDbContextAsync();
@@ -66,14 +66,13 @@ public sealed class AppLibraryRepository(IDbContextFactory<AppLibraryDbContext> 
 
     #endregion
 
-    #region 匯入檔案的技術差異隱藏（見 domain.md「禁止 Domain 直接操作檔案系統」，下推至此）
+    #region 匯入檔案操作
 
     public bool SourceFileExists(string path) => File.Exists(path);
 
     public long GetFileSizeBytes(string path) => new FileInfo(path).Length;
 
-    /// <summary>把來源檔案複製進暫存目錄。目的地路徑已由呼叫方（Domain）透過
-    /// SharedKernel.FileStorage.TryResolve 驗證過不會逃出 importStagingRoot 範圍。</summary>
+    /// <summary>複製來源檔案到暫存目錄</summary>
     public void StageImportFile(string sourcePath, string destPath)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(destPath) ?? ".");

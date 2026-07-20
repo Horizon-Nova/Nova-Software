@@ -1,6 +1,9 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Vaeron.HelixStudio.Components;
 using Vaeron.HelixStudio.Features.EventLog.Contracts;
 using Vaeron.HelixStudio.Features.Settings;
 using Vaeron.HelixStudio.Features.Settings.Contracts;
@@ -17,7 +20,37 @@ public sealed partial class EventLogViewModel(
     private IReadOnlyList<EventEntrySnapshot> _allEvents = [];
     private int? _activeWorkspaceId;
 
+    /// <summary>骨架屏最短可視時間，跟 AppsManagementViewModel 同一個判準（切換工作區不是瞬間換內容）</summary>
+    private static readonly TimeSpan MinVisibleLoadingDuration = TimeSpan.FromMilliseconds(400);
+
     public ObservableCollection<EventEntrySnapshot> Events { get; } = [];
+
+    /// <summary>骨架屏欄位配置，對齊下方真實 DataGrid 欄寬（4／60／140／*／140／32）</summary>
+    public static IReadOnlyList<TableSkeletonColumn> SkeletonColumns { get; } =
+    [
+        new() { Width = new GridLength(4) },
+        new()
+        {
+            Width = new GridLength(60), Header = "等級",
+            Chips = [new TableSkeletonChip { Width = 44, Height = 14, CornerRadius = 7, Margin = new Thickness(8, 0, 0, 0) }],
+        },
+        new()
+        {
+            Width = new GridLength(140), Header = "工具",
+            Chips = [new TableSkeletonChip { Width = 98, Height = 11, Margin = new Thickness(8, 0, 12, 0) }],
+        },
+        new()
+        {
+            Width = new GridLength(1, GridUnitType.Star), Header = "訊息",
+            Chips = [new TableSkeletonChip { Width = 178, Height = 11, Margin = new Thickness(8, 0, 12, 0) }],
+        },
+        new()
+        {
+            Width = new GridLength(140), Header = "時間",
+            Chips = [new TableSkeletonChip { Width = 84, Height = 11, Margin = new Thickness(8, 0, 0, 0) }],
+        },
+        new() { Width = new GridLength(32) },
+    ];
 
     [ObservableProperty]
     private string _searchText = "";
@@ -43,7 +76,6 @@ public sealed partial class EventLogViewModel(
     [ObservableProperty]
     private double _rowHeight = ComfortableRowHeight;
 
-    // 對齊 blueprint EventLogScreen.dc.html 的實際數值（26/36px），不是隨意抓的近似值。
     private const double ComfortableRowHeight = 36;
     private const double CompactRowHeight = 26;
 
@@ -90,21 +122,26 @@ public sealed partial class EventLogViewModel(
 
     private void OnChanged() => RunSafe(ApplySnapshotAsync);
 
+    /// <summary>切換工作區骨架屏</summary>
     private void OnWorkspaceChanged()
     {
-        // 依 blueprint：切換工作區時重置全部篩選狀態，避免殘留篩選造成誤判「沒有事件」。
         PostToUi(() =>
         {
             SearchText = "";
             SeverityFilter = "全部";
             TimeRangeFilter = "全部時間";
             ExpandedEvent = null;
+            IsLoading = true;
         });
-        RunSafe(ApplySnapshotAsync);
+        RunSafe(() => ApplySnapshotCoreAsync(MinVisibleLoadingDuration));
     }
 
-    private async Task ApplySnapshotAsync()
+    private Task ApplySnapshotAsync() => ApplySnapshotCoreAsync(TimeSpan.Zero);
+
+    private async Task ApplySnapshotCoreAsync(TimeSpan minimumVisibleDuration)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         var workspace = await workspaceFacade.LoadActiveWorkspaceAsync();
         var activeWorkspaceId = workspace?.Id;
         IReadOnlyList<EventEntrySnapshot> events = activeWorkspaceId is null
@@ -115,6 +152,10 @@ public sealed partial class EventLogViewModel(
         var bannerText = settings.MinLevel == EventSeverity.None
             ? "目前記錄門檻設為「不記錄任何事件」，所有工具的事件都不會被記錄（套用到所有工作區，於設定 > 日誌調整）"
             : $"僅顯示等級 ≥「{SeverityLabel(settings.MinLevel)}」的事件，較低等級的事件不會被記錄（套用到所有工作區，於設定 > 日誌調整）";
+
+        var remaining = minimumVisibleDuration - stopwatch.Elapsed;
+        if (remaining > TimeSpan.Zero)
+            await Task.Delay(remaining);
 
         PostToUi(() =>
         {
@@ -154,8 +195,6 @@ public sealed partial class EventLogViewModel(
             _ => query,
         };
 
-        // 「今天」是滾動 24 小時視窗（now - eventTime <= 24h），不是行事曆日期比對——
-        // 對齊 blueprint 的判準，避免午夜前後的邊界行為跟設計稿不一致。
         query = TimeRangeFilter switch
         {
             "今天" => query.Where(e => now - e.Timestamp <= TimeSpan.FromHours(24)),
@@ -195,11 +234,6 @@ public sealed partial class EventLogViewModel(
     [RelayCommand]
     private void ApplyCopyOutput(EventEntrySnapshot entry)
     {
-        // 不用 try...catch——技術例外的唯一攔截點在 SharedKernel（viewmodels.md）；
-        // 剪貼簿操作極少數情況下會因系統剪貼簿檢視鏈問題丟例外，交給 App 層級的
-        // 全域未處理例外處理常式兜底，不在這裡另開例外處理路徑。
-        // 複製內容比照 blueprint：指令、輸出、結束代碼三段都要有，不是只有 output——
-        // 之前漏掉 command 跟 exitCode，複製出去的內容不完整。
         var content = $"$ {entry.Command}\n{entry.Output ?? entry.Message}\nexit code {entry.ExitCode}";
         System.Windows.Clipboard.SetText(content);
         CopyFeedback = "已複製";

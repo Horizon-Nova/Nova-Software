@@ -2,9 +2,7 @@ using System.Runtime.InteropServices;
 
 namespace Vaeron.HelixStudio.Features.AppsManagement.Data;
 
-/// <summary>Windows Job Object 包裝——把子行程納入 Job，Job handle 關閉時整個行程樹一併終止，
-/// 對齊 .claude/blueprint/執行藍圖/藍圖_外部模組工具隔離架構定案.md 已判定的唯一模組隔離機制。
-/// 只設 JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE，不設記憶體/CPU 上限（GUI 工具不宜太激進）。</summary>
+/// <summary>Windows Job Object 包裝：子行程樹隨 Job 關閉一併終止</summary>
 public sealed class JobObjectHandle : IDisposable
 {
     private const int JobObjectExtendedLimitInformation = 9;
@@ -62,9 +60,7 @@ public sealed class JobObjectHandle : IDisposable
 
     private JobObjectHandle(IntPtr handle) => _handle = handle;
 
-    /// <summary>建立一個新 Job 並套用 KILL_ON_JOB_CLOSE 限制。失敗回傳 null（呼叫方需自行判斷
-    /// IntPtr.Zero 情形，不拋例外——見 repositories.md「禁止 try...catch」，這裡改用回傳值表達失敗，
-    /// Win32 API 本身用回傳值/GetLastError 表達失敗，不需要額外包一層例外處理。</summary>
+    /// <summary>建立 Job 並套用 KILL_ON_JOB_CLOSE 限制，失敗回傳 null</summary>
     public static JobObjectHandle? Create()
     {
         var handle = CreateJobObject(IntPtr.Zero, null);

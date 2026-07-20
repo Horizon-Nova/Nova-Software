@@ -22,19 +22,11 @@ public partial class MainWindow : Window
     private void OnClosed(object? sender, EventArgs e)
         => ((MainShellViewModel)DataContext).ApplyShellUnloaded();
 
-    /// <summary>Thumb.DragDelta 沒有內建的 Command 綁定機制（不像 Button.Command），
-    /// 這裡是唯一合理的接線點——跟 OnTitleBarMouseLeftButtonDown 同一種「WPF 事件沒有
-    /// Command 對應、code-behind 轉呼叫 ViewModel 方法」模式，不是繞過 MVVM。</summary>
+    /// <summary>側邊欄拖曳調整寬度</summary>
     private void OnSidebarResizeDragDelta(object sender, DragDeltaEventArgs e)
         => ((MainShellViewModel)DataContext).ApplyResizeSidebar(e.HorizontalChange);
 
-    /// <summary>自繪標題列的拖曳/雙擊最大化——WindowChrome.CaptionHeight 刻意設 0（見 XAML
-    /// 註解），改成頂部列自己接手：按鈕本身會在 ButtonBase 內部處理掉 MouseLeftButtonDown
-    /// （標記 Handled），所以點在按鈕上不會冒泡到這裡；只有點在頂部列空白處才會觸發拖曳。
-    /// 最大化狀態下直接呼叫 DragMove() 不會有 Windows 使用者熟悉的「從最大化拖曳會先還原、
-    /// 視窗跟著游標」效果——CaptionHeight=0 代表這個行為不是框架免費附送的，這裡手動補：
-    /// 還原視窗，並把視窗定位成游標落在還原後同一個相對水平位置，讓還原銜接 DragMove()
-    /// 時視覺上像是直接把視窗從最大化「撕」下來。</summary>
+    /// <summary>自繪標題列拖曳／雙擊最大化</summary>
     private void OnTitleBarMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (e.ClickCount == 2)
@@ -58,11 +50,7 @@ public partial class MainWindow : Window
         DragMove();
     }
 
-    /// <summary>WindowStyle=None 的無邊框視窗，最大化時 WPF 預設會把視窗撐滿「整個螢幕」
-    /// （含工作列區域），不是「工作區」——有邊框的一般視窗這個調整是 Windows 自動處理，
-    /// 無邊框視窗必須自己接手，否則底部狀態列會被工作列蓋住或擠出畫面外。掛
-    /// WM_GETMINMAXINFO 訊息鉤子，依目前所在螢幕的工作區（rcWork，已扣掉工作列）
-    /// 覆寫最大化時的座標與尺寸，多螢幕情境用 MonitorFromWindow 抓最近的螢幕。</summary>
+    /// <summary>掛視窗訊息鉤子、套用圓角</summary>
     private void OnSourceInitialized(object? sender, EventArgs e)
     {
         var handle = new WindowInteropHelper(this).Handle;
@@ -70,10 +58,7 @@ public partial class MainWindow : Window
         ApplyRoundedCorners(handle);
     }
 
-    /// <summary>WindowChrome 自繪標題列（CaptionHeight=0）的視窗，Windows 11 不會自動套用
-    /// 原生圓角——那個自動效果只給沒有自訂 chrome 的標準視窗。DWMWA_WINDOW_CORNER_PREFERENCE
-    /// 是 Windows 11 才有的屬性（Windows 10 呼叫會失敗，直接忽略回傳值、維持直角，不視為錯誤）。
-    /// 最大化時 DWM 本來就會自動改回直角（滿版視窗圓角沒有意義），不需要另外處理。</summary>
+    /// <summary>套用 Windows 11 原生圓角</summary>
     private static void ApplyRoundedCorners(IntPtr hwnd)
     {
         const int DWMWA_WINDOW_CORNER_PREFERENCE = 33;
@@ -96,10 +81,7 @@ public partial class MainWindow : Window
         return IntPtr.Zero;
     }
 
-    /// <summary>標記 handled=true 代表 WPF 內建「依 MinWidth/MinHeight 設定 ptMinTrackSize」
-    /// 的處理不會再跑，這裡要自己補上，否則 MinWidth/MinHeight 形同虛設、視窗可以被拖到
-    /// 任意小，頂部列的圖示群組會被視窗邊界硬生生切斷（縮到很小時右側視窗控制鈕消失／
-    /// 被裁掉的成因）——這是上一輪修「最大化蓋掉工作列」時漏掉的一半，不是新問題。</summary>
+    /// <summary>依工作區覆寫最大化座標與最小尺寸</summary>
     private void ApplyWorkAreaToMinMaxInfo(IntPtr hwnd, IntPtr lParam)
     {
         var mmi = Marshal.PtrToStructure<MINMAXINFO>(lParam);

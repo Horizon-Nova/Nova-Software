@@ -2,10 +2,7 @@ using System.Windows.Media;
 
 namespace Vaeron.HelixStudio.Themes;
 
-/// <summary>使用者可調（Settings＞外觀）的強調色，用 OKLCH(L,C,H) 在執行期即時運算出一組
-/// 衍生亮/暗態 brush，套進 Application.Current.Resources——對應 blueprint Layout.dc.html
-/// 的 --accent-* 衍生變數公式。這組 brush 只能在執行期算（使用者可隨時調 hue/chroma），
-/// 不像 Tokens.xaml 的固定色可以建置期算好寫死。</summary>
+/// <summary>強調色 OKLCH 運算與套用</summary>
 public static class AccentColorService
 {
     public const double DefaultHue = 231;

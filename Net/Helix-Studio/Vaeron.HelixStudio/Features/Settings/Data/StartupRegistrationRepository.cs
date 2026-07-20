@@ -2,10 +2,7 @@ using Microsoft.Win32;
 
 namespace Vaeron.HelixStudio.Features.Settings.Data;
 
-/// <summary>「開機時自動啟動本軟體」的唯一寫入點——寫入/移除目前使用者的
-/// HKCU\Software\Microsoft\Windows\CurrentVersion\Run 機碼，這是使用者層級的自啟動註冊，
-/// 不需要系統管理員權限，跟系統服務／排程工作是不同機制。失敗（機碼被政策鎖住等）是
-/// 使用者可理解的業務事實，不是基礎設施故障，攔截判準同 repositories.md #2。</summary>
+/// <summary>開機自動啟動登錄機碼讀寫</summary>
 public sealed class StartupRegistrationRepository
 {
     private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";

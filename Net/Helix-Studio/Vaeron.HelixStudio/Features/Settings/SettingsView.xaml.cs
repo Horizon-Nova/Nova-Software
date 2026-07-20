@@ -26,8 +26,7 @@ public partial class SettingsView : UserControl
         vm.ApplyViewUnloaded();
     }
 
-    /// <summary>左側分類導覽點擊後捲動到對應區塊——比對 blueprint 的錨點捲動行為。
-    /// 用具名 Border（Section_{key}）＋ FindName 查找，不另外引入導覽/路由機制。</summary>
+    /// <summary>分類導覽點擊後捲動到對應區塊</summary>
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName != nameof(SettingsViewModel.SelectedCategoryKey)) return;

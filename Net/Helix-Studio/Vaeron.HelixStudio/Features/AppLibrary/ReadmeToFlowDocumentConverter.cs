@@ -6,12 +6,7 @@ using System.Windows.Media;
 
 namespace Vaeron.HelixStudio.Features.AppLibrary;
 
-/// <summary>把匯入工具的 README 純文字（## 標題／- 條列／```程式碼區塊``` 這種簡化 markdown
-/// 語法）解析成有版面層次的 FlowDocument——之前直接把整段原始文字塞進一個 TextBlock，
-/// "## 標題"、"- 條列" 這些語法符號會照字面顯示出來，不是真的呈現成標題/清單，
-/// 對齊 blueprint LibraryScreen.dc.html 的 parseReadme／buildReadmeSections 行為。
-/// 只支援這三種區塊，不是完整 markdown 規格——README 內容目前只會用到這幾種寫法
-/// （見 seed/library.js 的既有 readme 範例），沒有必要做一個完整的 markdown 剖析器。</summary>
+/// <summary>README 簡化 markdown（標題／條列／程式碼區塊）轉 FlowDocument</summary>
 public sealed class ReadmeToFlowDocumentConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

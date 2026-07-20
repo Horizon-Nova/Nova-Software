@@ -15,8 +15,7 @@ namespace Vaeron.HelixStudio.Features.Settings;
 
 public sealed record CategoryDef(string Key, string Label, string Keywords);
 
-/// <summary>畫面用的工作區列，附帶事件數——事件數不屬於 WorkspaceSnapshot 的資料形狀
-/// （contracts.md：Snapshot 只承載該 Feature 自己的資料），只在本畫面組裝。</summary>
+/// <summary>畫面用的工作區列（附事件數）</summary>
 public sealed record WorkspaceRow(WorkspaceSnapshot Workspace, int EventCount);
 
 public sealed partial class SettingsViewModel(
@@ -25,8 +24,7 @@ public sealed partial class SettingsViewModel(
     EventLogFacade eventLogFacade,
     NotificationRuntime notificationRuntime) : ViewModelBase
 {
-    /// <summary>建置時間來源改用組件檔案的實際寫入時間，不是每次啟動抓 DateTimeOffset.Now
-    /// 冒充建置日期——同一次建置產出的 dll，這個時間戳記固定不變。</summary>
+    /// <summary>組件檔案寫入時間（建置日期）</summary>
     private static readonly DateTimeOffset AssemblyBuildTime =
         System.IO.File.GetLastWriteTime(Assembly.GetExecutingAssembly().Location);
 
@@ -78,6 +76,7 @@ public sealed partial class SettingsViewModel(
     [ObservableProperty] private EventSeverity _minLogLevel = EventSeverity.Info;
     [ObservableProperty] private int _retentionDays = 30;
 
+    [ObservableProperty] private bool _isAddingWorkspace;
     [ObservableProperty] private string _newWorkspaceName = "";
     [ObservableProperty] private string _newWorkspaceDescription = "";
 
@@ -88,8 +87,7 @@ public sealed partial class SettingsViewModel(
     [ObservableProperty] private WorkspaceSnapshot? _deleteTarget;
     [ObservableProperty] private string _deleteConfirmText = "";
 
-    // 一般／電源／日誌的「僅供展示」欄位——沒有對應的持久化資料形狀，值只存在畫面執行期間，
-    // 理由同 blueprint 對這些欄位的定位：展示互動可能性，不接真的 OS API 或後端服務。
+    // 僅供展示欄位，不落地
     [ObservableProperty] private string _language = "zh-TW";
     [ObservableProperty] private int _idleLockMinutes;
     [ObservableProperty] private string _powerMode = "平衡";
@@ -144,9 +142,7 @@ public sealed partial class SettingsViewModel(
         OnPropertyChanged(nameof(HasNoCategoryMatch));
     }
 
-    /// <summary>切分類前先清空搜尋字——搜尋條件可能把目標分類的 Border 判成 Collapsed，
-    /// 這時點側邊欄按鈕會呼叫 BringIntoView 在一個看不見的元素上，畫面上像是點了沒反應。
-    /// blueprint 的 selectCategory 本來就會先清 searchQuery 再捲動，這裡照做。</summary>
+    /// <summary>切換分類（先清空搜尋字）</summary>
     [RelayCommand]
     private void ApplySelectCategory(string key)
     {
@@ -175,10 +171,7 @@ public sealed partial class SettingsViewModel(
 
     private void OnChanged() => RunSafe(ApplySnapshotAsync);
 
-    /// <summary>從資料庫載入設定、把值寫進畫面屬性的這段期間，各屬性的 On*Changed 自動套用
-    /// 處理常式（見下方「外觀」region）不能跟著誤觸發寫回資料庫——不然開畫面那一刻就會
-    /// 把剛讀出來的值又寫一次，多餘且在 ApplySnapshotAsync 還沒跑完時寫入的還可能是半套資料。
-    /// 這個旗標只在 PostToUi 那個同步區塊內為 true，界線清楚。</summary>
+    /// <summary>載入快照期間避免 On*Changed 誤觸發寫回</summary>
     private bool _isApplyingSnapshot;
 
     private async Task ApplySnapshotAsync()
@@ -227,12 +220,24 @@ public sealed partial class SettingsViewModel(
 
     #region 外觀
 
-    /// <summary>blueprint 這個畫面的外觀控件沒有「套用」這個步驟——每個控件一改就立刻生效
-    /// 並存檔（onScaleChange／主題色卡 onClick／密度選取都直接呼叫對應 callback），這裡
-    /// 用 On*Changed 局部方法對齊同樣的即時套用行為，不額外做設計稿沒有的「套用」按鈕。
-    /// _isApplyingSnapshot 為 true 時（正在從資料庫載入）不觸發，見 ApplySnapshotAsync。</summary>
-    partial void OnIsDarkModeChanged(bool value) { if (!_isApplyingSnapshot) RunSafe(ApplySaveAppearanceAsync); }
-    partial void OnIsCompactDensityChanged(bool value) { if (!_isApplyingSnapshot) RunSafe(ApplySaveAppearanceAsync); }
+    /// <summary>主題模式按鈕群組選取鍵</summary>
+    public string ThemeKey => IsDarkMode ? "dark" : "light";
+
+    /// <summary>資料密度按鈕群組選取鍵</summary>
+    public string DensityKey => IsCompactDensity ? "compact" : "comfortable";
+
+    partial void OnIsDarkModeChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ThemeKey));
+        if (!_isApplyingSnapshot) RunSafe(ApplySaveAppearanceAsync);
+    }
+
+    partial void OnIsCompactDensityChanged(bool value)
+    {
+        OnPropertyChanged(nameof(DensityKey));
+        if (!_isApplyingSnapshot) RunSafe(ApplySaveAppearanceAsync);
+    }
+
     partial void OnUiScalePercentChanged(int value) { if (!_isApplyingSnapshot) RunSafe(ApplySaveAppearanceAsync); }
     partial void OnAccentHueChanged(double value) { if (!_isApplyingSnapshot) RunSafe(ApplySaveAppearanceAsync); }
 
@@ -268,6 +273,9 @@ public sealed partial class SettingsViewModel(
     private void ApplySelectTheme(string mode) => IsDarkMode = mode == "dark";
 
     [RelayCommand]
+    private void ApplySelectDensity(string key) => IsCompactDensity = key == "compact";
+
+    [RelayCommand]
     private void ApplyResetAppearance()
     {
         IsDarkMode = false;
@@ -279,10 +287,18 @@ public sealed partial class SettingsViewModel(
 
     #endregion
 
-    #region 一般／通知
+    #region 電源（僅供展示）
 
     [RelayCommand]
-    private async Task ApplySaveGeneralAsync() => await SaveAsync();
+    private void ApplySelectPowerMode(string mode) => PowerMode = mode;
+
+    #endregion
+
+    #region 一般／通知
+
+    partial void OnSidebarCollapsedByDefaultChanged(bool value) { if (!_isApplyingSnapshot) RunSafe(SaveAsync); }
+    partial void OnStartWithWindowsChanged(bool value) { if (!_isApplyingSnapshot) RunSafe(SaveAsync); }
+    partial void OnShowEventBadgeChanged(bool value) { if (!_isApplyingSnapshot) RunSafe(SaveAsync); }
 
     private async Task SaveAsync()
     {
@@ -305,7 +321,9 @@ public sealed partial class SettingsViewModel(
 
     #region 日誌
 
-    [RelayCommand]
+    partial void OnMinLogLevelChanged(EventSeverity value) { if (!_isApplyingSnapshot) RunSafe(ApplySaveLogSettingsAsync); }
+    partial void OnRetentionDaysChanged(int value) { if (!_isApplyingSnapshot) RunSafe(ApplySaveLogSettingsAsync); }
+
     private async Task ApplySaveLogSettingsAsync()
     {
         var (success, message) = await eventLogFacade.UpdateLogSettingsAsync(new LogSettingsSnapshot
@@ -346,14 +364,20 @@ public sealed partial class SettingsViewModel(
         IsCheckingUpdate = true;
         await Task.Delay(900);
         IsCheckingUpdate = false;
-        // 誠實回報：更新檢查目前沒有接後端服務可查，不假裝「已是最新版本」，
-        // 理由同 RemoteTransferRepository／UsbDeviceVoltageRepository 既有的誠實 stub 慣例。
         notificationRuntime.ApplyShowResult(false, "更新檢查功能尚未串接後端服務");
     }
 
     #endregion
 
     #region 工作區管理
+
+    [RelayCommand]
+    private void ApplyToggleAddWorkspace()
+    {
+        IsAddingWorkspace = !IsAddingWorkspace;
+        NewWorkspaceName = "";
+        NewWorkspaceDescription = "";
+    }
 
     [RelayCommand]
     private async Task ApplyAddWorkspaceAsync()
@@ -368,6 +392,7 @@ public sealed partial class SettingsViewModel(
         {
             NewWorkspaceName = "";
             NewWorkspaceDescription = "";
+            IsAddingWorkspace = false;
         }
     }
 
@@ -396,9 +421,7 @@ public sealed partial class SettingsViewModel(
         if (success) EditingWorkspace = null;
     }
 
-    /// <summary>刪除工作區會連動砍光該工作區底下所有事件記錄，屬不可逆的破壞性動作——
-    /// 比一般刪除確認多一層「輸入完整名稱才能刪除」的摩擦力，跟 usage-patterns.md 一般
-    /// 刪除確認（單純 Yes/No）不是同一個判準，這裡刻意做得更嚴格。</summary>
+    /// <summary>請求刪除工作區（需輸入完整名稱確認）</summary>
     [RelayCommand]
     private void ApplyRequestDeleteWorkspace(WorkspaceSnapshot workspace)
     {

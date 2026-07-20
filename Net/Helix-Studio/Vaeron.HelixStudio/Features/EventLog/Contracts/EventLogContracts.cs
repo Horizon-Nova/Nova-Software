@@ -1,8 +1,6 @@
 namespace Vaeron.HelixStudio.Features.EventLog.Contracts;
 
-/// <summary>None 刻意排在最後（最高序位）——「記錄門檻」比較用 `&lt;` 運算子（見
-/// EventLogDomain.RecordEventAsync），任何實際事件的嚴重度都小於 None，門檻設 None 時
-/// 因此永遠略過記錄，不需要額外的特例分支。</summary>
+/// <summary>事件嚴重度（None 為最高序位，代表不記錄）</summary>
 public enum EventSeverity { Info, Warning, Error, None }
 
 public sealed record EventEntrySnapshot
