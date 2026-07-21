@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Windows.Data;
-using System.Windows.Media;
 using Vaeron.HelixStudio.Features.RemoteBatchTransfer.Contracts;
 
 namespace Vaeron.HelixStudio.Features.RemoteBatchTransfer;
@@ -37,13 +36,14 @@ public sealed class ConnectionStatusToTextConverter : IValueConverter
         => Binding.DoNothing;
 }
 
+/// <summary>連線狀態底色：走主題 Token，不寫死顏色</summary>
 public sealed class ConnectionStatusToBrushConverter : IValueConverter
 {
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value switch
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value switch
     {
-        ConnectionStatus.Connected => new SolidColorBrush(Color.FromRgb(0xD8, 0xF0, 0xE2)),
-        ConnectionStatus.Testing => new SolidColorBrush(Color.FromRgb(0xFA, 0xE1, 0xB8)),
-        _ => new SolidColorBrush(Color.FromRgb(0xE5, 0xE5, 0xE5)),
+        ConnectionStatus.Connected => System.Windows.Application.Current.TryFindResource("StatusSuccessBgBrush"),
+        ConnectionStatus.Testing => System.Windows.Application.Current.TryFindResource("StatusWarningBgBrush"),
+        _ => System.Windows.Application.Current.TryFindResource("BgHoverBrush"),
     };
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

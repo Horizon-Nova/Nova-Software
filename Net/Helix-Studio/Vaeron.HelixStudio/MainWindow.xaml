@@ -4,11 +4,13 @@
         xmlns:local="clr-namespace:Vaeron.HelixStudio"
         xmlns:components="clr-namespace:Vaeron.HelixStudio.Components"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
-        Title="Helix-Studio" Height="820" Width="1280" MinHeight="600" MinWidth="900"
+        Title="Helix-Studio" Height="820" Width="1280"
+        MinHeight="{Binding EffectiveMinHeight}" MinWidth="{Binding EffectiveMinWidth}"
         WindowStyle="None" ResizeMode="CanResize" AllowsTransparency="False"
         Background="{DynamicResource BgPageBrush}"
-        FontFamily="{StaticResource AppFontFamily}" FontSize="{StaticResource FontSizeBody}"
-        Loaded="OnLoaded" Closed="OnClosed" SourceInitialized="OnSourceInitialized">
+        FontFamily="{DynamicResource AppFontFamily}" FontSize="{StaticResource FontSizeBody}"
+        Loaded="OnLoaded" Closed="OnClosed" SourceInitialized="OnSourceInitialized"
+        Activated="OnWindowActivated" Deactivated="OnWindowDeactivated">
     <!-- 自繪標題列：CaptionHeight=0，拖曳改由頂部列自己的 MouseLeftButtonDown 處理 -->
     <shell:WindowChrome.WindowChrome>
         <shell:WindowChrome CaptionHeight="0" ResizeBorderThickness="6" CornerRadius="0" GlassFrameThickness="0" />
@@ -49,7 +51,7 @@
                 <StackPanel Orientation="Horizontal">
                     <components:IconGlyph IconData="{Binding Key, Converter={StaticResource NavKeyToIcon}}" Width="15" Height="15"
                                Visibility="{Binding HasIcon, Converter={StaticResource BoolToVisibilityConverter}}" />
-                    <TextBlock Text="{Binding Label}" Margin="10,0,0,0" FontWeight="SemiBold"
+                    <TextBlock Text="{Binding Label}" Margin="10,0,0,0" FontWeight="{DynamicResource FontWeightMedium}"
                                Visibility="{Binding DataContext.SidebarCollapsed, RelativeSource={RelativeSource AncestorType=ItemsControl},
                                             Converter={StaticResource InverseBoolToVisibilityConverter}}" />
                 </StackPanel>
@@ -116,8 +118,17 @@
         </Style>
     </Window.Resources>
 
-    <Border BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="1" ClipToBounds="True">
-        <Grid>
+    <!-- 介面縮放：LayoutTransform 縮放，視窗尺寸由 MainWindow.xaml.cs 依量測結果調整 -->
+    <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" ClipToBounds="True">
+      <Grid>
+        <!-- 背景媒體層：素材與呈現方式由主題包決定，播放行為由軟體決定 -->
+        <MediaElement x:Name="BackgroundMedia" Visibility="Collapsed"
+                      Stretch="{DynamicResource BackgroundStretch}"
+                      HorizontalAlignment="{DynamicResource BackgroundHorizontalAlignment}"
+                      VerticalAlignment="{DynamicResource BackgroundVerticalAlignment}"
+                      Opacity="{DynamicResource BackgroundOpacity}"
+                      LoadedBehavior="Manual" UnloadedBehavior="Stop" />
+        <Grid x:Name="ScaleRoot">
             <Grid.LayoutTransform>
                 <ScaleTransform ScaleX="{Binding UiScale}" ScaleY="{Binding UiScale}" />
             </Grid.LayoutTransform>
@@ -133,7 +144,7 @@
                 ShowBanner="{Binding ShowServiceBanner}" BannerText="{Binding ServiceBannerText}" />
 
             <!-- 頂部列（自繪標題列，空白處可拖曳視窗、雙擊最大化/還原） -->
-            <Border Grid.Row="1" Background="{DynamicResource BgSurfaceBrush}" BorderBrush="{DynamicResource BorderBrush2}"
+            <Border Grid.Row="1" Background="{DynamicResource BgSurfaceBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
                     BorderThickness="0,0,0,1" MouseLeftButtonDown="OnTitleBarMouseLeftButtonDown">
                 <DockPanel Margin="16,0" LastChildFill="False">
                     <Button DockPanel.Dock="Left" Style="{StaticResource IconButtonStyle}"
@@ -189,12 +200,12 @@
 
                 <!-- 側邊欄 -->
                 <Border Grid.Column="0" Width="{Binding EffectiveSidebarWidth}"
-                        Background="{DynamicResource BgSidebarBrush}" BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="0,0,1,0">
+                        Background="{DynamicResource BgSidebarBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0,0,1,0">
                     <DockPanel Margin="0,14" LastChildFill="True">
                         <!-- 底部提示文字 -->
                         <TextBlock DockPanel.Dock="Bottom" Text="快捷鍵 Ctrl+B 摺疊/展開，拖曳調整側邊欄"
                                    Margin="14,10,14,0" TextWrapping="Wrap" TextAlignment="Center"
-                                   Foreground="{DynamicResource Text3Brush}" FontSize="{StaticResource FontSizeXs}"
+                                   Foreground="{DynamicResource TextMutedBrush}" FontSize="{StaticResource FontSizeXs}"
                                    Visibility="{Binding SidebarCollapsed, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
                     <StackPanel>
                         <!-- 工作區切換器 -->
@@ -209,11 +220,11 @@
                                 <Grid>
                                     <DockPanel Visibility="{Binding SidebarCollapsed, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                         <components:IconGlyph DockPanel.Dock="Right" IconData="{StaticResource IconChevronDownGeometry}"
-                                                   Width="12" Height="12" Foreground="{DynamicResource Text2Brush}" />
-                                        <TextBlock Text="{Binding ActiveWorkspace.Name}" FontWeight="Bold" VerticalAlignment="Center" />
+                                                   Width="12" Height="12" Foreground="{DynamicResource TextSecondaryBrush}" />
+                                        <TextBlock Text="{Binding ActiveWorkspace.Name}" FontWeight="{DynamicResource FontWeightStrong}" VerticalAlignment="Center" />
                                     </DockPanel>
                                     <TextBlock Text="{Binding ActiveWorkspace.Name, Converter={StaticResource LastCharConverter}}"
-                                               FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
+                                               FontWeight="{DynamicResource FontWeightStrong}" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
                                                Visibility="{Binding SidebarCollapsed, Converter={StaticResource BoolToVisibilityConverter}}" />
                                 </Grid>
                             </Button>
@@ -224,7 +235,7 @@
                                 <Border Style="{StaticResource CardBorderStyle}" Background="{DynamicResource BgSurfaceBrush}" Padding="0">
                                     <Grid>
                                         <TextBlock Text="尚無其他產線，請至設定新增" Margin="12,10" TextWrapping="Wrap"
-                                                   Foreground="{DynamicResource Text3Brush}" FontSize="{StaticResource FontSizeSm}"
+                                                   Foreground="{DynamicResource TextMutedBrush}" FontSize="{StaticResource FontSizeSm}"
                                                    Visibility="{Binding OtherWorkspaces.Count, Converter={StaticResource CountToEmptyVisibilityConverter}}" />
                                         <ItemsControl ItemsSource="{Binding OtherWorkspaces}"
                                                       Visibility="{Binding OtherWorkspaces.Count, Converter={StaticResource CountToVisibilityConverter}}">
@@ -244,8 +255,8 @@
 
                         <ItemsControl ItemsSource="{Binding MainNav}" ItemTemplate="{StaticResource NavItemTemplate}" />
 
-                        <TextBlock Text="TOOLS" Margin="17,16,0,4" FontSize="{StaticResource FontSizeXs}" FontWeight="Bold"
-                                   Foreground="{DynamicResource Text3Brush}"
+                        <TextBlock Text="TOOLS" Margin="17,16,0,4" FontSize="{StaticResource FontSizeXs}" FontWeight="{DynamicResource FontWeightStrong}"
+                                   Foreground="{DynamicResource TextMutedBrush}"
                                    Visibility="{Binding SidebarCollapsed, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
                         <ItemsControl ItemsSource="{Binding ToolsNav}" ItemTemplate="{StaticResource NavItemTemplate}" />
                     </StackPanel>
@@ -276,8 +287,9 @@
 
                 <!-- 內容區 -->
                 <Grid Grid.Column="1">
-                    <ContentControl Content="{Binding CurrentView}" />
-                    <Border Background="{DynamicResource BgPageBrush}" Padding="20"
+                    <ContentControl Content="{Binding CurrentView}"
+                                    Visibility="{Binding IsNavigating, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                    <Border Padding="20"
                             Visibility="{Binding IsNavigating, Converter={StaticResource BoolToVisibilityConverter}}">
                         <components:SkeletonScreen RowCount="8" />
                     </Border>
@@ -302,7 +314,7 @@
                         <Border Width="6" Height="6" CornerRadius="2" Background="{DynamicResource AccentOnSolidBrush}"
                                 VerticalAlignment="Center" />
                         <TextBlock Text="{Binding ActiveWorkspace.Name}" VerticalAlignment="Center" Margin="6,0,0,0"
-                                   Foreground="{DynamicResource AccentOnSolidBrush}" FontSize="{StaticResource FontSizeSm}" FontWeight="SemiBold" />
+                                   Foreground="{DynamicResource AccentOnSolidBrush}" FontSize="{StaticResource FontSizeSm}" FontWeight="{DynamicResource FontWeightMedium}" />
                     </StackPanel>
                     <TextBlock DockPanel.Dock="Left" Text="{Binding RunningToolCount, StringFormat=執行中 {0}}"
                                VerticalAlignment="Center" Foreground="{DynamicResource AccentOnSolidBrush}"
@@ -331,5 +343,6 @@
                 </Grid>
             </Border>
         </Grid>
+      </Grid>
     </Border>
 </Window>

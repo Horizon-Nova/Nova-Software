@@ -67,3 +67,33 @@ public sealed class CheckUpdateLabelConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => Binding.DoNothing;
 }
+
+/// <summary>記錄保留期限下拉選項顯示文字</summary>
+public sealed class RetentionDaysToLabelConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is int days ? (days <= 0 ? "永久保留" : $"{days} 天") : value ?? "";
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+/// <summary>睡眠／逾時分鐘數下拉選項顯示文字（0 代表從不）</summary>
+public sealed class SleepMinutesToLabelConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is int minutes ? (minutes <= 0 ? "從不" : $"{minutes} 分鐘") : value ?? "";
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+/// <summary>閒置鎖定分鐘數下拉選項顯示文字（0 代表不鎖定）</summary>
+public sealed class IdleLockMinutesToLabelConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is int minutes ? (minutes <= 0 ? "不鎖定" : $"{minutes} 分鐘") : value ?? "";
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}

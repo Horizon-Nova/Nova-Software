@@ -15,4 +15,6 @@ public sealed class SettingsFacade(SettingsDomain domain)
 
     public Task<(bool success, string message)> UpdateSidebarCollapsedDefaultAsync(bool collapsed)
         => domain.UpdateSidebarCollapsedDefaultAsync(collapsed);
+
+    public Task ApplyReconcileStartupRegistrationAsync() => domain.ReconcileStartupRegistrationAsync();
 }

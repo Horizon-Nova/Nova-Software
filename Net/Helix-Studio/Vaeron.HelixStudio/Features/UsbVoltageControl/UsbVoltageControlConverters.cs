@@ -6,14 +6,14 @@ using Vaeron.HelixStudio.Features.UsbVoltageControl.Contracts;
 
 namespace Vaeron.HelixStudio.Features.UsbVoltageControl;
 
-/// <summary>裝置列狀態色點</summary>
+/// <summary>裝置列狀態色點：走主題 Token，不寫死顏色</summary>
 public sealed class DeviceStatusToDotBrushConverter : IValueConverter
 {
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value switch
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) => value switch
     {
-        UsbDeviceSnapshot { Connected: false } => new SolidColorBrush(Color.FromRgb(0x82, 0x87, 0x8B)),
-        UsbDeviceSnapshot { Connected: true, IsWithinTolerance: false } => new SolidColorBrush(Color.FromRgb(0xDD, 0x50, 0x3F)),
-        UsbDeviceSnapshot => new SolidColorBrush(Color.FromRgb(0x2E, 0x9E, 0x6B)),
+        UsbDeviceSnapshot { Connected: false } => System.Windows.Application.Current.TryFindResource("TextMutedBrush"),
+        UsbDeviceSnapshot { Connected: true, IsWithinTolerance: false } => System.Windows.Application.Current.TryFindResource("SeverityErrorSolidBrush"),
+        UsbDeviceSnapshot => System.Windows.Application.Current.TryFindResource("StatusSuccessSolidBrush"),
         _ => Brushes.Transparent,
     };
 
@@ -21,10 +21,13 @@ public sealed class DeviceStatusToDotBrushConverter : IValueConverter
         => Binding.DoNothing;
 }
 
+/// <summary>連線狀態底色：走主題 Token，不寫死顏色</summary>
 public sealed class ConnectedToBrushConverter : IValueConverter
 {
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => value is true ? new SolidColorBrush(Color.FromRgb(0xD8, 0xF0, 0xE2)) : new SolidColorBrush(Color.FromRgb(0xE5, 0xE5, 0xE5));
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => value is true
+            ? System.Windows.Application.Current.TryFindResource("StatusSuccessBgBrush")
+            : System.Windows.Application.Current.TryFindResource("BgHoverBrush");
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => Binding.DoNothing;

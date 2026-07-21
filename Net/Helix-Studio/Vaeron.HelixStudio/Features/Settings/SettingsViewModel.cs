@@ -22,6 +22,7 @@ public sealed partial class SettingsViewModel(
     SettingsDomain domain,
     WorkspaceManagementFacade workspaceFacade,
     EventLogFacade eventLogFacade,
+    ThemePackService themePacks,
     NotificationRuntime notificationRuntime) : ViewModelBase
 {
     /// <summary>組件檔案寫入時間（建置日期）</summary>
@@ -41,6 +42,19 @@ public sealed partial class SettingsViewModel(
     public int[] SleepMinutesOptions { get; } = [1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 120, 180, 240, 300, 0];
     public string[] PowerButtonActionOptions { get; } = ["不執行動作", "睡眠", "休眠", "關機", "顯示關閉選單"];
     public string[] EncodingOptions { get; } = ["UTF-8", "UTF-16", "UTF-32", "Big5", "GBK", "Shift-JIS", "ANSI"];
+    public string[] TimeZoneOptions { get; } =
+    [
+        "本地時間（系統時區）", "UTC±00:00",
+        "UTC−12:00", "UTC−11:00", "UTC−10:00", "UTC−09:30", "UTC−09:00", "UTC−08:00（洛杉磯）",
+        "UTC−07:00（丹佛）", "UTC−06:00（芝加哥）", "UTC−05:00（紐約）", "UTC−04:00", "UTC−03:30",
+        "UTC−03:00（聖保羅）", "UTC−02:00", "UTC−01:00",
+        "UTC+01:00（柏林）", "UTC+02:00（開羅）", "UTC+03:00（莫斯科）", "UTC+03:30（德黑蘭）",
+        "UTC+04:00（杜拜）", "UTC+04:30（喀布爾）", "UTC+05:00（卡拉奇）", "UTC+05:30（新德里）",
+        "UTC+05:45（加德滿都）", "UTC+06:00（達卡）", "UTC+06:30（仰光）", "UTC+07:00（曼谷）",
+        "UTC+08:00（台北／香港／新加坡）", "UTC+08:45", "UTC+09:00（東京／首爾）", "UTC+09:30（阿德雷德）",
+        "UTC+10:00（雪梨）", "UTC+10:30", "UTC+11:00", "UTC+12:00（奧克蘭）", "UTC+12:45",
+        "UTC+13:00", "UTC+14:00",
+    ];
 
     public string VersionText { get; } = "1.0.0";
     public string BuildDateText { get; } = AssemblyBuildTime.ToString("yyyy-MM-dd");
@@ -62,11 +76,13 @@ public sealed partial class SettingsViewModel(
     [ObservableProperty] private string _searchText = "";
     [ObservableProperty] private string? _selectedCategoryKey;
 
-    [ObservableProperty] private bool _isDarkMode;
-    [ObservableProperty] private double _accentHue = AccentColorService.DefaultHue;
-    [ObservableProperty] private double _accentChroma = AccentColorService.DefaultChroma;
     [ObservableProperty] private int _uiScalePercent = 100;
     [ObservableProperty] private bool _isCompactDensity;
+
+    /// <summary>可選主題：內建預設 + 主題資料夾裡掃到的包，不是寫死的選項清單</summary>
+    public ObservableCollection<ThemePack> ThemePacks { get; } = [];
+    [ObservableProperty] private string _themePackId = ThemePack.DefaultId;
+    [ObservableProperty] private bool _backgroundAnimationEnabled = true;
 
     [ObservableProperty] private bool _sidebarCollapsedByDefault;
     [ObservableProperty] private string _startupPage = "apps";
@@ -99,8 +115,8 @@ public sealed partial class SettingsViewModel(
     [ObservableProperty] private string _powerButtonAction = "睡眠";
     [ObservableProperty] private string _lidCloseAction = "睡眠";
     [ObservableProperty] private string _encoding = "UTF-8";
-    [ObservableProperty] private string _timeZone = "UTC+08:00 台北";
-    [ObservableProperty] private string _exportPathDisplay = "（尚未設定，匯出時另外選擇檔案位置）";
+    [ObservableProperty] private string _timeZone = "UTC+08:00（台北／香港／新加坡）";
+    [ObservableProperty] private string _exportPathDisplay = ExportPathPlaceholder;
 
     [ObservableProperty] private bool _isCheckingUpdate;
     [ObservableProperty] private int? _activeWorkspaceId;
@@ -173,6 +189,9 @@ public sealed partial class SettingsViewModel(
 
     /// <summary>載入快照期間避免 On*Changed 誤觸發寫回</summary>
     private bool _isApplyingSnapshot;
+    private string? _exportPath;
+
+    private const string ExportPathPlaceholder = "（尚未設定，匯出時另外選擇檔案位置）";
 
     private async Task ApplySnapshotAsync()
     {
@@ -191,9 +210,11 @@ public sealed partial class SettingsViewModel(
         PostToUi(() =>
         {
             _isApplyingSnapshot = true;
-            IsDarkMode = settings.ThemeMode == ThemeMode.Dark;
-            AccentHue = settings.AccentHue;
-            AccentChroma = settings.AccentChroma;
+            ThemePacks.Clear();
+            foreach (var p in themePacks.LoadAvailablePacks())
+                ThemePacks.Add(p);
+            ThemePackId = ThemePacks.Any(p => p.Id == settings.ThemePackId) ? settings.ThemePackId : ThemePack.DefaultId;
+            BackgroundAnimationEnabled = settings.BackgroundAnimationEnabled;
             UiScalePercent = settings.UiScalePercent;
             IsCompactDensity = settings.DataDensity == DataDensity.Compact;
             SidebarCollapsedByDefault = settings.SidebarCollapsedByDefault;
@@ -202,6 +223,8 @@ public sealed partial class SettingsViewModel(
             ShowEventBadge = settings.ShowEventBadge;
             MinLogLevel = logSettings.MinLevel;
             RetentionDays = logSettings.RetentionDays;
+            _exportPath = logSettings.ExportPath;
+            ExportPathDisplay = _exportPath ?? ExportPathPlaceholder;
             ActiveWorkspaceId = active?.Id;
 
             Workspaces.Clear();
@@ -209,80 +232,67 @@ public sealed partial class SettingsViewModel(
                 Workspaces.Add(r);
             _isApplyingSnapshot = false;
         });
-
-        ApplyAccentToResources();
     }
-
-    private void ApplyAccentToResources()
-        => AccentColorService.Apply(System.Windows.Application.Current.Resources, AccentHue, AccentChroma, IsDarkMode);
 
     #endregion
 
     #region 外觀
 
-    /// <summary>主題模式按鈕群組選取鍵</summary>
-    public string ThemeKey => IsDarkMode ? "dark" : "light";
-
     /// <summary>資料密度按鈕群組選取鍵</summary>
     public string DensityKey => IsCompactDensity ? "compact" : "comfortable";
-
-    partial void OnIsDarkModeChanged(bool value)
-    {
-        OnPropertyChanged(nameof(ThemeKey));
-        if (!_isApplyingSnapshot) RunSafe(ApplySaveAppearanceAsync);
-    }
 
     partial void OnIsCompactDensityChanged(bool value)
     {
         OnPropertyChanged(nameof(DensityKey));
-        if (!_isApplyingSnapshot) RunSafe(ApplySaveAppearanceAsync);
+        if (!_isApplyingSnapshot) RunSafe(SaveAsync);
     }
 
-    partial void OnUiScalePercentChanged(int value) { if (!_isApplyingSnapshot) RunSafe(ApplySaveAppearanceAsync); }
-    partial void OnAccentHueChanged(double value) { if (!_isApplyingSnapshot) RunSafe(ApplySaveAppearanceAsync); }
-
-    private async Task ApplySaveAppearanceAsync()
-    {
-        ApplyAccentToResources();
-        SwapThemeDictionary(IsDarkMode);
-        await SaveAsync();
-    }
-
-    private static void SwapThemeDictionary(bool isDark)
-    {
-        var app = System.Windows.Application.Current;
-        var target = isDark ? "Themes/Tokens.Dark.xaml" : "Themes/Tokens.Light.xaml";
-        var existing = app.Resources.MergedDictionaries
-            .FirstOrDefault(d => d.Source?.OriginalString.Contains("Themes/Tokens.") == true);
-        var newDict = new System.Windows.ResourceDictionary
-        {
-            Source = new Uri($"pack://application:,,,/Vaeron.HelixStudio;component/{target}"),
-        };
-        if (existing is not null)
-        {
-            var index = app.Resources.MergedDictionaries.IndexOf(existing);
-            app.Resources.MergedDictionaries[index] = newDict;
-        }
-        else
-        {
-            app.Resources.MergedDictionaries.Add(newDict);
-        }
-    }
-
-    [RelayCommand]
-    private void ApplySelectTheme(string mode) => IsDarkMode = mode == "dark";
+    partial void OnUiScalePercentChanged(int value) { if (!_isApplyingSnapshot) RunSafe(SaveAsync); }
+    partial void OnBackgroundAnimationEnabledChanged(bool value) { if (!_isApplyingSnapshot) RunSafe(SaveAsync); }
 
     [RelayCommand]
     private void ApplySelectDensity(string key) => IsCompactDensity = key == "compact";
 
     [RelayCommand]
-    private void ApplyResetAppearance()
+    private async Task ApplySelectThemePackAsync(ThemePack pack)
     {
-        IsDarkMode = false;
-        AccentHue = AccentColorService.DefaultHue;
-        AccentChroma = AccentColorService.DefaultChroma;
+        var (success, message) = themePacks.Apply(pack);
+        notificationRuntime.ApplyShowResult(success, message);
+        if (!success) return;
+
+        ThemePackId = pack.Id;
+        await SaveAsync();
+    }
+
+    /// <summary>開啟主題資料夾，讓使用者直接把主題包放進去</summary>
+    [RelayCommand]
+    private void ApplyOpenThemeFolder()
+    {
+        var folder = themePacks.ThemeDirectory;
+        System.IO.Directory.CreateDirectory(folder);
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(folder) { UseShellExecute = true });
+    }
+
+    /// <summary>重新掃描主題資料夾</summary>
+    [RelayCommand]
+    private void ApplyRefreshThemePacks()
+    {
+        var current = ThemePackId;
+        ThemePacks.Clear();
+        foreach (var p in themePacks.LoadAvailablePacks())
+            ThemePacks.Add(p);
+        ThemePackId = ThemePacks.Any(p => p.Id == current) ? current : ThemePack.DefaultId;
+    }
+
+    [RelayCommand]
+    private async Task ApplyResetAppearanceAsync()
+    {
+        _isApplyingSnapshot = true;
         UiScalePercent = 100;
         IsCompactDensity = false;
+        _isApplyingSnapshot = false;
+
+        await SaveAsync();
     }
 
     #endregion
@@ -304,9 +314,8 @@ public sealed partial class SettingsViewModel(
     {
         var (success, message) = await domain.UpdateSettingsAsync(new AppSettingsSnapshot
         {
-            ThemeMode = IsDarkMode ? ThemeMode.Dark : ThemeMode.Light,
-            AccentHue = AccentHue,
-            AccentChroma = AccentChroma,
+            ThemePackId = ThemePackId,
+            BackgroundAnimationEnabled = BackgroundAnimationEnabled,
             UiScalePercent = UiScalePercent,
             DataDensity = IsCompactDensity ? DataDensity.Compact : DataDensity.Comfortable,
             SidebarCollapsedByDefault = SidebarCollapsedByDefault,
@@ -330,8 +339,21 @@ public sealed partial class SettingsViewModel(
         {
             MinLevel = MinLogLevel,
             RetentionDays = RetentionDays,
+            ExportPath = _exportPath,
         });
         notificationRuntime.ApplyShowResult(success, message);
+    }
+
+    [RelayCommand]
+    private async Task ApplyChooseExportPathAsync()
+    {
+        var dialog = new Microsoft.Win32.OpenFolderDialog { Title = "選擇匯出資料夾" };
+        if (_exportPath is not null) dialog.InitialDirectory = _exportPath;
+        if (dialog.ShowDialog() != true) return;
+
+        _exportPath = dialog.FolderName;
+        ExportPathDisplay = _exportPath;
+        await ApplySaveLogSettingsAsync();
     }
 
     [RelayCommand]
@@ -346,6 +368,7 @@ public sealed partial class SettingsViewModel(
             FileName = $"events-{active.Name}-{DateTimeOffset.Now:yyyyMMddHHmmss}.json",
             Filter = "JSON (*.json)|*.json",
         };
+        if (_exportPath is not null) dialog.InitialDirectory = _exportPath;
         if (dialog.ShowDialog() != true) return;
 
         var json = System.Text.Json.JsonSerializer.Serialize(events,

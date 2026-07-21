@@ -27,9 +27,8 @@ public sealed class SettingsRepository(IDbContextFactory<SettingsDbContext> dbFa
         }
         else
         {
-            existing.theme_mode = data.theme_mode;
-            existing.accent_hue = data.accent_hue;
-            existing.accent_chroma = data.accent_chroma;
+            existing.theme_pack = data.theme_pack;
+            existing.background_animation = data.background_animation;
             existing.ui_scale = data.ui_scale;
             existing.data_density = data.data_density;
             existing.sidebar_collapsed_default = data.sidebar_collapsed_default;

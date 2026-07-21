@@ -28,9 +28,8 @@ public sealed class SettingsDomain(SettingsRepository repo, StartupRegistrationR
     {
         await repo.InsertAppSettingsAsync(new app_settings
         {
-            theme_mode = settings.ThemeMode.ToString(),
-            accent_hue = settings.AccentHue,
-            accent_chroma = settings.AccentChroma,
+            theme_pack = settings.ThemePackId,
+            background_animation = settings.BackgroundAnimationEnabled,
             ui_scale = settings.UiScalePercent,
             data_density = settings.DataDensity.ToString(),
             sidebar_collapsed_default = settings.SidebarCollapsedByDefault,
@@ -52,13 +51,27 @@ public sealed class SettingsDomain(SettingsRepository repo, StartupRegistrationR
         return await UpdateSettingsAsync(current with { SidebarCollapsedByDefault = collapsed });
     }
 
+    /// <summary>啟動時校正開機自動啟動的登錄機碼狀態</summary>
+    public async Task ReconcileStartupRegistrationAsync()
+    {
+        var row = await repo.QueryAppSettingsAsync();
+        if (row.start_with_windows)
+            startupRegistration.ApplyStartWithWindows(true);
+
+        var actuallyRegistered = startupRegistration.QueryIsRegisteredForCurrentPath();
+        if (actuallyRegistered != row.start_with_windows)
+        {
+            row.start_with_windows = actuallyRegistered;
+            await repo.InsertAppSettingsAsync(row);
+        }
+    }
+
     #endregion
 
     private static AppSettingsSnapshot ToSnapshot(app_settings x) => new()
     {
-        ThemeMode = Enum.Parse<ThemeMode>(x.theme_mode),
-        AccentHue = x.accent_hue,
-        AccentChroma = x.accent_chroma,
+        ThemePackId = x.theme_pack,
+        BackgroundAnimationEnabled = x.background_animation,
         UiScalePercent = x.ui_scale,
         DataDensity = Enum.Parse<DataDensity>(x.data_density),
         SidebarCollapsedByDefault = x.sidebar_collapsed_default,

@@ -27,7 +27,7 @@ public sealed class ToolStateToSolidBrushConverter : IValueConverter
     {
         ToolState.Running or ToolState.Starting => FindBrush("AccentSolidBrush"),
         ToolState.Error => FindBrush("StatusErrorTextBrush"),
-        _ => FindBrush("BorderBrush2"),
+        _ => FindBrush("BorderDefaultBrush"),
     };
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -60,7 +60,7 @@ public sealed class ToolStateToTextBrushConverter : IValueConverter
         ToolState.Running => ToolStateToSolidBrushConverter.FindBrush("AccentTextBrush"),
         ToolState.Starting => ToolStateToSolidBrushConverter.FindBrush("StatusWarningTextBrush"),
         ToolState.Error => ToolStateToSolidBrushConverter.FindBrush("StatusErrorTextBrush"),
-        _ => ToolStateToSolidBrushConverter.FindBrush("Text2Brush"),
+        _ => ToolStateToSolidBrushConverter.FindBrush("TextSecondaryBrush"),
     };
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

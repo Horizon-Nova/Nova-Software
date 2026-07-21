@@ -1,10 +1,15 @@
+using Vaeron.HelixStudio.Features.AppsManagement;
+using Vaeron.HelixStudio.Features.EventLog;
 using Vaeron.HelixStudio.Features.WorkspaceManagement.Contracts;
 using Vaeron.HelixStudio.Features.WorkspaceManagement.Data;
 using Vaeron.SharedKernel;
 
 namespace Vaeron.HelixStudio.Features.WorkspaceManagement;
 
-public sealed class WorkspaceManagementDomain(WorkspaceManagementRepository repo)
+public sealed class WorkspaceManagementDomain(
+    WorkspaceManagementRepository repo,
+    EventLogFacade eventLogFacade,
+    AppsManagementFacade appsManagementFacade)
 {
     #region 事件中繼
 
@@ -73,6 +78,9 @@ public sealed class WorkspaceManagementDomain(WorkspaceManagementRepository repo
 
         var deleted = await repo.DeleteWorkspaceAndReassignActiveAsync(id);
         if (!deleted) return ResultContract.Fail("找不到該工作區");
+
+        await eventLogFacade.ApplyDeleteEventsByWorkspaceAsync(id);
+        await appsManagementFacade.ApplyDeleteToolsByWorkspaceAsync(id);
 
         Changed?.Invoke();
         return ResultContract.Ok("已刪除");

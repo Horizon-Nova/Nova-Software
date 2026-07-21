@@ -22,7 +22,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="USB 防休眠控制" Style="{StaticResource BaseTextStyle}"
-                   FontSize="{StaticResource FontSizeH1}" FontWeight="Bold" Margin="0,0,0,8" />
+                   FontSize="{StaticResource FontSizeH1}" FontWeight="{DynamicResource FontWeightStrong}" Margin="0,0,0,8" />
 
         <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Padding="8" Margin="0,0,0,8"
                 Background="{DynamicResource StatusWarningBgBrush}"
@@ -34,7 +34,7 @@
         <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="8" Margin="0,0,0,8"
                 Visibility="{Binding HardwareStatusMessage, Converter={StaticResource NullToVisibilityConverter}}">
             <TextBlock Text="{Binding HardwareStatusMessage}" Style="{StaticResource BaseTextStyle}"
-                       Foreground="{DynamicResource Text2Brush}" TextWrapping="Wrap" />
+                       Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" />
         </Border>
 
         <StackPanel Grid.Row="3" Margin="0,0,0,4">
@@ -47,17 +47,17 @@
                 <StackPanel>
                     <TextBlock Text="自動電壓修正（全域）" FontWeight="600" Style="{StaticResource BaseTextStyle}" />
                     <TextBlock Text="開啟後，系統會自動偵測並修正電壓偏離目標的裝置，不需逐台手動套用；僅套用於驅動程式回報支援電源管理的裝置。"
-                               Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text2Brush}"
+                               Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource TextSecondaryBrush}"
                                FontSize="{StaticResource FontSizeSm}" TextWrapping="Wrap" />
                 </StackPanel>
             </DockPanel>
         </StackPanel>
 
         <TextBlock Grid.Row="4" Text="{Binding CorrectedSummary}" FontWeight="600" Style="{StaticResource BaseTextStyle}"
-                   Foreground="{DynamicResource Text2Brush}" Margin="0,4,0,8" />
+                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,8" />
 
         <Grid Grid.Row="5">
-            <TextBlock Text="載入中…" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text2Brush}"
+            <TextBlock Text="載入中…" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource TextSecondaryBrush}"
                        HorizontalAlignment="Center" Margin="0,24,0,0"
                        Visibility="{Binding DevicesLoading, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
 
@@ -102,7 +102,7 @@
                     <DataGridTemplateColumn Header="不支援電源管理" Width="120">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="不支援電源管理" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}"
+                                <TextBlock Text="不支援電源管理" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource TextMutedBrush}"
                                            Visibility="{Binding SupportsPowerControl, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>

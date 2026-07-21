@@ -46,7 +46,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="事件日誌" Style="{StaticResource BaseTextStyle}"
-                   FontSize="{StaticResource FontSizeH1}" FontWeight="Bold" Margin="0,0,0,8" />
+                   FontSize="{StaticResource FontSizeH1}" FontWeight="{DynamicResource FontWeightStrong}" Margin="0,0,0,8" />
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
             <TextBox Width="240" Style="{StaticResource AppSearchBoxStyle}"
@@ -66,7 +66,7 @@
 
         <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="8" Margin="0,0,0,8">
             <TextBlock Text="{Binding MinLevelBannerText}" Style="{StaticResource BaseTextStyle}"
-                       FontSize="{StaticResource FontSizeSm}" Foreground="{DynamicResource Text2Brush}" />
+                       FontSize="{StaticResource FontSizeSm}" Foreground="{DynamicResource TextSecondaryBrush}" />
         </Border>
 
         <Grid Grid.Row="3">
@@ -106,7 +106,7 @@
                                 <Border Background="{Binding Severity, Converter={StaticResource SeverityToBrush}}"
                                         CornerRadius="3" Padding="6,2" HorizontalAlignment="Left">
                                     <TextBlock Text="{Binding Severity, Converter={StaticResource SeverityToText}}"
-                                               Foreground="White" FontSize="{StaticResource FontSizeXs}" />
+                                               Foreground="{DynamicResource AccentOnSolidBrush}" FontSize="{StaticResource FontSizeXs}" />
                                 </Border>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
@@ -119,7 +119,7 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <components:IconGlyph IconData="{StaticResource IconChevronDownGeometry}"
-                                                       Width="12" Height="12" Foreground="{DynamicResource Text3Brush}"
+                                                       Width="12" Height="12" Foreground="{DynamicResource TextMutedBrush}"
                                                        HorizontalAlignment="Center" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
@@ -127,29 +127,36 @@
                 </DataGrid.Columns>
                 <DataGrid.RowDetailsTemplate>
                     <DataTemplate>
-                        <Border Style="{StaticResource TableRowDetailsBorderStyle}" Background="{DynamicResource TerminalBgBrush}">
-                            <StackPanel>
-                                <TextBlock Text="{Binding Command, StringFormat={}$ {0}}"
-                                           Foreground="{DynamicResource TerminalTextBrush}"
-                                           FontFamily="Consolas" FontSize="{StaticResource FontSizeSm}"
-                                           Visibility="{Binding Command, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
-                                <TextBlock Text="{Binding Output}" TextWrapping="Wrap"
-                                           Foreground="{Binding Severity, Converter={StaticResource SeverityToBrush}}"
-                                           FontFamily="Consolas" FontSize="{StaticResource FontSizeSm}" Margin="0,4,0,0"
-                                           Visibility="{Binding Output, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
-                                <TextBlock Text="{Binding ExitCode, StringFormat=exit code {0}}"
-                                           Foreground="{DynamicResource TerminalTextBrush}"
-                                           FontFamily="Consolas" FontSize="{StaticResource FontSizeXs}" Margin="0,4,0,0"
-                                           Visibility="{Binding ExitCode, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
-                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                    <Button Content="{Binding DataContext.CopyFeedback, RelativeSource={RelativeSource AncestorType=DataGrid}, Converter={StaticResource CopyFeedbackToLabelConverter}, FallbackValue=複製}"
-                                            Style="{StaticResource SecondaryButtonStyle}"
-                                            ToolTip="複製"
-                                            Command="{Binding DataContext.ApplyCopyOutputCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                            CommandParameter="{Binding}" />
+                        <Grid>
+                            <Border Style="{StaticResource TableRowDetailsBorderStyle}" Background="{DynamicResource TerminalBgBrush}"
+                                    Visibility="{Binding HasDetails, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Command, StringFormat={}$ {0}}"
+                                               Foreground="{DynamicResource TerminalTextBrush}"
+                                               FontFamily="Consolas" FontSize="{StaticResource FontSizeSm}"
+                                               Visibility="{Binding Command, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
+                                    <TextBlock Text="{Binding Output}" TextWrapping="Wrap"
+                                               Foreground="{Binding Severity, Converter={StaticResource SeverityToBrush}}"
+                                               FontFamily="Consolas" FontSize="{StaticResource FontSizeSm}" Margin="0,4,0,0"
+                                               Visibility="{Binding Output, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
+                                    <TextBlock Text="{Binding ExitCode, StringFormat=exit code {0}}"
+                                               Foreground="{DynamicResource TerminalTextBrush}"
+                                               FontFamily="Consolas" FontSize="{StaticResource FontSizeXs}" Margin="0,4,0,0"
+                                               Visibility="{Binding ExitCode, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
+                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                        <Button Content="{Binding DataContext.CopyFeedback, RelativeSource={RelativeSource AncestorType=DataGrid}, Converter={StaticResource CopyFeedbackToLabelConverter}, FallbackValue=複製}"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                ToolTip="複製"
+                                                Command="{Binding DataContext.ApplyCopyOutputCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                CommandParameter="{Binding}" />
+                                    </StackPanel>
                                 </StackPanel>
-                            </StackPanel>
-                        </Border>
+                            </Border>
+                            <Border Style="{StaticResource TableRowDetailsBorderStyle}"
+                                    Visibility="{Binding HasDetails, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                                <TextBlock Text="此事件無指令輸出記錄" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource TextMutedBrush}" />
+                            </Border>
+                        </Grid>
                     </DataTemplate>
                 </DataGrid.RowDetailsTemplate>
             </DataGrid>

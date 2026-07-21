@@ -20,12 +20,12 @@ public sealed partial class EventLogViewModel(
     private IReadOnlyList<EventEntrySnapshot> _allEvents = [];
     private int? _activeWorkspaceId;
 
-    /// <summary>骨架屏最短可視時間，跟 AppsManagementViewModel 同一個判準（切換工作區不是瞬間換內容）</summary>
+    /// <summary>骨架屏最短可視時間</summary>
     private static readonly TimeSpan MinVisibleLoadingDuration = TimeSpan.FromMilliseconds(400);
 
     public ObservableCollection<EventEntrySnapshot> Events { get; } = [];
 
-    /// <summary>骨架屏欄位配置，對齊下方真實 DataGrid 欄寬（4／60／140／*／140／32）</summary>
+    /// <summary>骨架屏欄位配置</summary>
     public static IReadOnlyList<TableSkeletonColumn> SkeletonColumns { get; } =
     [
         new() { Width = new GridLength(4) },

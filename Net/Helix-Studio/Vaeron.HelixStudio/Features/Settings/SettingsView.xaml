@@ -16,13 +16,26 @@
         <local:DeleteConfirmEnabledConverter x:Key="DeleteConfirmEnabled" />
         <local:CountGreaterThanOneConverter x:Key="CountGreaterThanOne" />
         <local:CheckUpdateLabelConverter x:Key="CheckUpdateLabel" />
+        <local:RetentionDaysToLabelConverter x:Key="RetentionDaysToLabel" />
+        <local:SleepMinutesToLabelConverter x:Key="SleepMinutesToLabel" />
+        <local:IdleLockMinutesToLabelConverter x:Key="IdleLockMinutesToLabel" />
+
+        <DataTemplate x:Key="SleepMinutesItemTemplate">
+            <TextBlock Text="{Binding Converter={StaticResource SleepMinutesToLabel}}" />
+        </DataTemplate>
+        <DataTemplate x:Key="IdleLockMinutesItemTemplate">
+            <TextBlock Text="{Binding Converter={StaticResource IdleLockMinutesToLabel}}" />
+        </DataTemplate>
+        <DataTemplate x:Key="RetentionDaysItemTemplate">
+            <TextBlock Text="{Binding Converter={StaticResource RetentionDaysToLabel}}" />
+        </DataTemplate>
 
         <!-- 設定列標籤＋說明文字，統一放列的左半邊 -->
         <Style x:Key="SettingRowLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextStyle}">
             <Setter Property="FontWeight" Value="Bold" />
         </Style>
         <Style x:Key="SettingRowSubtitleStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextStyle}">
-            <Setter Property="Foreground" Value="{DynamicResource Text3Brush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
             <Setter Property="FontSize" Value="{StaticResource FontSizeXs}" />
             <Setter Property="TextWrapping" Value="Wrap" />
             <Setter Property="Margin" Value="0,2,0,0" />
@@ -84,11 +97,11 @@
         <!-- 左側分類導覽＋搜尋 -->
         <StackPanel Grid.Column="0" Margin="0,0,12,0">
             <TextBlock Text="設定" Style="{StaticResource BaseTextStyle}"
-                       FontSize="{StaticResource FontSizeH1}" FontWeight="Bold" Margin="0,0,0,12" />
+                       FontSize="{StaticResource FontSizeH1}" FontWeight="{DynamicResource FontWeightStrong}" Margin="0,0,0,12" />
             <TextBox Style="{StaticResource AppSearchBoxStyle}" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                      themes:TextBoxPlaceholder.Text="搜尋設定項目" ToolTip="搜尋設定項目" Margin="0,0,0,8" />
             <ItemsControl ItemsSource="{Binding Categories}" ItemTemplate="{StaticResource CategoryNavTemplate}" />
-            <TextBlock Text="沒有符合條件的設定項目" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text3Brush}"
+            <TextBlock Text="沒有符合條件的設定項目" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource TextMutedBrush}"
                        TextWrapping="Wrap" Margin="0,8,0,0"
                        Visibility="{Binding HasNoCategoryMatch, Converter={StaticResource BoolToVisibilityConverter}}" />
         </StackPanel>
@@ -99,7 +112,7 @@
                 <!-- 工作區管理 -->
                 <Border x:Name="Section_workspace" Visibility="{Binding IsWorkspaceCategoryVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel>
-                        <Border BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="0,0,0,1" Padding="0,0,0,10" Margin="0,0,0,2">
+                        <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0,0,0,1" Padding="0,0,0,10" Margin="0,0,0,2">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -178,9 +191,9 @@
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
                                                 <StackPanel VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Workspace.Name, Mode=OneWay}" FontWeight="Bold" Style="{StaticResource BaseTextStyle}" />
+                                                    <TextBlock Text="{Binding Workspace.Name, Mode=OneWay}" FontWeight="{DynamicResource FontWeightStrong}" Style="{StaticResource BaseTextStyle}" />
                                                     <TextBlock Text="{Binding Workspace.Description}" Style="{StaticResource BaseTextStyle}"
-                                                               Foreground="{DynamicResource Text2Brush}" />
+                                                               Foreground="{DynamicResource TextSecondaryBrush}" />
                                                 </StackPanel>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
@@ -253,7 +266,7 @@
                                                     <StackPanel DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=DataGrid}}">
                                                         <TextBlock Style="{StaticResource BaseTextStyle}" TextWrapping="Wrap" Foreground="{DynamicResource StatusErrorTextBrush}">
                                                             <Run Text="此動作無法復原，且會一併刪除此工作區底下的所有事件記錄。請輸入「" />
-                                                            <Run Text="{Binding DeleteTarget.Name, Mode=OneWay}" FontWeight="Bold" />
+                                                            <Run Text="{Binding DeleteTarget.Name, Mode=OneWay}" FontWeight="{DynamicResource FontWeightStrong}" />
                                                             <Run Text="」以確認刪除。" />
                                                         </TextBlock>
                                                         <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
@@ -302,62 +315,104 @@
                             </StackPanel>
                         </Grid>
 
+                        <!-- 主題：卡片由掃描主題資料夾動態產生，不是寫死的選項 -->
                         <StackPanel Margin="0,16,0,0">
-                            <TextBlock Text="主題模式" Style="{StaticResource SettingRowLabelStyle}" />
-                            <TextBlock Text="套用到全部畫面的背景與文字色（含目前的強調色小圓點預覽）" Style="{StaticResource SettingRowSubtitleStyle}" />
-                            <!-- 尺寸／圓角／邊框粗細／底色對齊 blueprint SettingsScreen.dc.html 第 756 行 cardStyle 與
-                                 THEME_TOKENS（Layout.dc.html 第 549-550 行）：底色與邊框色是兩套主題各自實際的
-                                 BgPageBrush／BorderBrush2，不隨目前主題切換，固定寫死代表「另一個主題長怎樣」 -->
-                            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                <Border Width="132" Height="80" CornerRadius="6" Margin="0,0,16,0" Cursor="Hand"
-                                        Background="#FFFBFCFD">
-                                    <Border.InputBindings>
-                                        <MouseBinding MouseAction="LeftClick" Command="{Binding ApplySelectThemeCommand}" CommandParameter="light" />
-                                    </Border.InputBindings>
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Setter Property="BorderThickness" Value="1" />
-                                            <Setter Property="BorderBrush" Value="#FFD4D8DB" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsDarkMode}" Value="False">
-                                                    <Setter Property="BorderThickness" Value="2.5" />
-                                                    <Setter Property="BorderBrush" Value="{DynamicResource AccentSolidBrush}" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                    <Grid Margin="10">
-                                        <TextBlock Text="亮色" Foreground="#FF171B1F" Style="{StaticResource BaseTextStyle}" FontWeight="Bold"
-                                                   HorizontalAlignment="Left" VerticalAlignment="Center" />
-                                        <Ellipse Width="16" Height="16" Fill="{DynamicResource AccentSolidBrush}"
-                                                 HorizontalAlignment="Right" VerticalAlignment="Center" />
-                                    </Grid>
-                                </Border>
-                                <Border Width="132" Height="80" CornerRadius="6" Cursor="Hand"
-                                        Background="#FF090C0D">
-                                    <Border.InputBindings>
-                                        <MouseBinding MouseAction="LeftClick" Command="{Binding ApplySelectThemeCommand}" CommandParameter="dark" />
-                                    </Border.InputBindings>
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Setter Property="BorderThickness" Value="1" />
-                                            <Setter Property="BorderBrush" Value="#FF2A2E31" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsDarkMode}" Value="True">
-                                                    <Setter Property="BorderThickness" Value="2.5" />
-                                                    <Setter Property="BorderBrush" Value="{DynamicResource AccentSolidBrush}" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                    <Grid Margin="10">
-                                        <TextBlock Text="暗色" Foreground="#FFEDEEF0" Style="{StaticResource BaseTextStyle}" FontWeight="Bold"
-                                                   HorizontalAlignment="Left" VerticalAlignment="Center" />
-                                        <Ellipse Width="16" Height="16" Fill="{DynamicResource AccentSolidBrush}"
-                                                 HorizontalAlignment="Right" VerticalAlignment="Center" />
-                                    </Grid>
-                                </Border>
-                            </StackPanel>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                    <TextBlock Text="主題" Style="{StaticResource SettingRowLabelStyle}" />
+                                    <TextBlock Text="套用到全部畫面的顏色與文字樣式；把主題包資料夾放進主題資料夾即可新增"
+                                               Style="{StaticResource SettingRowSubtitleStyle}" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button Content="開啟主題資料夾" Style="{StaticResource TextButtonStyle}"
+                                            Command="{Binding ApplyOpenThemeFolderCommand}" />
+                                    <Button Content="重新掃描" Style="{StaticResource TextButtonStyle}" Margin="12,0,0,0"
+                                            Command="{Binding ApplyRefreshThemePacksCommand}" />
+                                </StackPanel>
+                            </Grid>
+                            <Grid Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
+                                    <TextBlock Text="背景動畫" Style="{StaticResource SettingRowLabelStyle}" />
+                                    <TextBlock Text="關閉後，主題宣告的動態背景不會播放（優先於主題設定）"
+                                               Style="{StaticResource SettingRowSubtitleStyle}" />
+                                </StackPanel>
+                                <ToggleButton Grid.Column="1" Style="{StaticResource ToggleSwitchStyle}" VerticalAlignment="Center"
+                                              IsChecked="{Binding BackgroundAnimationEnabled}" />
+                            </Grid>
+                            <ItemsControl ItemsSource="{Binding ThemePacks}" Margin="0,8,0,0">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <!-- 迷你視窗樣本：側邊欄色條＋主背景＋強調色塊＋文字色，四色同呈才看得出主題長相 -->
+                                        <Button Width="148" Height="96" Margin="0,0,12,12" Cursor="Hand"
+                                                Command="{Binding DataContext.ApplySelectThemePackCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border CornerRadius="6" ClipToBounds="True"
+                                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                                            BorderBrush="{TemplateBinding BorderBrush}">
+                                                        <Grid>
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="28" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+
+                                                            <!-- 側邊欄樣本 -->
+                                                            <Border Grid.Column="0" Background="{Binding PreviewSidebar}" />
+
+                                                            <!-- 主背景樣本 -->
+                                                            <Grid Grid.Column="1" Background="{Binding PreviewBackground}" Margin="8">
+                                                                <Grid.RowDefinitions>
+                                                                    <RowDefinition Height="*" />
+                                                                    <RowDefinition Height="Auto" />
+                                                                </Grid.RowDefinitions>
+
+                                                                <!-- 強調色塊樣本 -->
+                                                                <Border Grid.Row="0" Background="{Binding PreviewAccent}" CornerRadius="3"
+                                                                        Width="34" Height="12" HorizontalAlignment="Left" VerticalAlignment="Top" />
+
+                                                                <TextBlock Grid.Row="1" Text="{Binding Name}" Style="{StaticResource BaseTextStyle}"
+                                                                           Foreground="{Binding PreviewText}"
+                                                                           FontWeight="{DynamicResource FontWeightStrong}" TextTrimming="CharacterEllipsis"
+                                                                           HorizontalAlignment="Left" VerticalAlignment="Bottom" />
+                                                            </Grid>
+                                                        </Grid>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                            <Button.Style>
+                                                <Style TargetType="Button">
+                                                    <Setter Property="BorderThickness" Value="1" />
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Value="True">
+                                                            <DataTrigger.Binding>
+                                                                <MultiBinding Converter="{StaticResource NavKeyEquals}">
+                                                                    <Binding Path="Id" />
+                                                                    <Binding Path="DataContext.ThemePackId" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                                                </MultiBinding>
+                                                            </DataTrigger.Binding>
+                                                            <Setter Property="BorderThickness" Value="2.5" />
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource AccentSolidBrush}" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Button.Style>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
                         </StackPanel>
 
                         <Grid Margin="0,16,0,0">
@@ -405,7 +460,7 @@
                     <StackPanel>
                         <TextBlock Text="電源" Style="{StaticResource CategorySectionHeaderStyle}" Margin="0,16,0,0" />
                         <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <Border Style="{StaticResource InlineBadgeStyle}" Margin="0"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}" /></Border>
+                            <Border Style="{StaticResource InlineBadgeStyle}" Margin="0"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource TextMutedBrush}" /></Border>
                             <TextBlock Text="此原型版本尚未連接系統電源功能，以下設定不會實際生效" Style="{StaticResource SettingRowSubtitleStyle}" Margin="6,0,0,0" />
                         </StackPanel>
 
@@ -458,7 +513,8 @@
                                 <TextBlock Text="插電時，進入睡眠" Style="{StaticResource SettingRowLabelStyle}" />
                                 <TextBlock Text="接上電源時，閒置多久後進入睡眠" Style="{StaticResource SettingRowSubtitleStyle}" />
                             </StackPanel>
-                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding SleepMinutesOptions}" SelectedItem="{Binding AcSleepMinutes}" />
+                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding SleepMinutesOptions}" SelectedItem="{Binding AcSleepMinutes}"
+                                      ItemTemplate="{StaticResource SleepMinutesItemTemplate}" />
                         </Grid>
 
                         <Grid Margin="0,12,0,0">
@@ -470,7 +526,8 @@
                                 <TextBlock Text="電池電力時，進入睡眠" Style="{StaticResource SettingRowLabelStyle}" />
                                 <TextBlock Text="使用電池時，閒置多久後進入睡眠" Style="{StaticResource SettingRowSubtitleStyle}" />
                             </StackPanel>
-                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding SleepMinutesOptions}" SelectedItem="{Binding BatterySleepMinutes}" />
+                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding SleepMinutesOptions}" SelectedItem="{Binding BatterySleepMinutes}"
+                                      ItemTemplate="{StaticResource SleepMinutesItemTemplate}" />
                         </Grid>
 
                         <Grid Margin="0,12,0,0">
@@ -482,7 +539,8 @@
                                 <TextBlock Text="螢幕逾時" Style="{StaticResource SettingRowLabelStyle}" />
                                 <TextBlock Text="閒置多久後關閉螢幕（不影響是否進入睡眠）" Style="{StaticResource SettingRowSubtitleStyle}" />
                             </StackPanel>
-                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding SleepMinutesOptions}" SelectedItem="{Binding ScreenTimeoutMinutes}" />
+                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding SleepMinutesOptions}" SelectedItem="{Binding ScreenTimeoutMinutes}"
+                                      ItemTemplate="{StaticResource SleepMinutesItemTemplate}" />
                         </Grid>
 
                         <Grid Margin="0,12,0,0">
@@ -550,7 +608,7 @@
                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="介面語言" Style="{StaticResource SettingRowLabelStyle}" />
-                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}" /></Border>
+                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource TextMutedBrush}" /></Border>
                                 </StackPanel>
                                 <TextBlock Text="套用到全部畫面與選單的顯示語言" Style="{StaticResource SettingRowSubtitleStyle}" />
                             </StackPanel>
@@ -565,7 +623,7 @@
                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="啟動時開啟頁面" Style="{StaticResource SettingRowLabelStyle}" />
-                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}" /></Border>
+                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource TextMutedBrush}" /></Border>
                                 </StackPanel>
                                 <TextBlock Text="軟體啟動後預設顯示的畫面" Style="{StaticResource SettingRowSubtitleStyle}" />
                             </StackPanel>
@@ -580,11 +638,12 @@
                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="閒置鎖定" Style="{StaticResource SettingRowLabelStyle}" />
-                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}" /></Border>
+                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource TextMutedBrush}" /></Border>
                                 </StackPanel>
                                 <TextBlock Text="無操作一段時間後鎖定畫面" Style="{StaticResource SettingRowSubtitleStyle}" />
                             </StackPanel>
-                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding IdleLockMinutesOptions}" SelectedItem="{Binding IdleLockMinutes}" />
+                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding IdleLockMinutesOptions}" SelectedItem="{Binding IdleLockMinutes}"
+                                      ItemTemplate="{StaticResource IdleLockMinutesItemTemplate}" />
                         </Grid>
 
                         <Grid Margin="0,12,0,0">
@@ -668,11 +727,12 @@
                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="記錄保留期限" Style="{StaticResource SettingRowLabelStyle}" />
-                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}" /></Border>
+                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource TextMutedBrush}" /></Border>
                                 </StackPanel>
                                 <TextBlock Text="超過此天數的日誌會自動清除" Style="{StaticResource SettingRowSubtitleStyle}" />
                             </StackPanel>
-                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding RetentionDaysOptions}" SelectedItem="{Binding RetentionDays}" />
+                            <ComboBox Grid.Column="1" Width="100" VerticalAlignment="Center" ItemsSource="{Binding RetentionDaysOptions}" SelectedItem="{Binding RetentionDays}"
+                                      ItemTemplate="{StaticResource RetentionDaysItemTemplate}" />
                         </Grid>
 
                         <Grid Margin="0,12,0,0">
@@ -686,9 +746,9 @@
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding ExportPathDisplay}" VerticalAlignment="Center" Style="{StaticResource BaseTextStyle}"
-                                           Foreground="{DynamicResource Text3Brush}" Margin="0,0,8,0" />
-                                <Button Content="瀏覽…" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="False"
-                                        ToolTip="原型範疇未提供資料夾選擇對話框" />
+                                           Foreground="{DynamicResource TextMutedBrush}" Margin="0,0,8,0" />
+                                <Button Content="瀏覽…" Style="{StaticResource SecondaryButtonStyle}"
+                                        Command="{Binding ApplyChooseExportPathCommand}" />
                             </StackPanel>
                         </Grid>
 
@@ -700,7 +760,7 @@
                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="編碼" Style="{StaticResource SettingRowLabelStyle}" />
-                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}" /></Border>
+                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource TextMutedBrush}" /></Border>
                                 </StackPanel>
                                 <TextBlock Text="匯出檔案使用的文字編碼" Style="{StaticResource SettingRowSubtitleStyle}" />
                             </StackPanel>
@@ -715,11 +775,11 @@
                             <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="時區" Style="{StaticResource SettingRowLabelStyle}" />
-                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}" /></Border>
+                                    <Border Style="{StaticResource InlineBadgeStyle}"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource TextMutedBrush}" /></Border>
                                 </StackPanel>
                                 <TextBlock Text="匯出記錄之時間戳記所使用的時區" Style="{StaticResource SettingRowSubtitleStyle}" />
                             </StackPanel>
-                            <TextBox Grid.Column="1" Width="160" VerticalAlignment="Center" Style="{StaticResource AppTextBoxStyle}" Text="{Binding TimeZone}" />
+                            <ComboBox Grid.Column="1" Width="200" VerticalAlignment="Center" ItemsSource="{Binding TimeZoneOptions}" SelectedItem="{Binding TimeZone}" />
                         </Grid>
 
                         <Grid Margin="0,16,0,0">

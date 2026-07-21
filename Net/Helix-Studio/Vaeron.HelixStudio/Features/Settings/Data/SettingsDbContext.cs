@@ -11,9 +11,8 @@ public sealed class SettingsDbContext(DbContextOptions<SettingsDbContext> option
 public sealed class app_settings
 {
     public int id { get; set; }
-    public string theme_mode { get; set; } = "Light";
-    public double accent_hue { get; set; } = 231;
-    public double accent_chroma { get; set; } = 0.11;
+    public string theme_pack { get; set; } = "default";
+    public bool background_animation { get; set; } = true;
     public int ui_scale { get; set; } = 100;
     public string data_density { get; set; } = "Comfortable";
     public bool sidebar_collapsed_default { get; set; }

@@ -40,7 +40,7 @@ public sealed partial class AppsManagementViewModel(
 
     public ObservableCollection<ToolRow> Tools { get; } = [];
 
-    /// <summary>骨架屏欄位配置，對齊下方真實 DataGrid 欄寬（4／66／*／58／66／92／180）</summary>
+    /// <summary>骨架屏欄位配置</summary>
     public static IReadOnlyList<TableSkeletonColumn> SkeletonColumns { get; } =
     [
         new() { Width = new GridLength(4) },

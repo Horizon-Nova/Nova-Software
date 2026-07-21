@@ -176,6 +176,17 @@ public sealed class AppsManagementDomain(
         return ResultContract.Ok("已移除");
     }
 
+    /// <summary>刪除工作區時連動清理已安裝工具</summary>
+    public async Task DeleteToolsByWorkspaceAsync(int workspaceId)
+    {
+        var tools = await repo.QueryInstalledToolListAsync(workspaceId);
+        foreach (var tool in tools.Where(t => processRepo.IsRunning(t.id)))
+            await processRepo.StopAsync(tool.id);
+
+        await repo.DeleteToolsByWorkspaceAsync(workspaceId);
+        Changed?.Invoke();
+    }
+
     #endregion
 
     private bool IsUnlocked(int id)

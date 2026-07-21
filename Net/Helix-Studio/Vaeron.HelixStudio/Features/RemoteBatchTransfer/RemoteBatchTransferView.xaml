@@ -25,10 +25,10 @@
     <ScrollViewer Margin="16" VerticalScrollBarVisibility="Auto">
         <StackPanel>
             <TextBlock Text="遠端批次傳檔" Style="{StaticResource BaseTextStyle}"
-                       FontSize="{StaticResource FontSizeH1}" FontWeight="Bold" Margin="0,0,0,8" />
+                       FontSize="{StaticResource FontSizeH1}" FontWeight="{DynamicResource FontWeightStrong}" Margin="0,0,0,8" />
 
             <!-- 遠端連線 -->
-            <TextBlock Text="遠端連線" FontWeight="Bold" Style="{StaticResource BaseTextStyle}" Margin="0,8,0,4" />
+            <TextBlock Text="遠端連線" FontWeight="{DynamicResource FontWeightStrong}" Style="{StaticResource BaseTextStyle}" Margin="0,8,0,4" />
             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                 <TextBox Width="200" Style="{StaticResource AppSearchBoxStyle}" themes:TextBoxPlaceholder.Text="搜尋連線名稱或位址"
                          Text="{Binding ConnectionSearchText, UpdateSourceTrigger=PropertyChanged}" />
@@ -61,14 +61,14 @@
                                     </StackPanel>
                                     <StackPanel Margin="8,0,0,0">
                                         <TextBlock Style="{StaticResource BaseTextStyle}">
-                                            <Run Text="{Binding Connection.Name, Mode=OneWay}" FontWeight="Bold" />
+                                            <Run Text="{Binding Connection.Name, Mode=OneWay}" FontWeight="{DynamicResource FontWeightStrong}" />
                                             <Run Text=" — " />
                                             <Run Text="{Binding Connection.Host, Mode=OneWay}" />
                                             <Run Text=":" />
                                             <Run Text="{Binding Connection.Port, Mode=OneWay}" />
                                             <Run Text="  " />
                                             <Run Text="{Binding Connection.AuthMethod, Mode=OneWay, Converter={StaticResource AuthMethodToText}}"
-                                                 Foreground="{DynamicResource Text3Brush}" FontSize="{StaticResource FontSizeXs}" />
+                                                 Foreground="{DynamicResource TextMutedBrush}" FontSize="{StaticResource FontSizeXs}" />
                                         </TextBlock>
                                         <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
                                             <Border Background="{Binding Connection.Status, Converter={StaticResource ConnectionStatusToBrush}}"
@@ -77,7 +77,7 @@
                                                            FontSize="{StaticResource FontSizeXs}" />
                                             </Border>
                                             <TextBlock Text="{Binding Connection.LastResultMessage, StringFormat=上次任務：{0}}"
-                                                       FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}"
+                                                       FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource TextMutedBrush}"
                                                        Margin="8,0,0,0" VerticalAlignment="Center"
                                                        Visibility="{Binding Connection.LastResultMessage, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
                                         </StackPanel>
@@ -138,7 +138,7 @@
             </Border>
 
             <!-- 發布設定 -->
-            <TextBlock Text="發布設定" FontWeight="Bold" Style="{StaticResource BaseTextStyle}" Margin="0,16,0,4"
+            <TextBlock Text="發布設定" FontWeight="{DynamicResource FontWeightStrong}" Style="{StaticResource BaseTextStyle}" Margin="0,16,0,4"
                        Visibility="{Binding HasSelectedTargets, Converter={StaticResource BoolToVisibilityConverter}}" />
             <StackPanel Visibility="{Binding HasSelectedTargets, Converter={StaticResource BoolToVisibilityConverter}}">
                 <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
@@ -171,7 +171,7 @@
 
                 <!-- 逐台目的路徑覆寫 -->
                 <TextBlock Text="{Binding OverrideCount, StringFormat={}{0} 台已覆寫}" FontSize="{StaticResource FontSizeXs}"
-                           Foreground="{DynamicResource Text3Brush}" Margin="120,4,0,0" />
+                           Foreground="{DynamicResource TextMutedBrush}" Margin="120,4,0,0" />
                 <ItemsControl ItemsSource="{Binding Connections}" Margin="120,4,0,0">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -179,7 +179,7 @@
                                         Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}}">
                                 <TextBlock Text="{Binding Connection.Name}" Width="100" VerticalAlignment="Center" Style="{StaticResource BaseTextStyle}" />
                                 <TextBlock Text="{Binding DestPathOverride, Converter={StaticResource OverrideBadge}}" Width="60"
-                                           VerticalAlignment="Center" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource Text3Brush}" />
+                                           VerticalAlignment="Center" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource TextMutedBrush}" />
                                 <Button Content="重設" Style="{StaticResource SecondaryButtonStyle}" Margin="4,0,0,0"
                                         Command="{Binding DataContext.ApplyResetOverrideCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                         CommandParameter="{Binding}"
@@ -197,10 +197,10 @@
             <DockPanel Margin="0,16,0,4">
                 <Button DockPanel.Dock="Left" Content="{Binding TaskLogOpen, Converter={StaticResource TaskLogToggleLabelConverter}, FallbackValue=收合}"
                         Style="{StaticResource SecondaryButtonStyle}" Command="{Binding ApplyToggleTaskLogCommand}" Margin="0,0,8,0" />
-                <TextBlock Text="任務紀錄" FontWeight="Bold" Style="{StaticResource BaseTextStyle}" VerticalAlignment="Center" />
+                <TextBlock Text="任務紀錄" FontWeight="{DynamicResource FontWeightStrong}" Style="{StaticResource BaseTextStyle}" VerticalAlignment="Center" />
             </DockPanel>
             <StackPanel Visibility="{Binding TaskLogOpen, Converter={StaticResource BoolToVisibilityConverter}}">
-                <TextBlock Text="尚未發布任何任務" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text2Brush}"
+                <TextBlock Text="尚未發布任何任務" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource TextSecondaryBrush}"
                            Visibility="{Binding Tasks.Count, Converter={StaticResource CountToEmptyVisibilityConverter}, FallbackValue=Visible}" />
                 <ItemsControl ItemsSource="{Binding Tasks}">
                     <ItemsControl.ItemTemplate>
@@ -213,7 +213,7 @@
                                                 Command="{Binding DataContext.ApplyRetryAllFailedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                 CommandParameter="{Binding}" />
                                         <TextBlock Style="{StaticResource BaseTextStyle}">
-                                            <Run Text="{Binding Action, Mode=OneWay}" FontWeight="Bold" />
+                                            <Run Text="{Binding Action, Mode=OneWay}" FontWeight="{DynamicResource FontWeightStrong}" />
                                             <Run Text=" " />
                                             <Run Text="{Binding SourcePath, Mode=OneWay}" />
                                             <Run Text=" → " />

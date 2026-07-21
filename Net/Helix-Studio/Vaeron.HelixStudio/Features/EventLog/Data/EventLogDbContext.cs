@@ -43,6 +43,7 @@ public sealed class log_settings
     public int id { get; set; }
     public string min_level { get; set; } = "Info";
     public int retention_days { get; set; } = 30;
+    public string? export_path { get; set; }
 }
 
 /// <summary>每工作區一列：上次已讀時間</summary>

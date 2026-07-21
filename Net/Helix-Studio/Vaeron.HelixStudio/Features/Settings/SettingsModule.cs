@@ -11,6 +11,7 @@ public static class SettingsModule
     {
         services.AddDbContextFactory<SettingsDbContext>((sp, o) =>
             o.UseSqlite($"Data Source={sp.GetRequiredService<AppDataPath>().DatabasePath}"));
+        services.AddSingleton<Themes.ThemePackService>();
         services.AddSingleton<SettingsRepository>();
         services.AddSingleton<StartupRegistrationRepository>();
         services.AddSingleton<SettingsDomain>();

@@ -4,23 +4,96 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Shell;
 
 namespace Vaeron.HelixStudio;
 
 public partial class MainWindow : Window
 {
-    public MainWindow(MainShellViewModel viewModel)
+    private readonly Themes.ThemePackService _themePacks;
+    private Storyboard? _backgroundLoop;
+
+    public MainWindow(MainShellViewModel viewModel, Themes.ThemePackService themePacks)
     {
         InitializeComponent();
         DataContext = viewModel;
+        _themePacks = themePacks;
+        viewModel.PropertyChanged += OnViewModelPropertyChanged;
+        _themePacks.ThemeApplied += ApplyBackgroundMedia;
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MainShellViewModel.BackgroundAnimationEnabled))
+        {
+            ApplyBackgroundMedia();
+            return;
+        }
+        if (e.PropertyName != nameof(MainShellViewModel.UiScale)) return;
+
+        ResizeToScaledContent();
+    }
+
+    /// <summary>縮放後依 ScaleRoot 的實際需求尺寸撐大視窗（只撐大，不縮小）</summary>
+    private void ResizeToScaledContent()
+    {
+        ScaleRoot.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        var desired = ScaleRoot.DesiredSize;
+
+        const double borderAllowance = 2; // 外層 Border BorderThickness="1" 兩側
+        if (Width < desired.Width + borderAllowance) Width = desired.Width + borderAllowance;
+        if (Height < desired.Height + borderAllowance) Height = desired.Height + borderAllowance;
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
-        => ((MainShellViewModel)DataContext).ApplyShellLoaded();
+    {
+        ((MainShellViewModel)DataContext).ApplyShellLoaded();
+        ApplyBackgroundMedia();
+    }
+
+    /// <summary>套用主題宣告的背景媒體。素材與呈現方式歸主題，播放與循環歸軟體。</summary>
+    private void ApplyBackgroundMedia()
+    {
+        _backgroundLoop?.Stop(this);
+        _backgroundLoop = null;
+        BackgroundMedia.Visibility = Visibility.Collapsed;
+
+        if (!((MainShellViewModel)DataContext).BackgroundAnimationEnabled) return;
+        if (TryFindResource("BackgroundMedia") is not string path || string.IsNullOrWhiteSpace(path)) return;
+        if (!System.IO.File.Exists(path)) return;
+
+        var (withinLimit, duration) = Themes.BackgroundMediaLimits.Evaluate(path);
+        if (!withinLimit) return;
+
+        var timeline = new MediaTimeline(new Uri(path, UriKind.RelativeOrAbsolute))
+        {
+            RepeatBehavior = RepeatBehavior.Forever,
+        };
+        // 播放器對 GIF 不回報結束也不保證回報時長，改由檔案自己的幀延遲決定循環區間
+        if (duration > TimeSpan.Zero) timeline.Duration = new Duration(duration);
+        Storyboard.SetTarget(timeline, BackgroundMedia);
+
+        _backgroundLoop = new Storyboard();
+        _backgroundLoop.Children.Add(timeline);
+
+        BackgroundMedia.Visibility = Visibility.Visible;
+        _backgroundLoop.Begin(this, true);
+    }
+
+    /// <summary>視窗未在使用時暫停背景動畫</summary>
+    private void OnWindowActivated(object? sender, EventArgs e) => _backgroundLoop?.Resume(this);
+
+    private void OnWindowDeactivated(object? sender, EventArgs e) => _backgroundLoop?.Pause(this);
 
     private void OnClosed(object? sender, EventArgs e)
-        => ((MainShellViewModel)DataContext).ApplyShellUnloaded();
+    {
+        var vm = (MainShellViewModel)DataContext;
+        vm.PropertyChanged -= OnViewModelPropertyChanged;
+        _themePacks.ThemeApplied -= ApplyBackgroundMedia;
+        _backgroundLoop?.Stop(this);
+        vm.ApplyShellUnloaded();
+    }
 
     /// <summary>側邊欄拖曳調整寬度</summary>
     private void OnSidebarResizeDragDelta(object sender, DragDeltaEventArgs e)

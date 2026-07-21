@@ -36,4 +36,15 @@ public sealed class StartupRegistrationRepository
             return (false, "沒有足夠權限設定開機自動啟動");
         }
     }
+
+    /// <summary>查詢登錄機碼是否指向目前執行檔路徑</summary>
+    public bool QueryIsRegisteredForCurrentPath()
+    {
+        var exePath = Environment.ProcessPath;
+        if (string.IsNullOrEmpty(exePath)) return false;
+
+        using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath, writable: false);
+        var value = key?.GetValue(ValueName) as string;
+        return value == $"\"{exePath}\"";
+    }
 }

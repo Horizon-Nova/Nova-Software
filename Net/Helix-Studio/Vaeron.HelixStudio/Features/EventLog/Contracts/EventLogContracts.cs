@@ -13,6 +13,7 @@ public sealed record EventEntrySnapshot
     public string? Command { get; init; }
     public int? ExitCode { get; init; }
     public string? Output { get; init; }
+    public bool HasDetails => Command is not null || Output is not null || ExitCode is not null;
 }
 
 public sealed record RecordEventRequest
@@ -30,4 +31,5 @@ public sealed record LogSettingsSnapshot
 {
     public required EventSeverity MinLevel { get; init; }
     public required int RetentionDays { get; init; }
+    public string? ExportPath { get; init; }
 }

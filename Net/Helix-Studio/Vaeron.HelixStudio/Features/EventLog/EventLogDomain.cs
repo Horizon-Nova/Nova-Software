@@ -24,6 +24,7 @@ public sealed class EventLogDomain(EventLogRepository repo)
         {
             MinLevel = Enum.Parse<EventSeverity>(row.min_level),
             RetentionDays = row.retention_days,
+            ExportPath = row.export_path,
         };
     }
 
@@ -65,6 +66,7 @@ public sealed class EventLogDomain(EventLogRepository repo)
         {
             min_level = settings.MinLevel.ToString(),
             retention_days = settings.RetentionDays,
+            export_path = settings.ExportPath,
         });
         Changed?.Invoke();
         return ResultContract.Ok("已更新");
@@ -75,6 +77,24 @@ public sealed class EventLogDomain(EventLogRepository repo)
         await repo.InsertReadMarkerAsync(workspaceId, DateTimeOffset.UtcNow);
         Changed?.Invoke();
         return ResultContract.Ok("已標記已讀");
+    }
+
+    /// <summary>刪除工作區時連動清理事件記錄</summary>
+    public async Task DeleteEventsByWorkspaceAsync(int workspaceId)
+    {
+        await repo.DeleteEventsByWorkspaceAsync(workspaceId);
+        Changed?.Invoke();
+    }
+
+    /// <summary>記錄保留期限清理</summary>
+    public async Task ApplyRetentionPolicyAsync()
+    {
+        var settings = await LoadLogSettingsAsync();
+        if (settings.RetentionDays <= 0) return;
+
+        var cutoff = DateTimeOffset.UtcNow.AddDays(-settings.RetentionDays);
+        var deleted = await repo.DeleteEventsOlderThanAsync(cutoff);
+        if (deleted > 0) Changed?.Invoke();
     }
 
     #endregion

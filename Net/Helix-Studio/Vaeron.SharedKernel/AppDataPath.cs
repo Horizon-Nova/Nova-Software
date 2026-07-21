@@ -13,6 +13,8 @@ public sealed class AppDataPath(string appName)
     public string SecretsPath => Path.Combine(LocalRoot, "secrets.bin");
     public string LogDirectory => Path.Combine(LocalRoot, "logs");
     public string CacheDirectory => Path.Combine(LocalRoot, "cache");
+    /// <summary>使用者主題包資料夾，一個主題一個子資料夾（theme.xaml ＋ 圖片素材）</summary>
+    public string ThemeDirectory => Path.Combine(RoamingRoot, "Themes");
 
     /// <summary>建立完整目錄結構</summary>
     public void EnsureDirectoriesExist()
@@ -21,5 +23,6 @@ public sealed class AppDataPath(string appName)
         Directory.CreateDirectory(LocalRoot);
         Directory.CreateDirectory(LogDirectory);
         Directory.CreateDirectory(CacheDirectory);
+        Directory.CreateDirectory(ThemeDirectory);
     }
 }

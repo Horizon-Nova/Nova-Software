@@ -58,7 +58,7 @@ public partial class TableSkeletonView : UserControl
 
         var headerDivider = new Border
         {
-            BorderBrush = (Brush)FindResource("BorderBrush2"),
+            BorderBrush = (Brush)FindResource("BorderDefaultBrush"),
             BorderThickness = new Thickness(0, 0, 0, 1),
         };
         Grid.SetColumnSpan(headerDivider, columns.Count);
@@ -75,7 +75,7 @@ public partial class TableSkeletonView : UserControl
                 FontFamily = (FontFamily)FindResource("AppFontFamily"),
                 FontSize = (double)FindResource("FontSizeXs"),
                 FontWeight = FontWeights.Bold,
-                Foreground = (Brush)FindResource("Text2Brush"),
+                Foreground = (Brush)FindResource("TextSecondaryBrush"),
             };
             Grid.SetColumn(header, i);
             HeaderRow.Children.Add(header);

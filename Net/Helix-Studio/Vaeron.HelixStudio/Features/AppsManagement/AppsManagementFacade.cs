@@ -33,4 +33,7 @@ public sealed class AppsManagementFacade(AppsManagementDomain domain)
         var list = await domain.LoadInstalledToolListAsync(workspaceId);
         return list.Any(t => t.Name == toolName && t.IsRunning);
     }
+
+    public Task ApplyDeleteToolsByWorkspaceAsync(int workspaceId)
+        => domain.DeleteToolsByWorkspaceAsync(workspaceId);
 }

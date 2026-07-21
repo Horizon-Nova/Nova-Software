@@ -67,5 +67,12 @@ public sealed class InstalledToolsRepository(IDbContextFactory<AppsManagementDbC
         return true;
     }
 
+    /// <summary>刪除工作區時連動清理已安裝工具</summary>
+    public async Task DeleteToolsByWorkspaceAsync(int workspaceId)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync();
+        await Filter(db, workspaceId).ExecuteUpdateAsync(setters => setters.SetProperty(x => x.is_deleted, true));
+    }
+
     #endregion
 }

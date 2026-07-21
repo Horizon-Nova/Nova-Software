@@ -89,6 +89,12 @@ public sealed partial class MainShellViewModel(
     [ObservableProperty] private double _uiScale = 1.0;
     /// <summary>未讀事件徽章顯示開關</summary>
     [ObservableProperty] private bool _showEventBadge = true;
+    /// <summary>使用者偏好：停用背景動畫（優先權高於主題包宣告）</summary>
+    [ObservableProperty] private bool _backgroundAnimationEnabled = true;
+
+    /// <summary>視窗最小尺寸（100% 縮放下的底線）</summary>
+    public double EffectiveMinWidth => 900;
+    public double EffectiveMinHeight => 600;
 
     /// <summary>非目前作用中的工作區清單</summary>
     public IEnumerable<WorkspaceSnapshot> OtherWorkspaces
@@ -157,6 +163,7 @@ public sealed partial class MainShellViewModel(
         UiScale = settings.UiScalePercent / 100.0;
         ShowEventBadge = settings.ShowEventBadge;
         SidebarCollapsed = settings.SidebarCollapsedByDefault;
+        BackgroundAnimationEnabled = settings.BackgroundAnimationEnabled;
     }
 
     private void OnResourceStatsTick(object? sender, EventArgs e)

@@ -4,8 +4,8 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
+                <!-- Tokens.xaml 是預設樣式庫，永遠在最底層；主題包之後疊在它上面，只覆寫有宣告的鍵 -->
                 <ResourceDictionary Source="Themes/Tokens.xaml" />
-                <ResourceDictionary Source="Themes/Tokens.Light.xaml" />
                 <ResourceDictionary Source="Themes/Controls.xaml" />
                 <ResourceDictionary Source="Themes/Icons.xaml" />
             </ResourceDictionary.MergedDictionaries>

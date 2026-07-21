@@ -28,4 +28,10 @@ public sealed class EventLogFacade(EventLogDomain domain)
 
     public Task<IReadOnlyList<EventEntrySnapshot>> LoadEventListAsync(int workspaceId)
         => domain.LoadEventListAsync(workspaceId);
+
+    public Task ApplyDeleteEventsByWorkspaceAsync(int workspaceId)
+        => domain.DeleteEventsByWorkspaceAsync(workspaceId);
+
+    public Task ApplyRetentionPolicyAsync()
+        => domain.ApplyRetentionPolicyAsync();
 }

@@ -20,7 +20,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="工具庫" Style="{StaticResource BaseTextStyle}"
-                   FontSize="{StaticResource FontSizeH1}" FontWeight="Bold" Margin="0,0,0,8" />
+                   FontSize="{StaticResource FontSizeH1}" FontWeight="{DynamicResource FontWeightStrong}" Margin="0,0,0,8" />
 
         <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
             <TextBox Width="240" Style="{StaticResource AppSearchBoxStyle}"
@@ -29,10 +29,10 @@
             <Button Content="匯入工具..." Style="{StaticResource PrimaryButtonStyle}" Margin="8,0,0,0"
                     Command="{Binding ApplyImportCommand}" />
             <TextBlock Text="（或直接把 .exe/.msi/.zip 拖放到本頁面匯入）" VerticalAlignment="Center" Margin="8,0,0,0"
-                       Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text3Brush}"
+                       Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource TextMutedBrush}"
                        FontSize="{StaticResource FontSizeXs}" />
             <TextBlock Text="{Binding ImportFeedback}" VerticalAlignment="Center" Margin="8,0,0,0"
-                       Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text2Brush}" />
+                       Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource TextSecondaryBrush}" />
         </StackPanel>
 
         <ListBox Grid.Row="2" Grid.Column="0" ItemsSource="{Binding Categories}"
@@ -40,7 +40,7 @@
                  DisplayMemberPath="Label" BorderThickness="0" Background="Transparent"
                  ItemContainerStyle="{StaticResource SidebarNavListBoxItemStyle}" />
 
-        <TextBlock Grid.Row="2" Grid.Column="1" Text="載入中…" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text2Brush}"
+        <TextBlock Grid.Row="2" Grid.Column="1" Text="載入中…" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource TextSecondaryBrush}"
                    HorizontalAlignment="Center" Margin="0,24,0,0"
                    Visibility="{Binding AppsLoading, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
 
@@ -112,11 +112,11 @@
                 <DataTemplate>
                     <Border Style="{StaticResource TableRowDetailsBorderStyle}">
                         <StackPanel>
-                            <TextBlock Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text2Brush}">
+                            <TextBlock Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource TextSecondaryBrush}">
                                 <Run Text="需求：" /><Run Text="{Binding Requirements, Mode=OneWay}" />
                                 <Run Text="　更新日期：" /><Run Text="{Binding LastUpdated, StringFormat={}{0:yyyy-MM-dd}, Mode=OneWay}" />
                             </TextBlock>
-                            <TextBlock Text="說明文件" FontWeight="Bold" Style="{StaticResource BaseTextStyle}" Margin="0,8,0,4"
+                            <TextBlock Text="說明文件" FontWeight="{DynamicResource FontWeightStrong}" Style="{StaticResource BaseTextStyle}" Margin="0,8,0,4"
                                        Visibility="{Binding Readme, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
                             <!-- README 簡化 markdown 解析後版面 -->
                             <FlowDocumentScrollViewer Document="{Binding Readme, Converter={StaticResource ReadmeToFlowDocument}}"

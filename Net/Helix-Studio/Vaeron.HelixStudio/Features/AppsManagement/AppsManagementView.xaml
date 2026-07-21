@@ -31,7 +31,7 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" Text="已安裝工具" Style="{StaticResource BaseTextStyle}"
-                   FontSize="{StaticResource FontSizeH1}" FontWeight="Bold" Margin="0,0,0,8" />
+                   FontSize="{StaticResource FontSizeH1}" FontWeight="{DynamicResource FontWeightStrong}" Margin="0,0,0,8" />
 
         <Grid Grid.Row="1" Margin="0,0,0,8">
             <Grid.ColumnDefinitions>
@@ -52,7 +52,7 @@
             <StackPanel Grid.Column="3" Orientation="Horizontal">
                 <ToggleButton Style="{StaticResource ToggleSwitchStyle}" IsChecked="{Binding ShowOnlyRunning}" />
                 <TextBlock Text="只顯示執行中" VerticalAlignment="Center" Margin="8,0,0,0"
-                           Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text2Brush}" FontWeight="SemiBold" />
+                           Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource TextSecondaryBrush}" FontWeight="{DynamicResource FontWeightMedium}" />
             </StackPanel>
         </Grid>
 
@@ -95,7 +95,7 @@
                                                 Visibility="{Binding IsPending, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                                             <TextBlock Text="{Binding Tool.State, Converter={StaticResource StateToText}}"
                                                        Foreground="{Binding Tool.State, Converter={StaticResource StateToTextBrush}}"
-                                                       FontSize="{StaticResource FontSize2Xs}" FontWeight="Bold" />
+                                                       FontSize="{StaticResource FontSize2Xs}" FontWeight="{DynamicResource FontWeightStrong}" />
                                         </Border>
                                     </Grid>
                                 </DataTemplate>
@@ -105,7 +105,7 @@
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Tool.Name}" VerticalAlignment="Center"
-                                               Style="{StaticResource BaseTextStyle}" FontWeight="SemiBold"
+                                               Style="{StaticResource BaseTextStyle}" FontWeight="{DynamicResource FontWeightMedium}"
                                                TextTrimming="CharacterEllipsis" />
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -117,7 +117,7 @@
                                         <Border Style="{StaticResource SkeletonBarStyle}" Width="30" Height="11" HorizontalAlignment="Left"
                                                 Visibility="{Binding IsPending, Converter={StaticResource BoolToVisibilityConverter}}" />
                                         <TextBlock Text="{Binding Tool.CpuPercent, StringFormat={}{0:F1}%}"
-                                                   VerticalAlignment="Center" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text2Brush}"
+                                                   VerticalAlignment="Center" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource TextSecondaryBrush}"
                                                    Visibility="{Binding IsPending, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
                                     </Grid>
                                 </DataTemplate>
@@ -130,7 +130,7 @@
                                         <Border Style="{StaticResource SkeletonBarStyle}" Width="40" Height="11" HorizontalAlignment="Left"
                                                 Visibility="{Binding IsPending, Converter={StaticResource BoolToVisibilityConverter}}" />
                                         <TextBlock Text="{Binding Tool.MemoryMb, StringFormat={}{0:F0} MB}"
-                                                   VerticalAlignment="Center" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text2Brush}"
+                                                   VerticalAlignment="Center" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource TextSecondaryBrush}"
                                                    Visibility="{Binding IsPending, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
                                     </Grid>
                                 </DataTemplate>
@@ -143,7 +143,7 @@
                                         <Border Style="{StaticResource SkeletonBarStyle}" Width="56" Height="11" HorizontalAlignment="Left"
                                                 Visibility="{Binding IsPending, Converter={StaticResource BoolToVisibilityConverter}}" />
                                         <TextBlock Text="{Binding Tool.LastStarted, Converter={StaticResource LastStartedToDisplay}}"
-                                                   VerticalAlignment="Center" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text2Brush}"
+                                                   VerticalAlignment="Center" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource TextSecondaryBrush}"
                                                    FontSize="{StaticResource FontSizeSm}"
                                                    Visibility="{Binding IsPending, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
                                     </Grid>
@@ -198,7 +198,7 @@
                             <!-- 展開列：摘要／設定 兩個 tab -->
                             <Border Style="{StaticResource TableRowDetailsBorderStyle}">
                                 <StackPanel DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=DataGrid}}">
-                                    <Border BorderBrush="{DynamicResource BorderBrush2}" BorderThickness="0,0,0,1" Margin="0,0,0,8">
+                                    <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="0,0,0,1" Margin="0,0,0,8">
                                         <StackPanel Orientation="Horizontal">
                                             <Button Content="摘要"
                                                     Command="{Binding ApplySelectTabCommand}" CommandParameter="summary">
@@ -239,9 +239,9 @@
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
                                         </Grid.RowDefinitions>
-                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="開發者" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text2Brush}" Margin="0,0,0,8" />
+                                        <TextBlock Grid.Row="0" Grid.Column="0" Text="開發者" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,8" />
                                         <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ExpandedTool.Developer, Mode=OneWay}" Style="{StaticResource BaseTextStyle}" Margin="0,0,0,8" />
-                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="描述" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource Text2Brush}" />
+                                        <TextBlock Grid.Row="1" Grid.Column="0" Text="描述" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource TextSecondaryBrush}" />
                                         <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ExpandedTool.Description}" Style="{StaticResource BaseTextStyle}" TextWrapping="Wrap" />
                                     </Grid>
 
@@ -257,7 +257,7 @@
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel Orientation="Horizontal">
                                                     <components:IconGlyph IconData="{StaticResource IconLockGeometry}" Width="12" Height="12" Margin="0,0,6,0"
-                                                                           Foreground="{DynamicResource Text3Brush}"
+                                                                           Foreground="{DynamicResource TextMutedBrush}"
                                                                            Visibility="{Binding ExpandedTool.IsAutoStartLocked, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
                                                     <TextBlock Text="開機自動啟動" VerticalAlignment="Center" Style="{StaticResource BaseTextStyle}"
                                                                Opacity="{Binding ExpandedTool.IsAutoStartLocked, Converter={StaticResource LockedToOpacityConverter}}" />
@@ -276,7 +276,7 @@
                                                 </Grid.ColumnDefinitions>
                                                 <StackPanel Orientation="Horizontal">
                                                     <components:IconGlyph IconData="{StaticResource IconLockGeometry}" Width="12" Height="12" Margin="0,0,6,0"
-                                                                           Foreground="{DynamicResource Text3Brush}"
+                                                                           Foreground="{DynamicResource TextMutedBrush}"
                                                                            Visibility="{Binding ExpandedTool.IsAutoRepairLocked, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}" />
                                                     <TextBlock Text="自動修復（偵測到服務錯誤時嘗試自動重啟）" VerticalAlignment="Center" TextWrapping="Wrap" Style="{StaticResource BaseTextStyle}"
                                                                Opacity="{Binding ExpandedTool.IsAutoRepairLocked, Converter={StaticResource LockedToOpacityConverter}}" />
@@ -305,7 +305,7 @@
         <!-- 解鎖 Modal -->
         <Grid x:Name="UnlockModalOverlay" Grid.Row="0" Grid.RowSpan="3" IsVisibleChanged="OnUnlockModalVisibleChanged"
               Visibility="{Binding UnlockPopupOpen, Converter={StaticResource BoolToVisibilityConverter}}">
-            <Border Background="#4D000000">
+            <Border Background="{DynamicResource OverlayScrimBrush}">
                 <Border.InputBindings>
                     <MouseBinding MouseAction="LeftClick" Command="{Binding ApplyCloseUnlockPopupCommand}" />
                 </Border.InputBindings>
@@ -314,22 +314,22 @@
                     HorizontalAlignment="Center" VerticalAlignment="Center">
                 <StackPanel Margin="18,16,18,18">
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                        <components:IconGlyph IconData="{StaticResource IconLockGeometry}" Width="15" Height="15" Margin="0,0,8,0" Foreground="{DynamicResource Text1Brush}" />
-                        <TextBlock Text="輸入模組金鑰" Style="{StaticResource BaseTextStyle}" FontSize="{StaticResource FontSizeLg}" FontWeight="Bold" />
+                        <components:IconGlyph IconData="{StaticResource IconLockGeometry}" Width="15" Height="15" Margin="0,0,8,0" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="輸入模組金鑰" Style="{StaticResource BaseTextStyle}" FontSize="{StaticResource FontSizeLg}" FontWeight="{DynamicResource FontWeightStrong}" />
                     </StackPanel>
                     <TextBlock Style="{StaticResource BaseTextStyle}" FontSize="{StaticResource FontSizeSm}"
-                               Foreground="{DynamicResource Text2Brush}" TextWrapping="Wrap" Margin="0,4,0,12">
-                        <Run Text="「" /><Run Text="{Binding ExpandedTool.Name, Mode=OneWay}" FontWeight="Bold" /><Run Text="」有鎖定的設定欄位，輸入模組金鑰解鎖，解鎖後 3 分鐘內可修改，逾時自動重新鎖定。" />
+                               Foreground="{DynamicResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,4,0,12">
+                        <Run Text="「" /><Run Text="{Binding ExpandedTool.Name, Mode=OneWay}" FontWeight="{DynamicResource FontWeightStrong}" /><Run Text="」有鎖定的設定欄位，輸入模組金鑰解鎖，解鎖後 3 分鐘內可修改，逾時自動重新鎖定。" />
                     </TextBlock>
                     <!-- 模組金鑰輸入框（浮水印提示） -->
                     <Grid>
                         <TextBlock x:Name="ModuleKeyPlaceholder" Text="模組金鑰" Margin="8,0" VerticalAlignment="Center"
-                                   IsHitTestVisible="False" Foreground="{DynamicResource Text3Brush}"
-                                   FontFamily="{StaticResource AppFontFamily}" FontSize="{StaticResource FontSizeBase}" />
+                                   IsHitTestVisible="False" Foreground="{DynamicResource TextMutedBrush}"
+                                   FontFamily="{DynamicResource AppFontFamily}" FontSize="{StaticResource FontSizeBase}" />
                         <PasswordBox x:Name="ModuleKeyPasswordBox" Style="{StaticResource AppPasswordBoxStyle}"
                                      PasswordChanged="OnModuleKeyPasswordChanged" />
                     </Grid>
-                    <TextBlock Text="{Binding UnlockError}" Style="{StaticResource BaseTextStyle}" FontWeight="SemiBold"
+                    <TextBlock Text="{Binding UnlockError}" Style="{StaticResource BaseTextStyle}" FontWeight="{DynamicResource FontWeightMedium}"
                                Foreground="{DynamicResource StatusErrorTextBrush}" Margin="0,6,0,0" TextWrapping="Wrap"
                                Visibility="{Binding UnlockError, Converter={StaticResource NullToVisibilityConverter}, FallbackValue=Collapsed}" />
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
