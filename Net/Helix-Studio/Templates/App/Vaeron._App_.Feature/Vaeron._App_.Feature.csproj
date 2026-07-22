@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 上層：功能單元。公開表面＝Facade＋資料形狀,其餘置於 Internal。 -->
+  <!-- 有畫面時：取消下列註解 -->
+  <PropertyGroup>
+    <!-- <TargetFramework>net9.0-windows</TargetFramework> -->
+    <!-- <UseWPF>true</UseWPF> -->
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\Vaeron.Kernel\Vaeron.Kernel.csproj" />
+    <ProjectReference Include="..\..\..\Shared\Vaeron.Capability.Sample\Vaeron.Capability.Sample.csproj" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+</Project>

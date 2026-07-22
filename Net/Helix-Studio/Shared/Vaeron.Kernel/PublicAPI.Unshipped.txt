@@ -1,0 +1,12 @@
+﻿#nullable enable
+Vaeron.Kernel.Guarding.Guard
+static Vaeron.Kernel.Guarding.Guard.Run(System.Action! work, System.Action<System.Exception!>! onFailure) -> void
+static Vaeron.Kernel.Guarding.Guard.RunAsync(System.Func<System.Threading.Tasks.Task!>! work, System.Action<System.Exception!>! onFailure) -> System.Threading.Tasks.Task!
+static Vaeron.Kernel.Guarding.Guard.RunAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task!>! work, System.Action<System.Exception!>! onFailure, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Vaeron.Kernel.Secrets.SecretBuffer
+Vaeron.Kernel.Secrets.SecretBuffer.SecretBuffer(byte[]! bytes) -> void
+Vaeron.Kernel.Secrets.SecretBuffer.Length.get -> int
+Vaeron.Kernel.Secrets.SecretBuffer.Use(System.Action<System.ReadOnlySpan<byte>>! reader) -> void
+Vaeron.Kernel.Secrets.SecretBuffer.Use<TResult>(Vaeron.Kernel.Secrets.SpanReader<TResult>! reader) -> TResult
+Vaeron.Kernel.Secrets.SecretBuffer.Dispose() -> void
+Vaeron.Kernel.Secrets.SpanReader<TResult>
