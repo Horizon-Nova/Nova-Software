@@ -254,10 +254,3 @@ secrets.json
 local.settings.json
 appsettings.json
 appsettings.Production.json
-
-### Skill ###
-.agents/
-AGENTS.md
-docs/
-.artifacts/
-.claude

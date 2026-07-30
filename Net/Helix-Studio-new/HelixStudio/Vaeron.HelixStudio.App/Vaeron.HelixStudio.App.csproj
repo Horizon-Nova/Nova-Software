@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 根：不被任何組件引用,產出可執行檔。RootNamespace 保留舊碼慣用的 Vaeron.HelixStudio（不含 .App 後綴），
+       避免殼層／主題資源大量檔案的命名空間隨專案改名而牽動——S001/S003 等結構檢查看的是 MSBuildProjectName
+       （組件名），不看 C# namespace 關鍵字內容，兩者可以不同。 -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>Vaeron.HelixStudio</RootNamespace>
+    <AssemblyName>Helix-Studio</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shared\Vaeron.Kernel\Vaeron.Kernel.csproj" />
+    <ProjectReference Include="..\..\Shared\Vaeron.Kernel.Windows\Vaeron.Kernel.Windows.csproj" />
+    <ProjectReference Include="..\Vaeron.HelixStudio.Internal.Runtime\Vaeron.HelixStudio.Internal.Runtime.csproj" />
+    <ProjectReference Include="..\Vaeron.HelixStudio.WorkspaceManagement\Vaeron.HelixStudio.WorkspaceManagement.csproj" />
+    <ProjectReference Include="..\Vaeron.HelixStudio.EventLog\Vaeron.HelixStudio.EventLog.csproj" />
+    <ProjectReference Include="..\Vaeron.HelixStudio.AppsManagement\Vaeron.HelixStudio.AppsManagement.csproj" />
+    <ProjectReference Include="..\Vaeron.HelixStudio.AppLibrary\Vaeron.HelixStudio.AppLibrary.csproj" />
+    <ProjectReference Include="..\Vaeron.HelixStudio.UsbVoltageControl\Vaeron.HelixStudio.UsbVoltageControl.csproj" />
+    <ProjectReference Include="..\Vaeron.HelixStudio.RemoteBatchTransfer\Vaeron.HelixStudio.RemoteBatchTransfer.csproj" />
+    <ProjectReference Include="..\Vaeron.HelixStudio.Settings\Vaeron.HelixStudio.Settings.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+
+  <!-- 內建推薦工具目錄：複製到輸出根目錄供 AppLibrary 的 BuiltInCatalogStore 讀取
+       （AppContext.BaseDirectory/Catalog，沿用舊版慣例，見 Catalog）。 -->
+  <ItemGroup>
+    <Content Include="Catalog\**\*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+</Project>

@@ -35,6 +35,14 @@ public sealed class SettingsRepository(IDbContextFactory<SettingsDbContext> dbFa
             existing.start_with_windows = data.start_with_windows;
             existing.startup_page = data.startup_page;
             existing.show_event_badge = data.show_event_badge;
+            existing.power_mode = data.power_mode;
+            existing.ac_sleep_minutes = data.ac_sleep_minutes;
+            existing.battery_sleep_minutes = data.battery_sleep_minutes;
+            existing.screen_timeout_minutes = data.screen_timeout_minutes;
+            existing.hibernate_enabled = data.hibernate_enabled;
+            existing.fast_startup_enabled = data.fast_startup_enabled;
+            existing.power_button_action = data.power_button_action;
+            existing.lid_close_action = data.lid_close_action;
         }
         await db.SaveChangesAsync();
     }

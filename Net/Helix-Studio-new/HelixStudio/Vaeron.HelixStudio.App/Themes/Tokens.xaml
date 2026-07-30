@@ -1,0 +1,90 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- 預設樣式庫：全部視覺樣式的唯一來源，也是主題包的鍵契約 -->
+
+    <sys:String x:Key="ThemeName">預設</sys:String>
+
+    <!-- 背景媒體：素材與呈現方式都歸主題包。BackgroundMedia 刻意不在此宣告——
+         鍵不存在即代表沒有背景媒體，空字串在 XAML 無法建構 -->
+    <Stretch x:Key="BackgroundStretch">UniformToFill</Stretch>
+    <HorizontalAlignment x:Key="BackgroundHorizontalAlignment">Center</HorizontalAlignment>
+    <VerticalAlignment x:Key="BackgroundVerticalAlignment">Center</VerticalAlignment>
+    <sys:Double x:Key="BackgroundOpacity">1.0</sys:Double>
+
+    <!-- ── 文字：字型 ── -->
+    <FontFamily x:Key="AppFontFamily">Noto Sans TC, PingFang TC, Microsoft JhengHei UI, Segoe UI</FontFamily>
+    <FontFamily x:Key="MonoFontFamily">Consolas, Cascadia Mono, Courier New</FontFamily>
+
+    <!-- ── 文字：字級 ── -->
+    <sys:Double x:Key="FontSizeH1">15</sys:Double>
+    <sys:Double x:Key="FontSizeXl">12.5</sys:Double>
+    <sys:Double x:Key="FontSizeLg">12</sys:Double>
+    <sys:Double x:Key="FontSizeMd">11</sys:Double>
+    <sys:Double x:Key="FontSizeBase">10.5</sys:Double>
+    <sys:Double x:Key="FontSizeBody">10</sys:Double>
+    <sys:Double x:Key="FontSizeSm">9.5</sys:Double>
+    <sys:Double x:Key="FontSizeXs">9</sys:Double>
+    <sys:Double x:Key="FontSize2Xs">8.5</sys:Double>
+
+    <!-- ── 文字：字重 ── -->
+    <FontWeight x:Key="FontWeightStrong">Bold</FontWeight>
+    <FontWeight x:Key="FontWeightMedium">SemiBold</FontWeight>
+
+    <!-- ── 控制項高度 ── -->
+    <sys:Double x:Key="ControlHeightSm">24</sys:Double>
+    <sys:Double x:Key="ControlHeightMd">27</sys:Double>
+
+    <!-- ── 底層顏色：背景與邊框 ── -->
+    <SolidColorBrush x:Key="BgPageBrush" Color="#FFFBFCFD" />
+    <SolidColorBrush x:Key="BgSurfaceBrush" Color="#FFFCFEFF" />
+    <SolidColorBrush x:Key="BgSidebarBrush" Color="#FFF1F4F6" />
+    <SolidColorBrush x:Key="BgHoverBrush" Color="#FFE4E8EB" />
+    <SolidColorBrush x:Key="BorderDefaultBrush" Color="#FFD4D8DB" />
+    <SolidColorBrush x:Key="BorderSubtleBrush" Color="#FFE2E5E8" />
+
+    <!-- ── 底層顏色：文字 ── -->
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FF171B1F" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#FF595E63" />
+    <SolidColorBrush x:Key="TextMutedBrush" Color="#FF82878B" />
+
+    <!-- ── 強調色：主按鈕、狀態列、選取態、焦點框 ── -->
+    <SolidColorBrush x:Key="AccentSolidBrush" Color="#FF047CA6" />
+    <SolidColorBrush x:Key="AccentSolidHoverBrush" Color="#FF006790" />
+    <SolidColorBrush x:Key="AccentOnSolidBrush" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="AccentTextBrush" Color="#FF00395B" />
+    <SolidColorBrush x:Key="AccentTintBrush" Color="#FFC0ECFF" />
+    <SolidColorBrush x:Key="AccentBorderBrush" Color="#FF428AAB" />
+    <SolidColorBrush x:Key="AccentLabelBrush" Color="#FF076C91" />
+
+    <!-- ── 狀態色：成功／警告／錯誤 ── -->
+    <SolidColorBrush x:Key="StatusSuccessBgBrush" Color="#FFD8F0E2" />
+    <SolidColorBrush x:Key="StatusSuccessSolidBrush" Color="#FF2E9E6B" />
+    <SolidColorBrush x:Key="StatusWarningBgBrush" Color="#FFFAE1B8" />
+    <SolidColorBrush x:Key="StatusWarningTextBrush" Color="#FF7B4D00" />
+    <SolidColorBrush x:Key="StatusErrorTextBrush" Color="#FFAC3225" />
+
+    <SolidColorBrush x:Key="SeverityErrorSolidBrush" Color="#FFDD503F" />
+    <SolidColorBrush x:Key="SeverityWarningSolidBrush" Color="#FFE1A035" />
+    <SolidColorBrush x:Key="SuccessTextBrush" Color="#FF007840" />
+    <SolidColorBrush x:Key="NotifyDotBrush" Color="#FFB71824" />
+
+    <!-- ── 破壞性動作 ── -->
+    <SolidColorBrush x:Key="DangerBorderBrush" Color="#FFFFB5A7" />
+
+    <!-- ── 骨架屏 ── -->
+    <SolidColorBrush x:Key="SkeletonBrush" Color="#FFDBDFE2" />
+    <SolidColorBrush x:Key="SkeletonOnAccentBrush" Color="#4DFFFFFF" />
+
+    <!-- ── 終端機／輸出區 ── -->
+    <SolidColorBrush x:Key="TerminalBgBrush" Color="#FF0B0E10" />
+    <SolidColorBrush x:Key="TerminalTextBrush" Color="#FFCBCFCC" />
+
+    <!-- ── 其他 ── -->
+    <!-- 對話框背後的遮罩層 -->
+    <SolidColorBrush x:Key="OverlayScrimBrush" Color="#4D000000" />
+    <!-- 程式碼區塊底色（說明文件檢視） -->
+    <SolidColorBrush x:Key="CodeBlockBgBrush" Color="#FFF5F5F5" />
+
+</ResourceDictionary>

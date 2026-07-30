@@ -1,0 +1,9 @@
+{
+  "Id": "barcode-scanner",
+  "Name": "條碼掃描服務",
+  "CategoryId": "monitoring",
+  "Description": "即時讀取產線條碼並回報至主控台。",
+  "Version": "2.3.1",
+  "Developer": "官方",
+  "Requirements": "Windows 10 以上／條碼掃描裝置"
+}

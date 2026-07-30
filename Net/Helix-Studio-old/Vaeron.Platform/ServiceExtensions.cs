@@ -16,6 +16,7 @@ public static class PlatformModule
         services.AddSingleton<NavigationRuntime>();
         services.AddSingleton<ConfirmationRuntime>();
         services.AddSingleton<NotificationRuntime>();
+        services.AddSingleton<PowerMenuRuntime>();
 
         return services;
     }

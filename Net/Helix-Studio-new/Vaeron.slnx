@@ -1,0 +1,23 @@
+<Solution>
+  <Folder Name="/Build/">
+    <Project Path="Build/Analyzers/Vaeron.Analyzers.csproj" />
+    <Project Path="Build/Analyzers.Tests/Vaeron.Analyzers.Tests.csproj" />
+    <Project Path="Build/Generators/Vaeron.Generators.csproj" />
+  </Folder>
+  <Folder Name="/Shared/">
+    <Project Path="Shared/Vaeron.Kernel/Vaeron.Kernel.csproj" />
+    <Project Path="Shared/Vaeron.Kernel.Windows/Vaeron.Kernel.Windows.csproj" />
+    <Project Path="Shared/Vaeron.Capability.Sample/Vaeron.Capability.Sample.csproj" />
+  </Folder>
+  <Folder Name="/HelixStudio/">
+    <Project Path="HelixStudio/Vaeron.HelixStudio.Internal.Runtime/Vaeron.HelixStudio.Internal.Runtime.csproj" />
+    <Project Path="HelixStudio/Vaeron.HelixStudio.WorkspaceManagement/Vaeron.HelixStudio.WorkspaceManagement.csproj" />
+    <Project Path="HelixStudio/Vaeron.HelixStudio.EventLog/Vaeron.HelixStudio.EventLog.csproj" />
+    <Project Path="HelixStudio/Vaeron.HelixStudio.AppsManagement/Vaeron.HelixStudio.AppsManagement.csproj" />
+    <Project Path="HelixStudio/Vaeron.HelixStudio.AppLibrary/Vaeron.HelixStudio.AppLibrary.csproj" />
+    <Project Path="HelixStudio/Vaeron.HelixStudio.UsbVoltageControl/Vaeron.HelixStudio.UsbVoltageControl.csproj" />
+    <Project Path="HelixStudio/Vaeron.HelixStudio.RemoteBatchTransfer/Vaeron.HelixStudio.RemoteBatchTransfer.csproj" />
+    <Project Path="HelixStudio/Vaeron.HelixStudio.Settings/Vaeron.HelixStudio.Settings.csproj" />
+    <Project Path="HelixStudio/Vaeron.HelixStudio.App/Vaeron.HelixStudio.App.csproj" />
+  </Folder>
+</Solution>

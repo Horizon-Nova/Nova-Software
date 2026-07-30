@@ -93,6 +93,9 @@ public partial class MainWindow : Window
         _themePacks.ThemeApplied -= ApplyBackgroundMedia;
         _backgroundLoop?.Stop(this);
         vm.ApplyShellUnloaded();
+
+        if (_lidNotificationHandle != IntPtr.Zero)
+            UnregisterPowerSettingNotification(_lidNotificationHandle);
     }
 
     /// <summary>側邊欄拖曳調整寬度</summary>
@@ -123,12 +126,15 @@ public partial class MainWindow : Window
         DragMove();
     }
 
-    /// <summary>掛視窗訊息鉤子、套用圓角</summary>
+    /// <summary>掛視窗訊息鉤子、套用圓角、註冊闔螢幕事件通知</summary>
     private void OnSourceInitialized(object? sender, EventArgs e)
     {
         var handle = new WindowInteropHelper(this).Handle;
         HwndSource.FromHwnd(handle)?.AddHook(WindowProc);
         ApplyRoundedCorners(handle);
+
+        var lidGuid = GuidLidSwitchStateChange;
+        _lidNotificationHandle = RegisterPowerSettingNotification(handle, ref lidGuid, DEVICE_NOTIFY_WINDOW_HANDLE);
     }
 
     /// <summary>套用 Windows 11 原生圓角</summary>
@@ -150,9 +156,56 @@ public partial class MainWindow : Window
         {
             ApplyWorkAreaToMinMaxInfo(hwnd, lParam);
             handled = true;
+            return IntPtr.Zero;
+        }
+
+        const int WM_POWERBROADCAST = 0x0218;
+        const int PBT_POWERSETTINGCHANGE = 0x8013;
+        if (msg == WM_POWERBROADCAST && wParam.ToInt32() == PBT_POWERSETTINGCHANGE)
+        {
+            HandlePowerSettingChange(lParam);
+            handled = true;
         }
         return IntPtr.Zero;
     }
+
+    /// <summary>闔螢幕偵測：只在 LidCloseAction＝「顯示關閉選單」時才跳選單，其餘值 Windows 或已經處理過
+    /// （睡眠/休眠/關機/不執行動作已由 powercfg LIDACTION 設定生效）或本來就不用 App 介入，
+    /// 查證與判準見 auto memory 的 power-button-lid-action-feasibility 記錄。</summary>
+    private void HandlePowerSettingChange(IntPtr lParam)
+    {
+        var setting = Marshal.PtrToStructure<POWERBROADCAST_SETTING>(lParam);
+        if (setting.PowerSetting != GuidLidSwitchStateChange) return;
+        if (setting.DataLength < 4) return;
+
+        var lidOpen = Marshal.ReadInt32(lParam, Marshal.SizeOf<Guid>() + sizeof(uint));
+        if (lidOpen != 0) return; // 0=閉合, 1=開啟，只在閉合時處理
+
+        var vm = (MainShellViewModel)DataContext;
+        if (vm.LidCloseAction != "顯示關閉選單") return;
+
+        vm.ApplyLidClosedShowMenu();
+    }
+
+    private IntPtr _lidNotificationHandle;
+
+    private static readonly Guid GuidLidSwitchStateChange = new("BA3E0F4D-B817-4094-A2D1-D56379E6A0F3");
+
+    private const int DEVICE_NOTIFY_WINDOW_HANDLE = 0;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct POWERBROADCAST_SETTING
+    {
+        public Guid PowerSetting;
+        public uint DataLength;
+        public byte Data;
+    }
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr RegisterPowerSettingNotification(IntPtr hRecipient, ref Guid PowerSettingGuid, int Flags);
+
+    [DllImport("user32.dll")]
+    private static extern bool UnregisterPowerSettingNotification(IntPtr handle);
 
     /// <summary>依工作區覆寫最大化座標與最小尺寸</summary>
     private void ApplyWorkAreaToMinMaxInfo(IntPtr hwnd, IntPtr lParam)

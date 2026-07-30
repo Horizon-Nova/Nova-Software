@@ -1,0 +1,9 @@
+{
+  "Id": "line-monitor",
+  "Name": "產線監控代理",
+  "CategoryId": "monitoring",
+  "Description": "監看產線設備運作狀態與異常警示。",
+  "Version": "1.8.0",
+  "Developer": "官方",
+  "Requirements": "Windows 10 以上"
+}

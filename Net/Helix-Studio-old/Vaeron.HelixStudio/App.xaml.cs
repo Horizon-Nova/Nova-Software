@@ -65,9 +65,18 @@ public partial class App : Application
         var settingsFacade = _host.Services.GetRequiredService<SettingsFacade>();
         await ApplySavedThemeAsync();
         await settingsFacade.ApplyReconcileStartupRegistrationAsync();
+        await settingsFacade.ApplyReconcilePowerSettingsAsync();
 
         var eventLogFacade = _host.Services.GetRequiredService<Features.EventLog.EventLogFacade>();
         await eventLogFacade.ApplyRetentionPolicyAsync();
+
+        var powerMenu = _host.Services.GetRequiredService<Vaeron.Platform.AppRuntime.PowerMenuRuntime>();
+        powerMenu.PowerMenuRequested += () =>
+        {
+            var dialog = new PowerMenuWindow();
+            dialog.ShowDialog();
+            return Task.FromResult(dialog.SelectedAction);
+        };
 
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
@@ -86,6 +95,14 @@ public partial class App : Application
         await EnsureCreatedAsync(services.GetRequiredService<IDbContextFactory<SettingsDbContext>>());
         await EnsureColumnExistsAsync(services.GetRequiredService<IDbContextFactory<SettingsDbContext>>(), "app_settings_rows", "theme_pack", "TEXT", ThemePack.DefaultId);
         await EnsureColumnExistsAsync(services.GetRequiredService<IDbContextFactory<SettingsDbContext>>(), "app_settings_rows", "background_animation", "INTEGER", "1");
+        await EnsureColumnExistsAsync(services.GetRequiredService<IDbContextFactory<SettingsDbContext>>(), "app_settings_rows", "power_mode", "TEXT", "平衡");
+        await EnsureColumnExistsAsync(services.GetRequiredService<IDbContextFactory<SettingsDbContext>>(), "app_settings_rows", "ac_sleep_minutes", "INTEGER", "30");
+        await EnsureColumnExistsAsync(services.GetRequiredService<IDbContextFactory<SettingsDbContext>>(), "app_settings_rows", "battery_sleep_minutes", "INTEGER", "15");
+        await EnsureColumnExistsAsync(services.GetRequiredService<IDbContextFactory<SettingsDbContext>>(), "app_settings_rows", "screen_timeout_minutes", "INTEGER", "10");
+        await EnsureColumnExistsAsync(services.GetRequiredService<IDbContextFactory<SettingsDbContext>>(), "app_settings_rows", "hibernate_enabled", "INTEGER", "1");
+        await EnsureColumnExistsAsync(services.GetRequiredService<IDbContextFactory<SettingsDbContext>>(), "app_settings_rows", "fast_startup_enabled", "INTEGER", "1");
+        await EnsureColumnExistsAsync(services.GetRequiredService<IDbContextFactory<SettingsDbContext>>(), "app_settings_rows", "power_button_action", "TEXT", "睡眠");
+        await EnsureColumnExistsAsync(services.GetRequiredService<IDbContextFactory<SettingsDbContext>>(), "app_settings_rows", "lid_close_action", "TEXT", "睡眠");
         await EnsureCreatedAsync(services.GetRequiredService<IDbContextFactory<UsbVoltageControlDbContext>>());
         await EnsureCreatedAsync(services.GetRequiredService<IDbContextFactory<RemoteBatchTransferDbContext>>());
     }

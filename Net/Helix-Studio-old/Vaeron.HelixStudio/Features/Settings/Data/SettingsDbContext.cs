@@ -19,4 +19,12 @@ public sealed class app_settings
     public bool start_with_windows { get; set; }
     public string startup_page { get; set; } = "apps";
     public bool show_event_badge { get; set; } = true;
+    public string power_mode { get; set; } = "平衡";
+    public int ac_sleep_minutes { get; set; } = 30;
+    public int battery_sleep_minutes { get; set; } = 15;
+    public int screen_timeout_minutes { get; set; } = 10;
+    public bool hibernate_enabled { get; set; } = true;
+    public bool fast_startup_enabled { get; set; } = true;
+    public string power_button_action { get; set; } = "睡眠";
+    public string lid_close_action { get; set; } = "睡眠";
 }

@@ -1,0 +1,10 @@
+{
+  "Id": "usb-anti-sleep",
+  "Name": "USB 防休眠控制",
+  "CategoryId": "maintenance",
+  "Description": "避免連接的 USB 裝置在閒置時進入休眠。",
+  "Version": "1.4.0",
+
+  "Developer": "官方",
+  "Requirements": "Windows 10 以上／USB 2.0 以上控制器"
+}

@@ -1,8 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <!-- 中間：引用葉,被上層引用。公開表面＝契約＋設定＋資料形狀,實作置於 Internal。 -->
-  <ItemGroup>
-    <ProjectReference Include="..\Vaeron.Kernel\Vaeron.Kernel.csproj" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
-    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
-  </ItemGroup>
-</Project>

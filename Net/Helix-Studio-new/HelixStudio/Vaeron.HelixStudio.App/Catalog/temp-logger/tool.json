@@ -1,0 +1,9 @@
+{
+  "Id": "temp-logger",
+  "Name": "溫度紀錄器",
+  "CategoryId": "monitoring",
+  "Description": "每分鐘記錄產線環境溫度並繪製趨勢圖。",
+  "Version": "1.1.0",
+  "Developer": "官方",
+  "Requirements": "Windows 10 以上／溫度感測裝置"
+}

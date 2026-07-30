@@ -455,13 +455,13 @@
                     </StackPanel>
                 </Border>
 
-                <!-- 電源（僅供展示） -->
+                <!-- 電源 -->
                 <Border x:Name="Section_power" Visibility="{Binding IsPowerCategoryVisible, Converter={StaticResource BoolToVisibilityConverter}}">
                     <StackPanel>
                         <TextBlock Text="電源" Style="{StaticResource CategorySectionHeaderStyle}" Margin="0,16,0,0" />
                         <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                            <Border Style="{StaticResource InlineBadgeStyle}" Margin="0"><TextBlock Text="僅供展示" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource TextMutedBrush}" /></Border>
-                            <TextBlock Text="此原型版本尚未連接系統電源功能，以下設定不會實際生效" Style="{StaticResource SettingRowSubtitleStyle}" Margin="6,0,0,0" />
+                            <Border Style="{StaticResource InlineBadgeWarningStyle}" Margin="0"><TextBlock Text="全域" FontSize="{StaticResource FontSizeXs}" Foreground="{DynamicResource StatusWarningTextBrush}" /></Border>
+                            <TextBlock Text="以下設定會直接變更本機 Windows 電源設定，套用到整台電腦，不限本軟體視窗；休眠與快速啟動需要系統管理員權限才能生效" Style="{StaticResource SettingRowSubtitleStyle}" Margin="6,0,0,0" />
                         </StackPanel>
 
                         <Grid Margin="0,16,0,0">

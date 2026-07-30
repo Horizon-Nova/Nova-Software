@@ -17,4 +17,12 @@ public sealed class SettingsFacade(SettingsDomain domain)
         => domain.UpdateSidebarCollapsedDefaultAsync(collapsed);
 
     public Task ApplyReconcileStartupRegistrationAsync() => domain.ReconcileStartupRegistrationAsync();
+
+    public Task ApplyReconcilePowerSettingsAsync() => domain.ReconcilePowerSettingsAsync();
+
+    public Task<(bool success, string message)> ApplyExecuteSleepNowAsync() => domain.ExecuteSleepNowAsync();
+
+    public Task<(bool success, string message)> ApplyExecuteHibernateNowAsync() => domain.ExecuteHibernateNowAsync();
+
+    public Task<(bool success, string message)> ApplyExecuteShutdownNowAsync() => domain.ExecuteShutdownNowAsync();
 }

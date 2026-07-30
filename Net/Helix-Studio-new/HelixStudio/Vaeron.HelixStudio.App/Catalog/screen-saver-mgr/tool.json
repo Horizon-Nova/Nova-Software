@@ -1,0 +1,9 @@
+{
+  "Id": "screen-saver-mgr",
+  "Name": "螢幕保護程式管理",
+  "CategoryId": "maintenance",
+  "Description": "控制工作站螢幕保護程式的啟用時機。",
+  "Version": "1.0.2",
+  "Developer": "官方",
+  "Requirements": "Windows 10 以上"
+}

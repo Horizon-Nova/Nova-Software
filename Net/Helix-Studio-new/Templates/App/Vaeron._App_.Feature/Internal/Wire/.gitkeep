@@ -1,0 +1,4 @@
+外部系統(API、協定、第三方回傳)的原始格式放這裡。
+internal、通常可變(反序列化器需要 set)、無行為。
+形狀跟著別人的系統變——變化源完全不可控,故與 Models 分開存放。
+一律在 Service 投影成對外契約,解析失敗即 InfrastructureError,不外洩給呼叫方 parse。

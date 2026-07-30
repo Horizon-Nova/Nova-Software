@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 依賴 WorkspaceManagement／EventLog（承載其 CRUD／日誌設定畫面）、AppsManagement（刪除工作區時的
+       級聯清理，orchestration 放在本 Feature 因為 UI 觸發點在這裡，見 SettingsViewModel 的說明）。有畫面。 -->
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shared\Vaeron.Kernel\Vaeron.Kernel.csproj" />
+    <ProjectReference Include="..\Vaeron.HelixStudio.Internal.Runtime\Vaeron.HelixStudio.Internal.Runtime.csproj" />
+    <ProjectReference Include="..\Vaeron.HelixStudio.WorkspaceManagement\Vaeron.HelixStudio.WorkspaceManagement.csproj" />
+    <ProjectReference Include="..\Vaeron.HelixStudio.EventLog\Vaeron.HelixStudio.EventLog.csproj" />
+    <ProjectReference Include="..\Vaeron.HelixStudio.AppsManagement\Vaeron.HelixStudio.AppsManagement.csproj" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+</Project>

@@ -103,9 +103,7 @@ public sealed partial class SettingsViewModel(
     [ObservableProperty] private WorkspaceSnapshot? _deleteTarget;
     [ObservableProperty] private string _deleteConfirmText = "";
 
-    // 僅供展示欄位，不落地
-    [ObservableProperty] private string _language = "zh-TW";
-    [ObservableProperty] private int _idleLockMinutes;
+    // 電源 8 欄位：立即持久化並套用到系統（見藍圖_設定.md），初值僅為載入快照前的短暫預設，載入後會被覆蓋
     [ObservableProperty] private string _powerMode = "平衡";
     [ObservableProperty] private int _acSleepMinutes = 30;
     [ObservableProperty] private int _batterySleepMinutes = 15;
@@ -114,6 +112,10 @@ public sealed partial class SettingsViewModel(
     [ObservableProperty] private bool _fastStartupEnabled = true;
     [ObservableProperty] private string _powerButtonAction = "睡眠";
     [ObservableProperty] private string _lidCloseAction = "睡眠";
+
+    // 僅供展示欄位，不落地
+    [ObservableProperty] private string _language = "zh-TW";
+    [ObservableProperty] private int _idleLockMinutes;
     [ObservableProperty] private string _encoding = "UTF-8";
     [ObservableProperty] private string _timeZone = "UTC+08:00（台北／香港／新加坡）";
     [ObservableProperty] private string _exportPathDisplay = ExportPathPlaceholder;
@@ -221,6 +223,14 @@ public sealed partial class SettingsViewModel(
             StartupPage = settings.StartupPage;
             StartWithWindows = settings.StartWithWindows;
             ShowEventBadge = settings.ShowEventBadge;
+            PowerMode = settings.PowerMode;
+            AcSleepMinutes = settings.AcSleepMinutes;
+            BatterySleepMinutes = settings.BatterySleepMinutes;
+            ScreenTimeoutMinutes = settings.ScreenTimeoutMinutes;
+            HibernateEnabled = settings.HibernateEnabled;
+            FastStartupEnabled = settings.FastStartupEnabled;
+            PowerButtonAction = settings.PowerButtonAction;
+            LidCloseAction = settings.LidCloseAction;
             MinLogLevel = logSettings.MinLevel;
             RetentionDays = logSettings.RetentionDays;
             _exportPath = logSettings.ExportPath;
@@ -297,10 +307,61 @@ public sealed partial class SettingsViewModel(
 
     #endregion
 
-    #region 電源（僅供展示）
+    #region 電源
 
     [RelayCommand]
     private void ApplySelectPowerMode(string mode) => PowerMode = mode;
+
+    partial void OnPowerModeChanged(string value) { if (!_isApplyingSnapshot) RunSafe(ApplyPowerModeAsync); }
+    partial void OnAcSleepMinutesChanged(int value) { if (!_isApplyingSnapshot) RunSafe(ApplySleepTimeoutsAsync); }
+    partial void OnBatterySleepMinutesChanged(int value) { if (!_isApplyingSnapshot) RunSafe(ApplySleepTimeoutsAsync); }
+    partial void OnScreenTimeoutMinutesChanged(int value) { if (!_isApplyingSnapshot) RunSafe(ApplyScreenTimeoutAsync); }
+    partial void OnHibernateEnabledChanged(bool value) { if (!_isApplyingSnapshot) RunSafe(ApplyHibernateAsync); }
+    partial void OnFastStartupEnabledChanged(bool value) { if (!_isApplyingSnapshot) RunSafe(ApplyFastStartupAsync); }
+    partial void OnPowerButtonActionChanged(string value) { if (!_isApplyingSnapshot) RunSafe(ApplyPowerButtonActionAsync); }
+    partial void OnLidCloseActionChanged(string value) { if (!_isApplyingSnapshot) RunSafe(ApplyLidCloseActionAsync); }
+
+    private async Task ApplyPowerModeAsync()
+    {
+        var (success, message) = await domain.ApplyPowerModeAsync(PowerMode);
+        notificationRuntime.ApplyShowResult(success, message);
+    }
+
+    private async Task ApplySleepTimeoutsAsync()
+    {
+        var (success, message) = await domain.ApplySleepTimeoutsAsync(AcSleepMinutes, BatterySleepMinutes);
+        notificationRuntime.ApplyShowResult(success, message);
+    }
+
+    private async Task ApplyScreenTimeoutAsync()
+    {
+        var (success, message) = await domain.ApplyScreenTimeoutAsync(ScreenTimeoutMinutes);
+        notificationRuntime.ApplyShowResult(success, message);
+    }
+
+    private async Task ApplyHibernateAsync()
+    {
+        var (success, message) = await domain.ApplyHibernateAsync(HibernateEnabled);
+        notificationRuntime.ApplyShowResult(success, message);
+    }
+
+    private async Task ApplyFastStartupAsync()
+    {
+        var (success, message) = await domain.ApplyFastStartupAsync(FastStartupEnabled);
+        notificationRuntime.ApplyShowResult(success, message);
+    }
+
+    private async Task ApplyPowerButtonActionAsync()
+    {
+        var (success, message) = await domain.ApplyPowerButtonActionAsync(PowerButtonAction);
+        notificationRuntime.ApplyShowResult(success, message);
+    }
+
+    private async Task ApplyLidCloseActionAsync()
+    {
+        var (success, message) = await domain.ApplyLidCloseActionAsync(LidCloseAction);
+        notificationRuntime.ApplyShowResult(success, message);
+    }
 
     #endregion
 
@@ -322,6 +383,14 @@ public sealed partial class SettingsViewModel(
             StartWithWindows = StartWithWindows,
             StartupPage = StartupPage,
             ShowEventBadge = ShowEventBadge,
+            PowerMode = PowerMode,
+            AcSleepMinutes = AcSleepMinutes,
+            BatterySleepMinutes = BatterySleepMinutes,
+            ScreenTimeoutMinutes = ScreenTimeoutMinutes,
+            HibernateEnabled = HibernateEnabled,
+            FastStartupEnabled = FastStartupEnabled,
+            PowerButtonAction = PowerButtonAction,
+            LidCloseAction = LidCloseAction,
         });
         notificationRuntime.ApplyShowResult(success, message);
     }

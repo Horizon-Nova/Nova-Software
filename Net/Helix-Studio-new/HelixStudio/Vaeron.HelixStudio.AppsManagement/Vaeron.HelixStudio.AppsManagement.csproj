@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 依賴 WorkspaceManagement（取用作用中工作區）、EventLog（安裝/啟停事件記錄）。有畫面。 -->
+  <PropertyGroup>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shared\Vaeron.Kernel\Vaeron.Kernel.csproj" />
+    <ProjectReference Include="..\Vaeron.HelixStudio.Internal.Runtime\Vaeron.HelixStudio.Internal.Runtime.csproj" />
+    <ProjectReference Include="..\Vaeron.HelixStudio.WorkspaceManagement\Vaeron.HelixStudio.WorkspaceManagement.csproj" />
+    <ProjectReference Include="..\Vaeron.HelixStudio.EventLog\Vaeron.HelixStudio.EventLog.csproj" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+</Project>

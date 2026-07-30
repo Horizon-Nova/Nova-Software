@@ -29,7 +29,8 @@ public sealed partial class MainShellViewModel(
     AppsManagementFacade appsManagement,
     EventLogFacade eventLogFacade,
     SettingsFacade settingsFacade,
-    NavigationRuntime navigationRuntime) : ObservableObject
+    NavigationRuntime navigationRuntime,
+    PowerMenuRuntime powerMenuRuntime) : ObservableObject
 {
     private readonly Stack<string> _backStack = new();
     private readonly Stack<string> _forwardStack = new();
@@ -91,6 +92,9 @@ public sealed partial class MainShellViewModel(
     [ObservableProperty] private bool _showEventBadge = true;
     /// <summary>使用者偏好：停用背景動畫（優先權高於主題包宣告）</summary>
     [ObservableProperty] private bool _backgroundAnimationEnabled = true;
+    /// <summary>闔螢幕動作偏好，供 MainWindow 攔截 GUID_LIDSWITCH_STATE_CHANGE 時判斷要不要跳電源選單——
+    /// 只有這個值等於「顯示關閉選單」時才跳，其餘值（含「不執行動作」）Windows 自己不做事，App 也不做事。</summary>
+    [ObservableProperty] private string _lidCloseAction = "睡眠";
 
     /// <summary>視窗最小尺寸（100% 縮放下的底線）</summary>
     public double EffectiveMinWidth => 900;
@@ -164,6 +168,22 @@ public sealed partial class MainShellViewModel(
         ShowEventBadge = settings.ShowEventBadge;
         SidebarCollapsed = settings.SidebarCollapsedByDefault;
         BackgroundAnimationEnabled = settings.BackgroundAnimationEnabled;
+        LidCloseAction = settings.LidCloseAction;
+    }
+
+    /// <summary>MainWindow 攔截到闔螢幕（GUID_LIDSWITCH_STATE_CHANGE）且 LidCloseAction＝「顯示關閉選單」時呼叫；
+    /// 跳出電源選單（PowerMenuRuntime），使用者選定後立即執行對應系統動作。不寫裸 async void 例外處理——
+    /// 這裡跟 Feature ViewModel 的 RunSafe 白名單機制不是同一套（MainShellViewModel 不繼承 ViewModelBase，
+    /// 比照本檔其餘事件回呼既有寫法，如 OnWorkspaceChanged）。</summary>
+    public async void ApplyLidClosedShowMenu()
+    {
+        var action = await powerMenuRuntime.ShowAsync();
+        switch (action)
+        {
+            case "睡眠": await settingsFacade.ApplyExecuteSleepNowAsync(); break;
+            case "休眠": await settingsFacade.ApplyExecuteHibernateNowAsync(); break;
+            case "關機": await settingsFacade.ApplyExecuteShutdownNowAsync(); break;
+        }
     }
 
     private void OnResourceStatsTick(object? sender, EventArgs e)

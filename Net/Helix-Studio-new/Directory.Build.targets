@@ -1,0 +1,53 @@
+<Project>
+  <!--
+    強制值層。本檔於 csproj 之後載入,故此處設定覆寫專案內的同名設定。
+    注意：載入順序保護的是「賦值動作」,不是屬性本身——只有在本檔實際賦值的
+    屬性才無法被 csproj 覆寫。S 規則所需的位置判定因此不放這裡,而是在
+    Structure.targets 的 Target 內重算(Target 執行時求值,晚於所有靜態賦值)。
+  -->
+
+  <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+  <!-- 測試組件旗標傳給分析器(VAE002 豁免 3)。CompilerVisibleProperty 是傳遞的必要宣告。 -->
+  <PropertyGroup>
+    <VaeronIsTestProject>$(StaticIsTestProject)</VaeronIsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <CompilerVisibleProperty Include="VaeronIsTestProject" />
+  </ItemGroup>
+
+  <!-- 測試授權：受測組件對同名 .Tests 開放 internal -->
+  <ItemGroup Condition="'$(StaticIsTestProject)'=='false' AND '$(StaticIsTemplateProject)'=='false'">
+    <InternalsVisibleTo Include="$(AssemblyName).Tests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+  </ItemGroup>
+
+  <!--
+    分析器掛載。此為靜態 ItemGroup,csproj 可移除它——
+    移除後由 Structure.targets 的 S000 於 Target 內偵測並失敗。
+  -->
+  <ItemGroup Condition="'$(StaticIsBuildProject)'=='false' AND '$(StaticIsTemplateProject)'=='false'">
+    <ProjectReference Include="$(_WsRoot)$(BuildFolderName)\Analyzers\$(WorkspacePrefix).Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+    <ProjectReference Include="$(_WsRoot)$(BuildFolderName)\Generators\$(WorkspacePrefix).Generators.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <!-- 範本不參與編譯：它含佔位符,不是合法程式碼。副檔名保持 .cs 以保留 IDE 語法支援。 -->
+  <!--
+    加 Condition 的理由：屬性為空時 $(TemplateFolderName)\**\*.cs 會求值成 \**\*.cs,
+    MSBuild 判定為危險萬用字元並在評估期直接失敗(MSB5029),蓋過 S900 的診斷訊息。
+    有 Condition 時 S900 才有機會先報出「慣例屬性未定義」這個真正的原因。
+  -->
+  <ItemGroup Condition="'$(TemplateFolderName)'!=''">
+    <Compile Remove="$(TemplateFolderName)\**\*.cs" />
+    <None Include="$(TemplateFolderName)\**\*.*" />
+  </ItemGroup>
+
+  <Import Project="$(_WsRoot)$(BuildFolderName)\Structure.targets" />
+</Project>

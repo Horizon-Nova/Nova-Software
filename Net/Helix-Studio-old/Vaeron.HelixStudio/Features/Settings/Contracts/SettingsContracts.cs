@@ -12,4 +12,12 @@ public sealed record AppSettingsSnapshot
     public required bool StartWithWindows { get; init; }
     public required string StartupPage { get; init; }
     public required bool ShowEventBadge { get; init; }
+    public required string PowerMode { get; init; }
+    public required int AcSleepMinutes { get; init; }
+    public required int BatterySleepMinutes { get; init; }
+    public required int ScreenTimeoutMinutes { get; init; }
+    public required bool HibernateEnabled { get; init; }
+    public required bool FastStartupEnabled { get; init; }
+    public required string PowerButtonAction { get; init; }
+    public required string LidCloseAction { get; init; }
 }

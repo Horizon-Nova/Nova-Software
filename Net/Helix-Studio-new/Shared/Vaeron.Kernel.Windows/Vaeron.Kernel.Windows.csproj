@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 葉(Windows 專屬)。TFM 由 Directory.Build.props 依 .Windows 後綴自動判定。 -->
+  <ItemGroup>
+    <ProjectReference Include="..\Vaeron.Kernel\Vaeron.Kernel.csproj" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" />
+  </ItemGroup>
+</Project>

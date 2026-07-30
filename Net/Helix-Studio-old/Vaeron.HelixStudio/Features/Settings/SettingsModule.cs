@@ -14,6 +14,7 @@ public static class SettingsModule
         services.AddSingleton<Themes.ThemePackService>();
         services.AddSingleton<SettingsRepository>();
         services.AddSingleton<StartupRegistrationRepository>();
+        services.AddSingleton<PowerManagementRepository>();
         services.AddSingleton<SettingsDomain>();
         services.AddSingleton<SettingsFacade>();
         services.AddTransient<SettingsViewModel>();
