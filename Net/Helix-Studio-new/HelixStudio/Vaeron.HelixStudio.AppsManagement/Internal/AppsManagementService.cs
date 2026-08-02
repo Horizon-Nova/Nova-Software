@@ -72,7 +72,11 @@ internal sealed class AppsManagementService(
             return started;
         }
 
-        _ = processStore.WaitForMainWindowAsync(new WaitForMainWindowRequest(id)).ContinueWith(_ => Changed?.Invoke());
+        // ContinueWith 必須帶目前的 SynchronizationContext——Changed 的訂閱端（MainShellViewModel）
+        // 會直接改 ObservableCollection（ToolsNav），WPF 的 CollectionView 不允許從非 UI 執行緒異動，
+        // 沒帶這個排程器的話，視窗就緒的時間點一到就會直接丟未處理例外把整個殼層炸掉（已實機重現過）。
+        _ = processStore.WaitForMainWindowAsync(new WaitForMainWindowRequest(id))
+            .ContinueWith(_ => Changed?.Invoke(), TaskScheduler.FromCurrentSynchronizationContext());
 
         await eventLog.RecordEventAsync(new RecordEventRequest
         {
@@ -219,6 +223,7 @@ internal sealed class AppsManagementService(
             LockedFields = locked,
             IsUnlocked = unlocked,
             UnlockExpiresAt = _unlockExpiry.TryGetValue(x.id, out var exp) ? exp : null,
+            WindowHandle = runtime.WindowHandle,
         };
     }
 }

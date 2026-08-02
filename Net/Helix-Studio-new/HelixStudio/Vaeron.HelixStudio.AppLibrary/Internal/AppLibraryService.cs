@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text.Json;
 using Vaeron.HelixStudio.AppLibrary.Internal.Models;
 using Vaeron.HelixStudio.AppsManagement;
 using Vaeron.HelixStudio.Internal.Runtime;
@@ -13,7 +14,7 @@ internal sealed class AppLibraryService(
     FileStorage fileStorage,
     string importStagingRoot)
 {
-    private static readonly string[] AllowedExtensions = [".exe", ".msi", ".zip"];
+    private static readonly string[] AllowedExtensions = [".exe", ".zip"];
     private const long MaxImportSizeBytes = 200L * 1024 * 1024;
 
     private static readonly LibraryCategorySnapshot[] Categories =
@@ -50,7 +51,7 @@ internal sealed class AppLibraryService(
     {
         var ext = Path.GetExtension(request.FilePath).ToLowerInvariant();
         if (!AllowedExtensions.Contains(ext))
-            return Result.Fail(ResultKind.ValidationFailed, "不支援的檔案格式，僅接受 .exe/.msi/.zip");
+            return Result.Fail(ResultKind.ValidationFailed, "不支援的檔案格式，僅接受 .exe/.zip");
         if (!store.SourceFileExists(request.FilePath))
             return Result.Fail(ResultKind.NotFound, "找不到來源檔案");
 
@@ -59,12 +60,13 @@ internal sealed class AppLibraryService(
             return Result.Fail(ResultKind.ValidationFailed, "檔案超過 200MB 上限");
 
         var name = Path.GetFileNameWithoutExtension(request.FilePath);
-        var resolved = fileStorage.TryResolve(new FileResolveRequest(importStagingRoot, $"{name}{ext}"));
-        if (!resolved.IsSuccess || resolved.Value is null)
-            return Result.Fail(resolved.Kind, resolved.Message);
 
-        var destPath = resolved.Value;
-        store.StageImportFile(new StageImportFileRequest(request.FilePath, destPath));
+        var entryPathResult = ext == ".zip"
+            ? ImportZipPackage(request.FilePath, name)
+            : ImportSingleExe(request.FilePath, name, ext);
+        if (!entryPathResult.IsSuccess || entryPathResult.Value is null)
+            return Result.Fail(entryPathResult.Kind, entryPathResult.Message);
+        var entryPath = entryPathResult.Value;
 
         var existing = await store.QueryByNameAsync(name);
         var nextVersion = existing is null ? "1.0.0" : BumpPatchVersion(existing.version);
@@ -79,7 +81,7 @@ internal sealed class AppLibraryService(
             developer = "",
             file_size_bytes = size.Bytes,
             requirements = "",
-            entry_path = destPath,
+            entry_path = entryPath,
             imported_at = DateTimeOffset.UtcNow,
         });
 
@@ -104,6 +106,61 @@ internal sealed class AppLibraryService(
 
         Changed?.Invoke();
         return Ok(existing is null ? $"已匯入「{entry.name}」" : $"已更新「{entry.name}」至 v{entry.version}");
+    }
+
+    /// <summary>`.exe` 匯入：檔案本身即為隱含進入點，不需要 manifest。</summary>
+    private Result<string> ImportSingleExe(string sourceFilePath, string name, string ext)
+    {
+        var resolved = fileStorage.TryResolve(new FileResolveRequest(importStagingRoot, $"{name}{ext}"));
+        if (!resolved.IsSuccess || resolved.Value is null)
+            return Result<string>.Fail(resolved.Kind, resolved.Message);
+
+        store.StageImportFile(new StageImportFileRequest(sourceFilePath, resolved.Value));
+        return Result<string>.Ok(resolved.Value);
+    }
+
+    /// <summary>`.zip` 匯入：解壓至暫存區，讀根目錄 `tool.json` 的 `Entry` 解析出進入點絕對路徑。
+    /// 沒有合法 manifest 或 `Entry` 指定的檔案在解壓後不存在，一律視為匯入失敗，不寫入任何資料。</summary>
+    private Result<string> ImportZipPackage(string sourceZipPath, string name)
+    {
+        var packageDirResult = fileStorage.TryResolve(new FileResolveRequest(importStagingRoot, Path.Combine("_packages", name)));
+        if (!packageDirResult.IsSuccess || packageDirResult.Value is null)
+            return Result<string>.Fail(packageDirResult.Kind, packageDirResult.Message);
+        var packageDir = packageDirResult.Value;
+
+        store.ExtractZip(new ExtractZipRequest(sourceZipPath, packageDir));
+
+        var manifestPath = Path.Combine(packageDir, "tool.json");
+        if (!File.Exists(manifestPath))
+            return Result<string>.Fail(ResultKind.ValidationFailed, "套件缺少 tool.json，無法識別工具");
+
+        var manifestResult = TryReadManifest(manifestPath);
+        if (!manifestResult.IsSuccess || manifestResult.Value is null || string.IsNullOrWhiteSpace(manifestResult.Value.Entry))
+            return Result<string>.Fail(ResultKind.ValidationFailed, "tool.json 格式錯誤或缺少 Entry 欄位");
+        var manifest = manifestResult.Value;
+
+        var entryResolved = fileStorage.TryResolve(new FileResolveRequest(packageDir, manifest.Entry));
+        if (!entryResolved.IsSuccess || entryResolved.Value is null || !File.Exists(entryResolved.Value))
+            return Result<string>.Fail(ResultKind.NotFound, "找不到 Entry 指定的進入點檔案");
+
+        return Result<string>.Ok(entryResolved.Value);
+    }
+
+    private static Result<ToolManifestJson> TryReadManifest(string manifestPath)
+    {
+        try
+        {
+            var json = File.ReadAllText(manifestPath);
+            var manifest = JsonSerializer.Deserialize<ToolManifestJson>(json,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            return manifest is null
+                ? Result<ToolManifestJson>.Fail(ResultKind.ValidationFailed, "tool.json 格式錯誤或缺少 Entry 欄位")
+                : Result<ToolManifestJson>.Ok(manifest);
+        }
+        catch (JsonException)
+        {
+            return Result<ToolManifestJson>.Fail(ResultKind.ValidationFailed, "tool.json 格式錯誤或缺少 Entry 欄位");
+        }
     }
 
     /// <summary>修訂號 +1（X.Y.Z → X.Y.(Z+1)）</summary>

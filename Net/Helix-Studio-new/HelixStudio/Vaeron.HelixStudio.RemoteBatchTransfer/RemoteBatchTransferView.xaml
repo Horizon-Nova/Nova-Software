@@ -3,7 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Vaeron.HelixStudio.RemoteBatchTransfer"
              xmlns:contracts="clr-namespace:Vaeron.HelixStudio.RemoteBatchTransfer"
-             xmlns:runtime="clr-namespace:Vaeron.HelixStudio.Internal.Runtime.Themes;assembly=Vaeron.HelixStudio.Internal.Runtime"
              Loaded="OnLoaded" Unloaded="OnUnloaded">
     <UserControl.Resources>
         <local:BoolToActionButtonStyleConverter x:Key="BoolToActionButtonStyleConverter" />
@@ -30,7 +29,7 @@
             <!-- 遠端連線 -->
             <TextBlock Text="遠端連線" FontWeight="{DynamicResource FontWeightStrong}" Style="{StaticResource BaseTextStyle}" Margin="0,8,0,4" />
             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                <TextBox Width="200" Style="{StaticResource AppSearchBoxStyle}" runtime:TextBoxPlaceholder.Text="搜尋連線名稱或位址"
+                <TextBox Width="200" Style="{StaticResource AppSearchBoxStyle}" Tag="搜尋連線名稱或位址"
                          Text="{Binding ConnectionSearchText, UpdateSourceTrigger=PropertyChanged}" />
                 <Button Content="全選已連線" Style="{StaticResource SecondaryButtonStyle}" Margin="4,0,0,0" Command="{Binding ApplySelectAllConnectedCommand}" />
                 <Button Content="清除選取" Style="{StaticResource SecondaryButtonStyle}" Margin="4,0,0,0" Command="{Binding ApplyClearSelectionCommand}" />

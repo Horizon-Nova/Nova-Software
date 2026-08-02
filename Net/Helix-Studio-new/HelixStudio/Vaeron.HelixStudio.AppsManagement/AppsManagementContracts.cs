@@ -18,6 +18,8 @@ public sealed record InstalledToolSnapshot
     public required IReadOnlyList<string> LockedFields { get; init; }
     public required bool IsUnlocked { get; init; }
     public DateTimeOffset? UnlockExpiresAt { get; init; }
+    /// <summary>執行中工具的主視窗控制代碼；未執行或主視窗尚未就緒時為 0，供殼層嵌入畫面用</summary>
+    public nint WindowHandle { get; init; }
     public bool IsRunning => State is ToolState.Starting or ToolState.Running;
     public bool IsAutoStartLocked => LockedFields.Contains("autoStart") && !IsUnlocked;
     public bool IsAutoRepairLocked => LockedFields.Contains("autoRepair") && !IsUnlocked;

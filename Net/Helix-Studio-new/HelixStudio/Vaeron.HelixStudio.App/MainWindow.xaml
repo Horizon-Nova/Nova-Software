@@ -256,9 +256,34 @@
                         <ItemsControl ItemsSource="{Binding MainNav}" ItemTemplate="{StaticResource NavItemTemplate}" />
 
                         <TextBlock Text="TOOLS" Margin="17,16,0,4" FontSize="{StaticResource FontSizeXs}" FontWeight="{DynamicResource FontWeightStrong}"
-                                   Foreground="{DynamicResource TextMutedBrush}"
-                                   Visibility="{Binding SidebarCollapsed, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
-                        <ItemsControl ItemsSource="{Binding ToolsNav}" ItemTemplate="{StaticResource NavItemTemplate}" />
+                                   Foreground="{DynamicResource TextMutedBrush}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SidebarCollapsed}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding ToolsNav.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <ItemsControl ItemsSource="{Binding ToolsNav}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource SidebarNavButtonStyle}" Margin="6,0,6,2"
+                                            Command="{Binding DataContext.ApplyOpenToolCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding ToolId}" ToolTip="{Binding Name}">
+                                        <TextBlock Text="{Binding Name}" FontWeight="{DynamicResource FontWeightMedium}"
+                                                   Visibility="{Binding DataContext.SidebarCollapsed, RelativeSource={RelativeSource AncestorType=ItemsControl},
+                                                                Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
                     </DockPanel>
                 </Border>

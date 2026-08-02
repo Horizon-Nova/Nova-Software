@@ -1,0 +1,10 @@
+{
+  "Id": "inspec-tool",
+  "Name": "InSpec 量測助手",
+  "CategoryId": "monitoring",
+  "Description": "掃描並連接 Micro-Vu InSpec，透過官方 iscmd 無畫面執行量測程式並讀回結果。",
+  "Version": "1.0.0",
+  "Developer": "官方",
+  "Requirements": "需已安裝 Micro-Vu InSpec for Windows（32 位元）",
+  "Entry": "InSpec-Tool.exe"
+}

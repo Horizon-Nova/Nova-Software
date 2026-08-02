@@ -12,10 +12,13 @@ internal sealed class SettingsService(
 {
     public event Action? Changed;
 
+    /// <summary>電源 8 欄一律即時查 Windows 現況組成快照（離線真實鏡像），查詢失敗的欄位退回資料庫快取值；
+    /// 其餘欄位維持原本的資料庫讀取。每次呼叫都重新查詢，不在記憶體跨次呼叫沿用上次結果。</summary>
     public async Task<AppSettingsSnapshot> LoadSettingsAsync()
     {
         var row = await store.QueryAppSettingsAsync();
-        return ToSnapshot(row);
+        var live = await powerManagement.QueryCurrentStateAsync(row);
+        return ToSnapshot(row, live);
     }
 
     public async Task<Result> UpdateSettingsAsync(AppSettingsSnapshot settings)
@@ -70,73 +73,69 @@ internal sealed class SettingsService(
         }
     }
 
+    /// <summary>電源欄位改成先套用系統、成功才把新值寫回資料庫當快取——資料庫不再是顯示值來源，
+    /// 只在下次查詢系統失敗時當離線備援，見 LoadSettingsAsync。</summary>
     public async Task<Result> ApplyPowerModeAsync(string mode)
     {
+        var applied = await powerManagement.ApplyPowerModeAsync(mode);
+        if (!applied.IsSuccess) return applied;
         var current = await LoadSettingsAsync();
         await UpdateSettingsAsync(current with { PowerMode = mode });
-        var applied = await powerManagement.ApplyPowerModeAsync(mode);
-        return applied.IsSuccess ? Ok(applied.Message == "成功" ? "已更新" : applied.Message) : applied;
+        return Ok(applied.Message == "成功" ? "已更新" : applied.Message);
     }
 
     public async Task<Result> ApplySleepTimeoutsAsync(SleepTimeoutsRequest request)
     {
+        var applied = await powerManagement.ApplySleepTimeoutAsync(new SleepTimeoutCommand(request.AcMinutes, request.BatteryMinutes));
+        if (!applied.IsSuccess) return applied;
         var current = await LoadSettingsAsync();
         await UpdateSettingsAsync(current with { AcSleepMinutes = request.AcMinutes, BatterySleepMinutes = request.BatteryMinutes });
-        var applied = await powerManagement.ApplySleepTimeoutAsync(new SleepTimeoutCommand(request.AcMinutes, request.BatteryMinutes));
-        return applied.IsSuccess ? Ok("已更新") : applied;
+        return Ok("已更新");
     }
 
     public async Task<Result> ApplyScreenTimeoutAsync(int minutes)
     {
+        var applied = await powerManagement.ApplyScreenTimeoutAsync(minutes);
+        if (!applied.IsSuccess) return applied;
         var current = await LoadSettingsAsync();
         await UpdateSettingsAsync(current with { ScreenTimeoutMinutes = minutes });
-        var applied = await powerManagement.ApplyScreenTimeoutAsync(minutes);
-        return applied.IsSuccess ? Ok("已更新") : applied;
+        return Ok("已更新");
     }
 
     public async Task<Result> ApplyHibernateAsync(bool enabled)
     {
+        var applied = await powerManagement.ApplyHibernateAsync(enabled);
+        if (!applied.IsSuccess) return applied;
         var current = await LoadSettingsAsync();
         await UpdateSettingsAsync(current with { HibernateEnabled = enabled });
-        var applied = await powerManagement.ApplyHibernateAsync(enabled);
-        return applied.IsSuccess ? Ok("已更新") : applied;
+        return Ok("已更新");
     }
 
     public async Task<Result> ApplyFastStartupAsync(bool enabled)
     {
+        var applied = powerManagement.ApplyFastStartup(enabled);
+        if (!applied.IsSuccess) return applied;
         var current = await LoadSettingsAsync();
         await UpdateSettingsAsync(current with { FastStartupEnabled = enabled });
-        var applied = powerManagement.ApplyFastStartup(enabled);
-        return applied.IsSuccess ? Ok("已更新") : applied;
+        return Ok("已更新");
     }
 
     public async Task<Result> ApplyPowerButtonActionAsync(string action)
     {
+        var applied = await powerManagement.ApplyPowerButtonActionAsync(action);
+        if (!applied.IsSuccess) return applied;
         var current = await LoadSettingsAsync();
         await UpdateSettingsAsync(current with { PowerButtonAction = action });
-        var applied = await powerManagement.ApplyPowerButtonActionAsync(action);
-        return applied.IsSuccess ? Ok(applied.Message == "成功" ? "已更新" : applied.Message) : applied;
+        return Ok(applied.Message == "成功" ? "已更新" : applied.Message);
     }
 
     public async Task<Result> ApplyLidCloseActionAsync(string action)
     {
+        var applied = await powerManagement.ApplyLidCloseActionAsync(action);
+        if (!applied.IsSuccess) return applied;
         var current = await LoadSettingsAsync();
         await UpdateSettingsAsync(current with { LidCloseAction = action });
-        var applied = await powerManagement.ApplyLidCloseActionAsync(action);
-        return applied.IsSuccess ? Ok(applied.Message == "成功" ? "已更新" : applied.Message) : applied;
-    }
-
-    /// <summary>啟動時把已持久化的電源設定單向重套到系統，best-effort，不回報結果、不做雙向校正</summary>
-    public async Task ReconcilePowerSettingsAsync()
-    {
-        var settings = await LoadSettingsAsync();
-        await powerManagement.ApplyPowerModeAsync(settings.PowerMode);
-        await powerManagement.ApplySleepTimeoutAsync(new SleepTimeoutCommand(settings.AcSleepMinutes, settings.BatterySleepMinutes));
-        await powerManagement.ApplyScreenTimeoutAsync(settings.ScreenTimeoutMinutes);
-        await powerManagement.ApplyHibernateAsync(settings.HibernateEnabled);
-        powerManagement.ApplyFastStartup(settings.FastStartupEnabled);
-        await powerManagement.ApplyPowerButtonActionAsync(settings.PowerButtonAction);
-        await powerManagement.ApplyLidCloseActionAsync(settings.LidCloseAction);
+        return Ok(applied.Message == "成功" ? "已更新" : applied.Message);
     }
 
     /// <summary>闔螢幕顯示關閉選單（PowerMenuRuntime）：這裡不改任何持久化資料值，
@@ -149,7 +148,8 @@ internal sealed class SettingsService(
 
     private static Result Ok(string message) => new() { Kind = ResultKind.Success, Message = message };
 
-    private static AppSettingsSnapshot ToSnapshot(AppSettingsRow x) => new()
+    /// <summary>電源 8 欄以 live（即時查詢）優先，查詢失敗（null）才退回資料庫快取 x。</summary>
+    private static AppSettingsSnapshot ToSnapshot(AppSettingsRow x, PowerStateSnapshot live) => new()
     {
         ThemePackId = x.theme_pack,
         BackgroundAnimationEnabled = x.background_animation,
@@ -159,13 +159,13 @@ internal sealed class SettingsService(
         StartWithWindows = x.start_with_windows,
         StartupPage = x.startup_page,
         ShowEventBadge = x.show_event_badge,
-        PowerMode = x.power_mode,
-        AcSleepMinutes = x.ac_sleep_minutes,
-        BatterySleepMinutes = x.battery_sleep_minutes,
-        ScreenTimeoutMinutes = x.screen_timeout_minutes,
-        HibernateEnabled = x.hibernate_enabled,
-        FastStartupEnabled = x.fast_startup_enabled,
-        PowerButtonAction = x.power_button_action,
-        LidCloseAction = x.lid_close_action,
+        PowerMode = live.PowerMode ?? x.power_mode,
+        AcSleepMinutes = live.AcSleepMinutes ?? x.ac_sleep_minutes,
+        BatterySleepMinutes = live.BatterySleepMinutes ?? x.battery_sleep_minutes,
+        ScreenTimeoutMinutes = live.ScreenTimeoutMinutes ?? x.screen_timeout_minutes,
+        HibernateEnabled = live.HibernateEnabled ?? x.hibernate_enabled,
+        FastStartupEnabled = live.FastStartupEnabled ?? x.fast_startup_enabled,
+        PowerButtonAction = live.PowerButtonAction ?? x.power_button_action,
+        LidCloseAction = live.LidCloseAction ?? x.lid_close_action,
     };
 }

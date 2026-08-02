@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using Vaeron.Kernel;
 
 namespace Vaeron.HelixStudio.AppsManagement.Internal;
@@ -22,6 +23,10 @@ internal sealed class ToolProcessStore
         public required DateTimeOffset StartedAt { get; init; }
         public TimeSpan LastCpuTime { get; set; }
         public DateTimeOffset LastSampledAt { get; set; }
+        /// <summary>一旦找到就快取——某些工具（如 InSpec-Tool）刻意隱藏啟動再等殼層嵌入時才顯示，
+        /// 嵌入後該視窗會多一個父視窗，Win32 對「頂層視窗」的認定就不再成立，
+        /// 之後不能再靠重新列舉找到它，必須靠這個快取。</summary>
+        public nint CachedWindowHandle { get; set; }
     }
 
     private readonly Dictionary<int, RunningEntry> _running = [];
@@ -61,7 +66,9 @@ internal sealed class ToolProcessStore
         return new Result { Kind = ResultKind.Success, Message = "已啟動" };
     }
 
-    /// <summary>輪詢主視窗 HWND，最多等待 maxAttempts*delayMs 毫秒。找不到回傳 0。</summary>
+    /// <summary>輪詢頂層視窗 HWND，最多等待 maxAttempts*delayMs 毫秒。找不到回傳 0。
+    /// 用 EnumWindows 找該行程擁有、還沒有父視窗的頂層視窗，不用 Process.MainWindowHandle——
+    /// 後者只認「可見」視窗，找不到刻意隱藏啟動（等殼層嵌入才顯示）的工具視窗。</summary>
     public async Task<nint> WaitForMainWindowAsync(WaitForMainWindowRequest request)
     {
         if (!_running.TryGetValue(request.ToolId, out var entry)) return nint.Zero;
@@ -69,16 +76,46 @@ internal sealed class ToolProcessStore
         for (var i = 0; i < request.MaxAttempts; i++)
         {
             if (entry.Process.HasExited) return nint.Zero;
-            entry.Process.Refresh();
-            if (entry.Process.MainWindowHandle != nint.Zero)
+            var hwnd = FindTopLevelWindow(entry.Process.Id);
+            if (hwnd != nint.Zero)
             {
-                await Task.Delay(350);
-                return entry.Process.MainWindowHandle;
+                await Task.Delay(350); // 讓視窗完成第一次版面配置，避免嵌入時內容還沒畫出來
+                entry.CachedWindowHandle = hwnd;
+                return hwnd;
             }
             await Task.Delay(request.DelayMs);
         }
         return nint.Zero;
     }
+
+    /// <summary>列舉該行程擁有、目前沒有父視窗的第一個頂層視窗。刻意不要求可見——
+    /// 隱藏啟動、等嵌入才顯示的工具視窗在被找到當下本來就還不可見。</summary>
+    private static nint FindTopLevelWindow(int processId)
+    {
+        var found = nint.Zero;
+        EnumWindows((hWnd, _) =>
+        {
+            GetWindowThreadProcessId(hWnd, out var pid);
+            if (pid == (uint)processId && GetParent(hWnd) == nint.Zero)
+            {
+                found = hWnd;
+                return false; // 找到了，停止列舉
+            }
+            return true;
+        }, nint.Zero);
+        return found;
+    }
+
+    private delegate bool EnumWindowsProc(nint hWnd, nint lParam);
+
+    [DllImport("user32.dll")]
+    private static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, nint lParam);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(nint hWnd, out uint lpdwProcessId);
+
+    [DllImport("user32.dll")]
+    private static extern nint GetParent(nint hWnd);
 
     public async Task<Result> StopAsync(int toolId)
     {
@@ -117,11 +154,14 @@ internal sealed class ToolProcessStore
         entry.LastCpuTime = entry.Process.TotalProcessorTime;
         entry.LastSampledAt = now;
 
-        var status = entry.Process.MainWindowHandle != nint.Zero || (now - entry.StartedAt) > TimeSpan.FromSeconds(10)
+        if (entry.CachedWindowHandle == nint.Zero)
+            entry.CachedWindowHandle = FindTopLevelWindow(entry.Process.Id);
+
+        var status = entry.CachedWindowHandle != nint.Zero || (now - entry.StartedAt) > TimeSpan.FromSeconds(10)
             ? ToolRuntimeStatus.Running
             : ToolRuntimeStatus.Starting;
 
-        return new ToolRuntimeState(status, cpuPercent, entry.Process.WorkingSet64 / 1024.0 / 1024.0, entry.Process.MainWindowHandle);
+        return new ToolRuntimeState(status, cpuPercent, entry.Process.WorkingSet64 / 1024.0 / 1024.0, entry.CachedWindowHandle);
     }
 
     /// <summary>App 關閉時清理所有仍在執行的子行程</summary>

@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 根：不被任何組件引用,產出可執行檔。獨立部署單元，建置後由 AfterTargets="Build"
+       複製整包輸出到 Helix-Studio 的 Catalog/inspec-tool/，不與 HelixStudio/ 底下任何組件互相引用
+       （S008：軟體之間不得互相引用）。 -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <PlatformTarget>x86</PlatformTarget>
+    <!-- InSpec.exe 是 32 位元，CreateRemoteThread 注入需要行程位元數相符，AnyCPU 會在執行期失敗。 -->
+    <RootNamespace>Vaeron.InSpecTool</RootNamespace>
+    <AssemblyName>InSpec-Tool</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shared\Vaeron.Kernel\Vaeron.Kernel.csproj" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="InSpecHookDLL.dll" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- 樣式來源連結回 Helix Studio 本體，不各自維護一份副本（S008 禁止跨軟體 ProjectReference，
+       所以用檔案連結取代組件引用）。 -->
+  <ItemGroup>
+    <Page Include="..\..\HelixStudio\Vaeron.HelixStudio.App\Themes\Tokens.xaml" Link="Themes\Tokens.xaml" />
+    <Page Include="..\..\HelixStudio\Vaeron.HelixStudio.App\Themes\Controls.xaml" Link="Themes\Controls.xaml" />
+    <Page Include="..\..\HelixStudio\Vaeron.HelixStudio.App\Themes\Icons.xaml" Link="Themes\Icons.xaml" />
+    <Compile Include="..\..\HelixStudio\Vaeron.HelixStudio.App\Themes\CommonConverters.cs" Link="Themes\CommonConverters.cs" />
+  </ItemGroup>
+
+  <!--
+    打包進 Helix Studio 內建 Catalog：把整個輸出資料夾（exe、InSpecHookDLL.dll、.deps.json、
+    .runtimeconfig.json 等）複製到 HelixStudio/Vaeron.HelixStudio.App/Catalog/inspec-tool/，
+    讓 BuiltInCatalogStore 依 tool.json 的 Entry 找到 InSpec-Tool.exe。手法沿用舊版
+    ExternalModules 的 BuildModulePackage/SyncModuleArtifacts 慣例（見 .project-backup 內對應專案）。
+  -->
+  <PropertyGroup>
+    <InSpecToolCatalogDir>$(MSBuildProjectDirectory)\..\..\HelixStudio\Vaeron.HelixStudio.App\Catalog\inspec-tool\</InSpecToolCatalogDir>
+  </PropertyGroup>
+  <Target Name="CopyToHelixStudioCatalog" AfterTargets="Build">
+    <ItemGroup>
+      <_InSpecToolOutput Include="$(OutDir)**\*" />
+    </ItemGroup>
+    <MakeDir Directories="$(InSpecToolCatalogDir)" />
+    <Copy SourceFiles="@(_InSpecToolOutput)"
+          DestinationFolder="$(InSpecToolCatalogDir)%(RecursiveDir)"
+          SkipUnchangedFiles="true" />
+  </Target>
+</Project>

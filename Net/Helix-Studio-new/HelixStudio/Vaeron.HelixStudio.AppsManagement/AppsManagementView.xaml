@@ -3,7 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Vaeron.HelixStudio.AppsManagement"
              xmlns:components="clr-namespace:Vaeron.HelixStudio.Internal.Runtime.Components;assembly=Vaeron.HelixStudio.Internal.Runtime"
-             xmlns:runtime="clr-namespace:Vaeron.HelixStudio.Internal.Runtime.Themes;assembly=Vaeron.HelixStudio.Internal.Runtime"
              Loaded="OnLoaded" Unloaded="OnUnloaded">
     <UserControl.Resources>
         <local:ToolStateToTextConverter x:Key="StateToText" />
@@ -42,7 +41,7 @@
             </Grid.ColumnDefinitions>
 
             <TextBox x:Name="SearchBox" Grid.Column="0" Width="240" Style="{StaticResource AppSearchBoxStyle}"
-                     runtime:TextBoxPlaceholder.Text="搜尋工具名稱"
+                     Tag="搜尋工具名稱"
                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
             <Button Grid.Column="1" Style="{StaticResource IconButtonStyle}" Margin="8,0,0,0"
                     Command="{Binding ApplyReloadCommand}" ToolTip="重新載入資料">

@@ -9,6 +9,8 @@ public static class ShellModule
     {
         services.AddTransient<MainShellViewModel>();
         services.AddTransient<MainWindow>();
+        services.AddTransient<ToolHostViewModel>();
+        services.AddTransient<ToolHostView>();
         return services;
     }
 }

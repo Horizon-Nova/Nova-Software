@@ -112,7 +112,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
-build/
 dist/
 *.egg-info/
 *.egg
@@ -252,5 +251,3 @@ credentials.json
 service-account*.json
 secrets.json
 local.settings.json
-appsettings.json
-appsettings.Production.json

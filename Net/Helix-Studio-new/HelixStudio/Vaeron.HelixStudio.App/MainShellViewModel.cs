@@ -16,6 +16,10 @@ namespace Vaeron.HelixStudio;
 
 public sealed record NavItem(string Key, string Label, bool HasIcon);
 
+/// <summary>側邊欄 TOOLS 快速啟動項目：對應目前工作區已安裝的工具，點下去直接啟動該工具（子行程），
+/// 不是切換內嵌頁面——跟 MainNav／NavItem 的導覽語意不同，故用獨立型別，不共用 NavItem。</summary>
+public sealed record ToolNavItem(int ToolId, string Name);
+
 /// <summary>殼層協調者：導覽切換、工作區狀態、資源用量</summary>
 public sealed partial class MainShellViewModel(
     AppsManagementView appsView,
@@ -24,6 +28,7 @@ public sealed partial class MainShellViewModel(
     SettingsView settingsView,
     UsbVoltageControlView usbView,
     RemoteBatchTransferView remoteBatchTransferView,
+    ToolHostView toolHostView,
     IWorkspaceManagementFacade workspaceFacade,
     IAppsManagementFacade appsManagement,
     IEventLogFacade eventLogFacade,
@@ -35,6 +40,8 @@ public sealed partial class MainShellViewModel(
     private readonly Stack<string> _forwardStack = new();
     private Dictionary<string, object> _pages = [];
     private string? _currentKey;
+    /// <summary>目前掛在 ToolHost 頁面上的工具 id，用來在 ApplyRefreshStatusBarAsync 更新其 WindowHandle</summary>
+    private int? _toolHostToolId;
 
     /// <summary>骨架屏最短可視時間</summary>
     private static readonly TimeSpan MinVisibleLoadingDuration = TimeSpan.FromMilliseconds(400);
@@ -57,11 +64,8 @@ public sealed partial class MainShellViewModel(
         new("settings", "設定", true),
     ];
 
-    public ObservableCollection<NavItem> ToolsNav { get; } =
-    [
-        new("usb", "USB 防休眠控制", false),
-        new("vnc", "遠端批次傳檔", false),
-    ];
+    /// <summary>目前工作區已安裝工具的快速啟動清單，隨 `_lastTools` 一起在 ApplyRefreshStatusBarAsync 重建。</summary>
+    public ObservableCollection<ToolNavItem> ToolsNav { get; } = [];
 
     [ObservableProperty] private object? _currentView;
     [ObservableProperty] private bool _sidebarCollapsed;
@@ -128,6 +132,7 @@ public sealed partial class MainShellViewModel(
             ["settings"] = settingsView,
             ["usb"] = usbView,
             ["vnc"] = remoteBatchTransferView,
+            ["toolhost"] = toolHostView,
         };
 
         workspaceFacade.WorkspaceChanged += OnWorkspaceChanged;
@@ -155,9 +160,21 @@ public sealed partial class MainShellViewModel(
         _resourceStatsTimer.Stop();
     }
 
-    private async void OnWorkspaceChanged() => await ApplyRefreshStatusBarAsync();
-    private async void OnStatusChanged() => await ApplyRefreshStatusBarAsync();
-    private async void OnSettingsChanged() => await ApplySettingsSnapshotAsync();
+    private void OnWorkspaceChanged() => DispatchOnUiThread(ApplyRefreshStatusBarAsync);
+    private void OnStatusChanged() => DispatchOnUiThread(ApplyRefreshStatusBarAsync);
+    private void OnSettingsChanged() => DispatchOnUiThread(ApplySettingsSnapshotAsync);
+
+    /// <summary>這三個事件（WorkspaceChanged／ToolsChanged／SettingsChanged）不保證從 UI 執行緒觸發——
+    /// AppsManagementService.StartToolAsync 等到工具視窗就緒才觸發的那次是從背景延續執行的，
+    /// 這裡的方法之後都會動 ObservableCollection／[ObservableProperty]，WPF 只允許 UI 執行緒改，
+    /// 從非 UI 執行緒呼叫過一次就會直接丟未處理例外炸掉整個殼層（已實機重現過），故一律先確保回到
+    /// UI 執行緒才真的執行。</summary>
+    private static void DispatchOnUiThread(Func<Task> action)
+    {
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher is null || dispatcher.CheckAccess()) { _ = action(); return; }
+        dispatcher.BeginInvoke(action);
+    }
 
     /// <summary>套用介面縮放／未讀徽章／側邊欄摺疊設定</summary>
     private async Task ApplySettingsSnapshotAsync()
@@ -214,6 +231,18 @@ public sealed partial class MainShellViewModel(
 
         _lastTools = await appsManagement.LoadInstalledToolListAsync(ActiveWorkspace.Id);
         RunningToolCount = _lastTools.Count(t => t.IsRunning);
+
+        // 側邊欄 TOOLS 只列「目前正在跑」的工具——啟動本身由已安裝工具頁面的啟動按鈕負責，
+        // 這裡點下去是打開/回到它的畫面，不是啟動，所以未啟動的已安裝工具不該出現在這裡。
+        ToolsNav.Clear();
+        foreach (var tool in _lastTools.Where(t => t.IsRunning)) ToolsNav.Add(new ToolNavItem(tool.Id, tool.Name));
+
+        if (_toolHostToolId is { } toolHostId)
+        {
+            var tool = _lastTools.FirstOrDefault(t => t.Id == toolHostId);
+            ToolHostVm.WindowHandle = tool?.WindowHandle ?? 0;
+            if (tool is null) _toolHostToolId = null; // 工具被移除，停止追蹤
+        }
         UnreadEventCount = await eventLogFacade.LoadUnreadCountAsync(ActiveWorkspace.Id);
         TotalEventCount = (await eventLogFacade.LoadEventListAsync(ActiveWorkspace.Id)).Count;
         ApplyServiceBanner();
@@ -274,6 +303,21 @@ public sealed partial class MainShellViewModel(
         SetCurrent(_forwardStack.Pop());
         IsNavigating = false;
     }
+
+    /// <summary>側邊欄 TOOLS 只列執行中的工具（見 ApplyRefreshStatusBarAsync），點下去單純打開／
+    /// 回到它的嵌入畫面，不負責啟動——啟動是已安裝工具頁面既有按鈕的職責。</summary>
+    [RelayCommand]
+    private async Task ApplyOpenToolAsync(int toolId)
+    {
+        var tool = _lastTools.FirstOrDefault(t => t.Id == toolId);
+        _toolHostToolId = toolId;
+        ToolHostVm.ToolName = tool?.Name;
+        ToolHostVm.WindowHandle = tool?.WindowHandle ?? 0;
+
+        await ApplyNavigateAsync("toolhost");
+    }
+
+    private ToolHostViewModel ToolHostVm => (ToolHostViewModel)toolHostView.DataContext;
 
     [RelayCommand]
     private void ApplyToggleSidebar() => ApplySetSidebarCollapsed(!SidebarCollapsed);

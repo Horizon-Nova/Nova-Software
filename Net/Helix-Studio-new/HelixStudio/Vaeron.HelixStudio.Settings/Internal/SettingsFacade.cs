@@ -32,8 +32,6 @@ internal sealed class SettingsFacade(SettingsService service) : ISettingsFacade
 
     public Task ApplyReconcileStartupRegistrationAsync() => service.ReconcileStartupRegistrationAsync();
 
-    public Task ApplyReconcilePowerSettingsAsync() => service.ReconcilePowerSettingsAsync();
-
     public Task<Result> ApplyExecuteSleepNowAsync() => service.ExecuteSleepNowAsync();
 
     public Task<Result> ApplyExecuteHibernateNowAsync() => service.ExecuteHibernateNowAsync();

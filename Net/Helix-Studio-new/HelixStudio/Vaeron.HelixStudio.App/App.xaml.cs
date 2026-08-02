@@ -47,7 +47,6 @@ public partial class App : Application
         var settingsFacade = _host.Services.GetRequiredService<ISettingsFacade>();
         await ApplySavedThemeAsync();
         await settingsFacade.ApplyReconcileStartupRegistrationAsync();
-        await settingsFacade.ApplyReconcilePowerSettingsAsync();
 
         var eventLogFacade = _host.Services.GetRequiredService<IEventLogFacade>();
         await eventLogFacade.ApplyRetentionPolicyAsync();

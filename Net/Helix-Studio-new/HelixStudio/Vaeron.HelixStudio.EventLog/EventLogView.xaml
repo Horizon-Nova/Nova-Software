@@ -2,7 +2,6 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Vaeron.HelixStudio.EventLog"
-             xmlns:runtime="clr-namespace:Vaeron.HelixStudio.Internal.Runtime.Themes;assembly=Vaeron.HelixStudio.Internal.Runtime"
              xmlns:components="clr-namespace:Vaeron.HelixStudio.Internal.Runtime.Components;assembly=Vaeron.HelixStudio.Internal.Runtime"
              Loaded="OnLoaded" Unloaded="OnUnloaded">
     <UserControl.Resources>
@@ -50,7 +49,7 @@
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
             <TextBox Width="240" Style="{StaticResource AppSearchBoxStyle}"
-                     runtime:TextBoxPlaceholder.Text="搜尋工具名稱或訊息"
+                     Tag="搜尋工具名稱或訊息"
                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
             <ItemsControl ItemsSource="{Binding TimeRangeOptions}" ItemTemplate="{StaticResource TimeRangePillTemplate}" Margin="8,0,0,0">
                 <ItemsControl.ItemsPanel>

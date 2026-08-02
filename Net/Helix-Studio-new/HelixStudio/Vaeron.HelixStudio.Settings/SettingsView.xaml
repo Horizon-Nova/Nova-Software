@@ -5,7 +5,6 @@
              xmlns:local="clr-namespace:Vaeron.HelixStudio.Settings"
              xmlns:root="clr-namespace:Vaeron.HelixStudio.Internal.Runtime;assembly=Vaeron.HelixStudio.Internal.Runtime"
              xmlns:components="clr-namespace:Vaeron.HelixStudio.Internal.Runtime.Components;assembly=Vaeron.HelixStudio.Internal.Runtime"
-             xmlns:runtime="clr-namespace:Vaeron.HelixStudio.Internal.Runtime.Themes;assembly=Vaeron.HelixStudio.Internal.Runtime"
              Loaded="OnLoaded" Unloaded="OnUnloaded">
     <UserControl.Resources>
         <eventLog:SeverityToTextConverter x:Key="SeverityToText" />
@@ -99,7 +98,7 @@
             <TextBlock Text="設定" Style="{StaticResource BaseTextStyle}"
                        FontSize="{StaticResource FontSizeH1}" FontWeight="{DynamicResource FontWeightStrong}" Margin="0,0,0,12" />
             <TextBox Style="{StaticResource AppSearchBoxStyle}" Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                     runtime:TextBoxPlaceholder.Text="搜尋設定項目" ToolTip="搜尋設定項目" Margin="0,0,0,8" />
+                     Tag="搜尋設定項目" ToolTip="搜尋設定項目" Margin="0,0,0,8" />
             <ItemsControl ItemsSource="{Binding Categories}" ItemTemplate="{StaticResource CategoryNavTemplate}" />
             <TextBlock Text="沒有符合條件的設定項目" Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource TextMutedBrush}"
                        TextWrapping="Wrap" Margin="0,8,0,0"
@@ -137,9 +136,9 @@
                                     <ColumnDefinition Width="8" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBox Grid.Column="0" Style="{StaticResource AppTextBoxStyle}" runtime:TextBoxPlaceholder.Text="名稱"
+                                <TextBox Grid.Column="0" Style="{StaticResource AppTextBoxStyle}" Tag="名稱"
                                          Text="{Binding NewWorkspaceName, UpdateSourceTrigger=PropertyChanged}" />
-                                <TextBox Grid.Column="2" Style="{StaticResource AppTextBoxStyle}" runtime:TextBoxPlaceholder.Text="描述（選填）"
+                                <TextBox Grid.Column="2" Style="{StaticResource AppTextBoxStyle}" Tag="描述（選填）"
                                          Text="{Binding NewWorkspaceDescription, UpdateSourceTrigger=PropertyChanged}" />
                                 <Button Grid.Column="4" Content="新增" Style="{StaticResource PrimaryButtonStyle}"
                                         Command="{Binding ApplyAddWorkspaceCommand}" />

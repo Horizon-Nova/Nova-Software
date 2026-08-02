@@ -1,0 +1,145 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Vaeron.Kernel</name>
+    </assembly>
+    <members>
+        <member name="T:Vaeron.Kernel.Composition.RegisterAttribute">
+            <summary>
+            標記此型別由產生器自動註冊。
+            產生器透過語意模型於編譯期讀取,生成的程式碼不引用本屬性。
+            </summary>
+        </member>
+        <member name="T:Vaeron.Kernel.Guarding.Guard">
+             <summary>
+             無呼叫方情境下的例外出口。
+            
+             適用於框架簽名強制為 void 的位置：事件處理常式、計時器回呼、
+             資源釋放、背景迴圈的單一工作。這些位置沒有呼叫方能接收 Result,
+             例外若不在此攔截即逃逸至全域處理或終止程序。
+            
+             本型別不決定任何事：後續行為由呼叫端以失敗處置委派指定。
+             失敗處置的契約是絕不擲出——它不受本型別保護,擲出將直接逸出。
+             </summary>
+        </member>
+        <member name="T:Vaeron.Kernel.Handles.SafeHandleBase">
+            <summary>
+            非受管 handle 的基底。SafeHandle 提供關鍵完成項,
+            防止 handle 被提早回收或被作業系統回收後再利用。有它即不需自寫 finalizer。
+            </summary>
+        </member>
+        <member name="T:Vaeron.Kernel.Identity.StronglyTypedId`1">
+             <summary>
+             Guid 識別碼的強型別包裝。
+            
+             TEntity 只作型別標記,不要求任何實際關聯——用途是讓兩個底層同為 Guid 的識別碼
+             在編譯期無法互相誤用(把 UserId 傳進要 OrderId 的參數,編譯器擋得住)。
+            
+             轉換一律 explicit。若開放 implicit,任何裸 Guid 都能無聲通過型別檢查,
+             本型別要解決的問題就消失,等於沒加。
+            
+             不依賴任何套件：IParsable / IComparable 皆為 BCL 原生介面。
+             MVC 路由繫結會自動使用 IParsable,WPF 不使用它也能編譯——
+             本型別對宿主框架無假設。
+             </summary>
+        </member>
+        <member name="M:Vaeron.Kernel.Identity.StronglyTypedId`1.#ctor(System.Guid)">
+             <summary>
+             Guid 識別碼的強型別包裝。
+            
+             TEntity 只作型別標記,不要求任何實際關聯——用途是讓兩個底層同為 Guid 的識別碼
+             在編譯期無法互相誤用(把 UserId 傳進要 OrderId 的參數,編譯器擋得住)。
+            
+             轉換一律 explicit。若開放 implicit,任何裸 Guid 都能無聲通過型別檢查,
+             本型別要解決的問題就消失,等於沒加。
+            
+             不依賴任何套件：IParsable / IComparable 皆為 BCL 原生介面。
+             MVC 路由繫結會自動使用 IParsable,WPF 不使用它也能編譯——
+             本型別對宿主框架無假設。
+             </summary>
+        </member>
+        <member name="T:Vaeron.Kernel.Identity.StronglyTypedIdJsonConverterFactory">
+             <summary>
+             序列化為純值(字串化 Guid),不是 { "Value": "..." } 物件包裝——
+             消費端拿到的是識別碼本身,不需要知道強型別包裝的存在。
+            
+             註冊位置依宿主而異,不由本組件決定：
+               Web 宿主 — services.Configure&lt;JsonOptions&gt;(o =&gt; o.SerializerOptions.Converters.Add(new StronglyTypedIdJsonConverterFactory()));
+               其他宿主 — 加入自建的 JsonSerializerOptions.Converters
+             兩者用同一顆型別、同一個轉換器,只有註冊位置不同。
+             </summary>
+        </member>
+        <member name="T:Vaeron.Kernel.Lifecycle.IManagedLifetime">
+            <summary>
+            常駐、有狀態、可能失敗的資源。
+            補的是平台空缺：背景服務失敗時框架不監控不重啟,預設行為會停掉整個進程;
+            釋放介面只管釋放,不管是否重試。中間的處置策略由本契約承載。
+            刻意最小：只有狀態與恢復。
+            </summary>
+        </member>
+        <member name="T:Vaeron.Kernel.Lifecycle.RecoveryPolicy">
+            <summary>
+            恢復策略。判準取自 ResultKind 的可重試區分,不另立分類。
+            無條件重試會使永久性故障看起來像暫時性故障。
+            </summary>
+        </member>
+        <member name="T:Vaeron.Kernel.Paths">
+            <summary>
+            路徑唯一解析點。
+            single-file 發佈時組件位置回傳空字串,故路徑不得由組件位置推導。
+            </summary>
+        </member>
+        <member name="P:Vaeron.Kernel.Paths.Roaming">
+            <summary>可漫遊的使用者資料：設定、憑證。</summary>
+        </member>
+        <member name="P:Vaeron.Kernel.Paths.Local">
+            <summary>本機使用者資料：快取、日誌、大型資產。</summary>
+        </member>
+        <member name="P:Vaeron.Kernel.Paths.InstallDirectory">
+            <summary>安裝目錄。唯讀,不得寫入。</summary>
+        </member>
+        <member name="T:Vaeron.Kernel.ResultKind">
+            <summary>失敗的種類。呼叫方依此決定重試、提示、或放棄。</summary>
+        </member>
+        <member name="T:Vaeron.Kernel.Result">
+            <summary>無回傳值的操作結果。</summary>
+        </member>
+        <member name="P:Vaeron.Kernel.Result.IsRetryable">
+            <summary>重試是否有意義。恢復策略以此為判準。</summary>
+        </member>
+        <member name="T:Vaeron.Kernel.Result`1">
+            <summary>帶回傳值的操作結果。</summary>
+        </member>
+        <member name="T:Vaeron.Kernel.Secrets.SecretBuffer">
+             <summary>
+             敏感值的承載體。
+            
+             承諾範圍：本執行個體持有的那一份位元組會在釋放時被歸零。
+             不承諾：敏感值不存在於記憶體其他位置。回收行程移動物件時會複製,
+             舊位置不會被歸零;任何轉為字串的動作會產生無法清除的副本。
+             本型別縮短曝光窗口,不消除曝光。
+            
+             歸零使用 CryptographicOperations.ZeroMemory 而非陣列清除,
+             後者可能被最佳化為無用寫入而移除。
+             </summary>
+        </member>
+        <member name="M:Vaeron.Kernel.Secrets.SecretBuffer.#ctor(System.Byte[])">
+            <summary>接管傳入的陣列。呼叫端交出所有權,不得再持有該參考。</summary>
+        </member>
+        <member name="M:Vaeron.Kernel.Secrets.SecretBuffer.Use(System.Action{System.ReadOnlySpan{System.Byte}})">
+            <summary>
+            借出唯讀視窗。不外洩內部陣列參考,呼叫端無法在委派結束後繼續存取。
+            已釋放後呼叫為程式錯誤,擲出例外而非回傳失敗值。
+            </summary>
+        </member>
+        <member name="M:Vaeron.Kernel.Secrets.SecretBuffer.Use``1(Vaeron.Kernel.Secrets.SpanReader{``0})">
+            <summary>借出唯讀視窗並回傳結果。</summary>
+        </member>
+        <member name="M:Vaeron.Kernel.Secrets.SecretBuffer.Dispose">
+            <summary>冪等。重複呼叫不擲出。</summary>
+        </member>
+        <member name="T:Vaeron.Kernel.Secrets.SpanReader`1">
+            <summary>唯讀視窗的取用委派。ReadOnlySpan 無法作為泛型型別引數,故需具名委派。</summary>
+        </member>
+    </members>
+</doc>

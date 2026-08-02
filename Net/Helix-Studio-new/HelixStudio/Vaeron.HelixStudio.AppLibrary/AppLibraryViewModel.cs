@@ -100,7 +100,7 @@ public sealed partial class AppLibraryViewModel(
     {
         var dialog = new Microsoft.Win32.OpenFileDialog
         {
-            Filter = "可安裝工具 (*.exe;*.msi;*.zip)|*.exe;*.msi;*.zip",
+            Filter = "可安裝工具 (*.exe;*.zip)|*.exe;*.zip",
             Title = "選擇要匯入的工具",
         };
         if (dialog.ShowDialog() != true) return;

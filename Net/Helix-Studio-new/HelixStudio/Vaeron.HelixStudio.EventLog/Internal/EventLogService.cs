@@ -49,18 +49,24 @@ internal sealed class EventLogService(EventLogStore store)
         return Ok("已記錄");
     }
 
-    /// <summary>供 EventLogAuditSink 使用：自動攔截寫入不經過 MinLevel 門檻——門檻是給角色 B
-    /// （工具生命週期事件的手動記錄方）用來降噪的機制，自動攔截的定位是「全部都要留痕」，兩者用途不同，
-    /// 此方法故意繞過 RecordEventAsync 的門檻判斷，不是門檻邏輯的缺陷或遺漏。
+    /// <summary>供 EventLogAuditSink 使用：FacadeAuditProxy 攔截「全部」Feature 的「全部」方法呼叫，
+    /// 絕大多數是成功的 Function 之間互動（Info 分層）——這不是使用者需要在資料庫看到的內容，
+    /// 故自動攔截寫入固定排除 Info，只留 Warning／Error（實際失敗或例外）；使用者若想再收斂
+    /// （例如只留 Error），到「設定 > 日誌」把 MinLevel 調更高即可套用到這裡，兩者共用同一套
+    /// 既有分層，不必另外寫一套判斷邏輯。
     ///
-    /// 刻意不觸發 Changed：FacadeAuditProxy 攔截「全部」Feature 的「全部」方法呼叫，包含
-    /// MainShellViewModel.ApplyRefreshStatusBarAsync 這類會被 EventsChanged 觸發、
-    /// 而它自己又會呼叫多個會被攔截的 Facade 方法的處理常式——若這裡也觸發 Changed，
+    /// 仍然刻意不觸發 Changed：MainShellViewModel.ApplyRefreshStatusBarAsync 這類會被 EventsChanged
+    /// 觸發、而它自己又會呼叫多個會被攔截的 Facade 方法的處理常式，若這裡也觸發 Changed，
     /// 「攔截寫入→觸發 Changed→UI 重新整理→呼叫更多會被攔截的方法→再次觸發 Changed」
     /// 會形成指數成長的迴圈（實測：APP 啟動後數十秒內 event 資料表暴增到六千多筆，UI 卡死）。
     /// 不觸發即時推播本來就是本主題既有的非目標（見第 1 段「不做什麼」），此處不是缺陷。</summary>
     public async Task RecordAutomaticEventAsync(RecordEventRequest request)
     {
+        if (request.Severity == EventSeverity.Info) return;
+
+        var settings = await LoadLogSettingsAsync();
+        if (request.Severity < settings.MinLevel) return;
+
         await store.InsertEventAsync(new EventEntryRow
         {
             workspace_id = request.WorkspaceId,

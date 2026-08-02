@@ -31,8 +31,6 @@ public interface ISettingsFacade
 
     public Task ApplyReconcileStartupRegistrationAsync();
 
-    public Task ApplyReconcilePowerSettingsAsync();
-
     public Task<Result> ApplyExecuteSleepNowAsync();
 
     public Task<Result> ApplyExecuteHibernateNowAsync();

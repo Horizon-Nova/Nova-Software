@@ -1,10 +1,13 @@
 using System.IO;
+using System.IO.Compression;
 using Microsoft.EntityFrameworkCore;
 using Vaeron.HelixStudio.AppLibrary.Internal.Models;
 
 namespace Vaeron.HelixStudio.AppLibrary.Internal;
 
 internal sealed record StageImportFileRequest(string SourcePath, string DestPath);
+
+internal sealed record ExtractZipRequest(string SourceZipPath, string DestDir);
 
 internal sealed record FileSizeResult(long Bytes);
 
@@ -68,5 +71,15 @@ internal sealed class AppLibraryStore(IDbContextFactory<AppLibraryDbContext> dbF
     {
         Directory.CreateDirectory(Path.GetDirectoryName(request.DestPath) ?? ".");
         File.Copy(request.SourcePath, request.DestPath, overwrite: true);
+    }
+
+    /// <summary>解壓 zip 套件到目的資料夾。目的資料夾若已存在（同名工具重新匯入）先整個清空再解壓，
+    /// 避免舊套件殘留檔案與新套件混在一起。ZipFile.ExtractToDirectory 本身即會拒絕解壓到
+    /// 目的資料夾以外的路徑（zip slip），不需要額外處理。</summary>
+    public void ExtractZip(ExtractZipRequest request)
+    {
+        if (Directory.Exists(request.DestDir)) Directory.Delete(request.DestDir, recursive: true);
+        Directory.CreateDirectory(request.DestDir);
+        ZipFile.ExtractToDirectory(request.SourceZipPath, request.DestDir);
     }
 }

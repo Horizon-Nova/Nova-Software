@@ -2,7 +2,6 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Vaeron.HelixStudio.AppLibrary"
-             xmlns:runtime="clr-namespace:Vaeron.HelixStudio.Internal.Runtime.Themes;assembly=Vaeron.HelixStudio.Internal.Runtime"
              Loaded="OnLoaded" Unloaded="OnUnloaded"
              AllowDrop="True" DragEnter="OnDragEnter" Drop="OnDrop">
     <UserControl.Resources>
@@ -24,11 +23,11 @@
 
         <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
             <TextBox Width="240" Style="{StaticResource AppSearchBoxStyle}"
-                     runtime:TextBoxPlaceholder.Text="搜尋工具名稱"
+                     Tag="搜尋工具名稱"
                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
             <Button Content="匯入工具..." Style="{StaticResource PrimaryButtonStyle}" Margin="8,0,0,0"
                     Command="{Binding ApplyImportCommand}" />
-            <TextBlock Text="（或直接把 .exe/.msi/.zip 拖放到本頁面匯入）" VerticalAlignment="Center" Margin="8,0,0,0"
+            <TextBlock Text="（或直接把 .exe/.zip 拖放到本頁面匯入）" VerticalAlignment="Center" Margin="8,0,0,0"
                        Style="{StaticResource BaseTextStyle}" Foreground="{DynamicResource TextMutedBrush}"
                        FontSize="{StaticResource FontSizeXs}" />
             <TextBlock Text="{Binding ImportFeedback}" VerticalAlignment="Center" Margin="8,0,0,0"
