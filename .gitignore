@@ -103,7 +103,6 @@ _ReSharper*/
 hs_err_pid*
 target/
 .gradle/
-build/
 !gradle-wrapper.jar
 .gradletasknamecache
 

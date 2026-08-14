@@ -1,0 +1,466 @@
+<Window x:Class="Vaeron.HelixStudio.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:c="clr-namespace:Vaeron.HelixStudio.App.Controls"
+        x:Name="Root"
+        Title="Helix Studio"
+        Icon="Assets/Vaeron_icon.ico"
+        Width="1440" Height="900" MinWidth="1024" MinHeight="640"
+        ResizeMode="CanResize"
+        Background="{StaticResource BgPage}"
+        Foreground="{StaticResource Text1}"
+        FontFamily="Noto Sans TC, Microsoft JhengHei, Segoe UI"
+        FontSize="{StaticResource FsBase}"
+        TextOptions.TextFormattingMode="Ideal">
+
+  <shell:WindowChrome.WindowChrome>
+    <shell:WindowChrome CaptionHeight="{Binding ActualWidth, ElementName=Root, Converter={StaticResource UiFluidBarTop}}"
+                        GlassFrameThickness="0" CornerRadius="0" ResizeBorderThickness="6"
+                        UseAeroCaptionButtons="False" />
+  </shell:WindowChrome.WindowChrome>
+
+  <Window.Resources>
+    <ControlTemplate x:Key="OverlayTemplate" TargetType="Button">
+      <Border Background="Transparent" />
+    </ControlTemplate>
+
+    <Style x:Key="IconButton" TargetType="Button">
+      <Setter Property="Width" Value="{StaticResource BtnIcon}" />
+      <Setter Property="Height" Value="{StaticResource BtnIcon}" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{StaticResource Text2}" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Surface" Background="{TemplateBinding Background}" CornerRadius="{StaticResource RadiusMd}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Surface" Property="Background" Value="{StaticResource BgHover}" />
+              </Trigger>
+              <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Opacity" Value="0.35" />
+                <Setter Property="Cursor" Value="Arrow" />
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style x:Key="WindowButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+      <Setter Property="Width" Value="39.1" />
+    </Style>
+
+    <Style x:Key="RailButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+      <Setter Property="Width" Value="{StaticResource BtnIconLg}" />
+      <Setter Property="Height" Value="{StaticResource BtnIconLg}" />
+      <Setter Property="Margin" Value="0,0,0,4" />
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding IsActive}" Value="True">
+          <Setter Property="Background" Value="{StaticResource AccentTint}" />
+          <Setter Property="Foreground" Value="{StaticResource AccentText}" />
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+
+    <Style x:Key="RowButton" TargetType="Button">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{StaticResource Text1}" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+      <Setter Property="Padding" Value="9,7" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="Surface" Background="{TemplateBinding Background}"
+                    CornerRadius="{StaticResource RadiusMd}" Padding="{TemplateBinding Padding}">
+              <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Surface" Property="Background" Value="{StaticResource BgHover}" />
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <Style x:Key="LinkButton" TargetType="Button">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <ContentPresenter VerticalAlignment="Center" />
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+      <Style.Triggers>
+        <Trigger Property="IsMouseOver" Value="True">
+          <Setter Property="Opacity" Value="0.85" />
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+
+    <Style x:Key="StatusText" TargetType="TextBlock">
+      <Setter Property="Foreground" Value="{StaticResource AccentOnSolid}" />
+      <Setter Property="FontSize" Value="{StaticResource FsSm}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- 導覽切換後重新出現的內容：淡入並自下方 4 位移歸位。左側資訊欄與主內容區共用同一份。 -->
+    <Style x:Key="NavTransitionContent" TargetType="FrameworkElement">
+      <Style.Triggers>
+        <DataTrigger Binding="{Binding NavContentLoading}" Value="False">
+          <DataTrigger.EnterActions>
+            <BeginStoryboard>
+              <Storyboard>
+                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                 From="0" To="1" Duration="0:0:0.25" />
+                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                                 From="4" To="0" Duration="0:0:0.25" />
+              </Storyboard>
+            </BeginStoryboard>
+          </DataTrigger.EnterActions>
+        </DataTrigger>
+      </Style.Triggers>
+    </Style>
+
+    <!-- 載入中的骨架方塊：三塊共用同一份脈動節奏，只有尺寸與底色不同。 -->
+    <Style x:Key="SkeletonBar" TargetType="Border">
+      <Setter Property="CornerRadius" Value="{StaticResource RadiusSm}" />
+      <Setter Property="Background" Value="{StaticResource Skeleton}" />
+      <Style.Triggers>
+        <EventTrigger RoutedEvent="Loaded">
+          <BeginStoryboard>
+            <Storyboard>
+              <DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.45"
+                               Duration="0:0:0.7" AutoReverse="True" RepeatBehavior="Forever" />
+            </Storyboard>
+          </BeginStoryboard>
+        </EventTrigger>
+      </Style.Triggers>
+    </Style>
+
+    <DataTemplate x:Key="NavItemTemplate">
+      <Button Style="{StaticResource RailButton}"
+              Command="{Binding DataContext.SetActiveNavCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+              CommandParameter="{Binding Id}"
+              ToolTip="{Binding Label}">
+        <c:IconControl IconName="{Binding Icon}" FontSize="{StaticResource FsLg}" />
+      </Button>
+    </DataTemplate>
+
+    <DataTemplate x:Key="ChatMessageTemplate">
+      <Border x:Name="Bubble" MaxWidth="300" Margin="0,0,0,12" Padding="8,8"
+              CornerRadius="{StaticResource RadiusMd}" Background="{StaticResource BgHover}"
+              HorizontalAlignment="Left">
+        <TextBlock x:Name="BubbleText" Text="{Binding Text}" TextWrapping="Wrap"
+                   FontSize="{StaticResource FsSm}" LineHeight="23" Foreground="{StaticResource Text1}" />
+      </Border>
+      <DataTemplate.Triggers>
+        <DataTrigger Binding="{Binding Who}" Value="user">
+          <Setter TargetName="Bubble" Property="HorizontalAlignment" Value="Right" />
+          <Setter TargetName="Bubble" Property="Background" Value="{StaticResource AccentTint}" />
+          <Setter TargetName="BubbleText" Property="Foreground" Value="{StaticResource AccentText}" />
+        </DataTrigger>
+      </DataTemplate.Triggers>
+    </DataTemplate>
+  </Window.Resources>
+
+  <Border Background="{StaticResource BgPage}">
+    <Border.Style>
+      <Style TargetType="Border">
+        <Setter Property="Padding" Value="0" />
+        <Style.Triggers>
+          <DataTrigger Binding="{Binding WindowState, ElementName=Root}" Value="Maximized">
+            <Setter Property="Padding" Value="{StaticResource MaximizedFrameCompensation}" />
+          </DataTrigger>
+        </Style.Triggers>
+      </Style>
+    </Border.Style>
+
+  <Grid>
+    <Grid.LayoutTransform>
+      <ScaleTransform ScaleX="{Binding ActualWidth, ElementName=Root, Converter={StaticResource UiFluidConverter}}"
+                      ScaleY="{Binding ActualWidth, ElementName=Root, Converter={StaticResource UiFluidConverter}}" />
+    </Grid.LayoutTransform>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <!-- 頂欄（兼標題列）。ZIndex 高於遮罩，讓自訂版面配置下拉能疊在主體之上。 -->
+    <Border Grid.Row="0" Panel.ZIndex="2" Height="{StaticResource BarTop}"
+            Background="{StaticResource BgSurface}"
+            BorderBrush="{StaticResource Border}" BorderThickness="0,0,0,1"
+            Padding="{StaticResource PadBarThickness}" TextElement.FontSize="{StaticResource FsLg}">
+      <DockPanel LastChildFill="False">
+        <Button DockPanel.Dock="Left" Style="{StaticResource IconButton}" ToolTip="搜尋">
+          <c:IconControl IconName="search" />
+        </Button>
+        <Button DockPanel.Dock="Left" Style="{StaticResource IconButton}" ToolTip="上一頁"
+                Command="{Binding GoBackCommand}" IsEnabled="{Binding CanGoBack}">
+          <c:IconControl IconName="chevron-left" />
+        </Button>
+        <Button DockPanel.Dock="Left" Style="{StaticResource IconButton}" ToolTip="下一頁"
+                Command="{Binding GoForwardCommand}" IsEnabled="{Binding CanGoForward}">
+          <c:IconControl IconName="chevron-right" />
+        </Button>
+
+        <Button DockPanel.Dock="Right" Style="{StaticResource WindowButton}" ToolTip="關閉" Click="OnCloseWindow">
+          <c:IconControl IconName="x" />
+        </Button>
+        <Button DockPanel.Dock="Right" ToolTip="還原" Click="OnRestoreWindow">
+          <Button.Style>
+            <Style TargetType="Button" BasedOn="{StaticResource WindowButton}">
+              <Setter Property="Visibility" Value="Collapsed" />
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding WindowState, ElementName=Root}" Value="Maximized">
+                  <Setter Property="Visibility" Value="Visible" />
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </Button.Style>
+          <c:IconControl IconName="restore" />
+        </Button>
+        <Button DockPanel.Dock="Right" ToolTip="最大化" Click="OnMaximizeWindow">
+          <Button.Style>
+            <Style TargetType="Button" BasedOn="{StaticResource WindowButton}">
+              <Setter Property="Visibility" Value="Visible" />
+              <Style.Triggers>
+                <DataTrigger Binding="{Binding WindowState, ElementName=Root}" Value="Maximized">
+                  <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+              </Style.Triggers>
+            </Style>
+          </Button.Style>
+          <c:IconControl IconName="square" />
+        </Button>
+        <Button DockPanel.Dock="Right" Style="{StaticResource WindowButton}" ToolTip="最小化" Click="OnMinimizeWindow">
+          <c:IconControl IconName="minus" />
+        </Button>
+
+        <Grid DockPanel.Dock="Right" Margin="4,0,4,0">
+          <Button Style="{StaticResource IconButton}" ToolTip="事件通知" Command="{Binding GoToEventsCommand}">
+            <Grid Width="{StaticResource FsLg}" Height="{StaticResource FsLg}">
+              <c:IconControl IconName="bell" />
+              <Border Background="{StaticResource NotifyDot}" CornerRadius="6" MinWidth="12" Height="12"
+                      Padding="3,0" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-3,-4,0"
+                      Visibility="{Binding HasEventBadge, Converter={StaticResource BoolToVisibilityConverter}}">
+                <TextBlock Text="{Binding ActiveWorkspace.EventBadge}" Foreground="{StaticResource OnAccent}"
+                           FontSize="8" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+            </Grid>
+          </Button>
+        </Grid>
+        <Border DockPanel.Dock="Right" Width="1" Height="17.6" Background="{StaticResource Border}"
+                Margin="4,0,4,0" VerticalAlignment="Center" />
+        <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" ToolTip="收合／展開 AI 助理面板"
+                Command="{Binding AiPanel.ToggleCommand}">
+          <c:IconControl IconName="panel-right" />
+        </Button>
+        <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" ToolTip="收合／展開左側面板"
+                Command="{Binding SidePanel.ToggleCommand}">
+          <c:IconControl IconName="panel-left" />
+        </Button>
+
+        <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" ToolTip="自訂版面配置"
+                Command="{Binding OpenCustomizeLayoutCommand}">
+          <c:IconControl IconName="layout-panel-left" />
+        </Button>
+      </DockPanel>
+    </Border>
+
+    <!-- 主體：圖示軌／左側資訊欄／主內容／AI 助理欄 -->
+    <Grid Grid.Row="1">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+
+      <Border Grid.Column="0" Width="{StaticResource ColRail}" Background="{StaticResource BgSidebar}"
+              BorderBrush="{StaticResource Border}" BorderThickness="0,0,1,0" Padding="0,14">
+        <DockPanel>
+          <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding MainNav}"
+                        ItemTemplate="{StaticResource NavItemTemplate}" HorizontalAlignment="Center" />
+          <Border DockPanel.Dock="Top" Width="28" Height="1" Background="{StaticResource Border}"
+                  Margin="0,10,0,6" HorizontalAlignment="Center" />
+          <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding ToolsNav}"
+                        ItemTemplate="{StaticResource NavItemTemplate}" HorizontalAlignment="Center" />
+          <ItemsControl DockPanel.Dock="Bottom" ItemsSource="{Binding SettingsNav}"
+                        ItemTemplate="{StaticResource NavItemTemplate}" HorizontalAlignment="Center" />
+          <Grid />
+        </DockPanel>
+      </Border>
+
+      <Border Grid.Column="1" Width="{StaticResource ColSide}" Margin="0,0,8,0"
+              Background="{StaticResource BgSurface}" BorderBrush="{StaticResource Border}" BorderThickness="1"
+              CornerRadius="{StaticResource RadiusPanel}" Padding="{StaticResource PadPanelThickness}"
+              Visibility="{Binding SidePanelVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+        <StackPanel Style="{StaticResource NavTransitionContent}">
+          <StackPanel.RenderTransform>
+            <TranslateTransform />
+          </StackPanel.RenderTransform>
+          <TextBlock Text="{Binding ActiveLabel}" FontWeight="Bold" FontSize="{StaticResource FsLg}"
+                     Foreground="{StaticResource Text1}" TextWrapping="Wrap" />
+          <TextBlock Margin="0,6,0,0" FontSize="{StaticResource FsSm}" LineHeight="22"
+                     Foreground="{StaticResource Text3}" TextWrapping="Wrap">
+            <Run Text="此區塊為版面佔位，之後會顯示「" /><Run
+              Text="{Binding ActiveLabel, Mode=OneWay}" /><Run Text="」對應的子項目或篩選內容。" />
+          </TextBlock>
+        </StackPanel>
+      </Border>
+
+      <Border Grid.Column="2" Background="{StaticResource BgSurface}" BorderBrush="{StaticResource Border}"
+              BorderThickness="1" CornerRadius="{StaticResource RadiusPanel}"
+              Padding="{StaticResource PadPanelThickness}">
+        <Grid>
+          <!-- 目前導覽目的地的畫面。內容由 MainWindow 依 ActiveNavId 自註冊表取出。 -->
+          <ContentControl x:Name="ScreenHost" Style="{StaticResource NavTransitionContent}">
+            <ContentControl.RenderTransform>
+              <TranslateTransform />
+            </ContentControl.RenderTransform>
+          </ContentControl>
+
+          <Grid Background="{StaticResource BgSurface}"
+                Visibility="{Binding NavContentLoading, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Border Grid.Row="0" Style="{StaticResource SkeletonBar}" Width="120" Height="16"
+                    HorizontalAlignment="Left" Margin="0,0,0,10" />
+            <Border Grid.Row="1" Style="{StaticResource SkeletonBar}" Width="220" Height="11"
+                    HorizontalAlignment="Left" Margin="0,0,0,10" />
+            <Border Grid.Row="2" Style="{StaticResource SkeletonBar}"
+                    Background="{StaticResource BgHover}" CornerRadius="{StaticResource RadiusPanel}" />
+          </Grid>
+        </Grid>
+      </Border>
+
+      <Border Grid.Column="3" Width="{StaticResource ColAi}" Margin="8,0,8,0"
+              Background="{StaticResource BgSurface}" BorderBrush="{StaticResource Border}" BorderThickness="1"
+              CornerRadius="{StaticResource RadiusPanel}" Padding="{StaticResource PadPanelThickness}"
+              Visibility="{Binding AiPanel.IsOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+        <DockPanel>
+          <Border DockPanel.Dock="Bottom" Margin="0,10,0,0" Background="{StaticResource BgPage}"
+                  BorderBrush="{StaticResource Border}" BorderThickness="1"
+                  CornerRadius="{StaticResource RadiusInner}" Padding="10">
+            <StackPanel>
+              <TextBlock Text="輸入訊息…" MinHeight="51" FontSize="{StaticResource FsSm}"
+                         Foreground="{StaticResource Text3}" />
+              <DockPanel LastChildFill="False" Margin="0,8,0,0">
+                <Button DockPanel.Dock="Left" Style="{StaticResource IconButton}" ToolTip="附加檔案">
+                  <c:IconControl IconName="plus" />
+                </Button>
+                <Button DockPanel.Dock="Left" Style="{StaticResource IconButton}" ToolTip="語音輸入">
+                  <c:IconControl IconName="mic" />
+                </Button>
+                <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" ToolTip="送出"
+                        Background="{StaticResource AccentSolid}" Foreground="{StaticResource OnAccent}">
+                  <c:IconControl IconName="send" />
+                </Button>
+              </DockPanel>
+            </StackPanel>
+          </Border>
+          <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding ChatMessages}" ItemTemplate="{StaticResource ChatMessageTemplate}"
+                          HorizontalContentAlignment="Stretch" Margin="0,0,4,0" />
+          </ScrollViewer>
+        </DockPanel>
+      </Border>
+    </Grid>
+
+    <!-- 狀態列 -->
+    <Border Grid.Row="2" Height="{StaticResource BarBottom}" Background="{StaticResource AccentSolid}"
+            Padding="{StaticResource PadBarThickness}"
+            Visibility="{Binding StatusBar.IsOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+      <DockPanel LastChildFill="False">
+        <Border DockPanel.Dock="Left" Width="6.4" Height="6.4" CornerRadius="{StaticResource RadiusSm}"
+                Background="{StaticResource AccentOnSolid}" VerticalAlignment="Center" Margin="0,0,6,0" />
+        <TextBlock DockPanel.Dock="Left" Style="{StaticResource StatusText}"
+                   Text="{Binding ActiveWorkspace.WorkspaceName}" Margin="0,0,14.4,0" />
+        <TextBlock DockPanel.Dock="Left" Style="{StaticResource StatusText}">
+          <Run Text="執行中 " /><Run Text="{Binding ActiveWorkspace.RunningCount, Mode=OneWay}" />
+        </TextBlock>
+
+        <TextBlock DockPanel.Dock="Right" Style="{StaticResource StatusText}"
+                   Text="{Binding ActiveWorkspace.Version}" />
+        <TextBlock DockPanel.Dock="Right" Style="{StaticResource StatusText}" Text="·" Opacity="0.6"
+                   Margin="14.4,0,14.4,0" />
+        <Button DockPanel.Dock="Right" Style="{StaticResource LinkButton}" Command="{Binding GoToEventsCommand}">
+          <TextBlock Style="{StaticResource StatusText}" TextDecorations="Underline">
+            <Run Text="事件 " /><Run Text="{Binding ActiveWorkspace.EventCount, Mode=OneWay}" />
+          </TextBlock>
+        </Button>
+        <TextBlock DockPanel.Dock="Right" Style="{StaticResource StatusText}" Text="|" Opacity="0.6"
+                   Margin="14.4,0,14.4,0" />
+        <TextBlock DockPanel.Dock="Right" Style="{StaticResource StatusText}">
+          <Run Text="RAM " /><Run Text="{Binding ActiveWorkspace.RamUsedMB, Mode=OneWay}" /><Run Text=" · CPU " /><Run
+            Text="{Binding ActiveWorkspace.CpuPercent, Mode=OneWay}" />
+        </TextBlock>
+      </DockPanel>
+    </Border>
+
+    <!-- 遮罩：蓋滿整個視窗，點任何一處都收掉下拉。 -->
+    <Button Grid.RowSpan="3" Panel.ZIndex="3" Template="{StaticResource OverlayTemplate}"
+            shell:WindowChrome.IsHitTestVisibleInChrome="True"
+            Command="{Binding CloseCustomizeCommand}"
+            Visibility="{Binding CustomizeOpen, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+    <!-- 自訂版面配置下拉：疊在遮罩之上。右邊距＝它右側那些鈕的寬度總和
+         （欄外距 16 ＋ 三顆視窗鈕 39.1×3 ＋ 通知鈕 34+8 ＋ 分隔線 1+8 ＋ 兩顆面板鈕 34×2），
+         使它的右緣對齊自訂版面配置鈕的右緣。 -->
+    <Border Grid.RowSpan="3" Panel.ZIndex="4" HorizontalAlignment="Right" VerticalAlignment="Top"
+            Margin="0,51.5,252.3,0" MinWidth="320"
+            shell:WindowChrome.IsHitTestVisibleInChrome="True"
+            Background="{StaticResource BgSurface}" BorderBrush="{StaticResource Border}"
+            BorderThickness="1" CornerRadius="{StaticResource RadiusPanel}" Padding="6"
+            Visibility="{Binding CustomizeOpen, Converter={StaticResource BoolToVisibilityConverter}}">
+      <Border.Effect>
+        <DropShadowEffect BlurRadius="32" ShadowDepth="12" Direction="270" Opacity="0.28" Color="#1E2832" />
+      </Border.Effect>
+      <StackPanel>
+        <TextBlock Text="顯示項目" Margin="9,6,9,6" FontWeight="Bold"
+                   FontSize="{StaticResource FsSm}" Foreground="{StaticResource Text3}" />
+        <ItemsControl ItemsSource="{Binding LayoutOptions}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <Button Style="{StaticResource RowButton}" Command="{Binding ToggleCommand}">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+                  <Border Grid.Column="0" Width="17.6" Margin="0,0,8,0">
+                    <c:IconControl IconName="check" Foreground="{StaticResource AccentText}"
+                                   Visibility="{Binding IsOpen, Converter={StaticResource BoolToVisibilityConverter}}" />
+                  </Border>
+                  <TextBlock Grid.Column="1" Text="{Binding Label}" FontWeight="Medium"
+                             FontSize="{StaticResource FsSm}" VerticalAlignment="Center" />
+                  <TextBlock Grid.Column="2" Text="{Binding Hint}" FontFamily="Consolas"
+                             FontSize="{StaticResource FsSm}" Foreground="{StaticResource Text3}"
+                             VerticalAlignment="Center" />
+                </Grid>
+              </Button>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </Border>
+  </Grid>
+  </Border>
+</Window>

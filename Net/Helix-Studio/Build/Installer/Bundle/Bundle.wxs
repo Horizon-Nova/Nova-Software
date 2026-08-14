@@ -1,0 +1,25 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
+
+  <!-- 把 msi 包成單一 .exe 安裝程式。UpgradeCode 與 msi 的那組刻意不同：
+       Burn 與 Windows Installer 各自維護一份升級鏈。 -->
+  <Bundle Name="$(var.ProductName)"
+          Manufacturer="$(var.Manufacturer)"
+          Version="$(var.ProductVersion)"
+          UpgradeCode="A46AF159-F2E2-4C2E-A5FF-1D74BD461CC4"
+          IconSourceFile="$(var.IconFile)"
+          Copyright="$(var.Copyright)"
+          Compressed="yes">
+
+    <BootstrapperApplication>
+      <bal:WixStandardBootstrapperApplication
+        Theme="hyperlinkLicense"
+        LicenseUrl=""
+        LogoFile="$(var.LogoFile)" />
+    </BootstrapperApplication>
+
+    <Chain>
+      <MsiPackage SourceFile="$(var.MsiFile)" Vital="yes" Compressed="yes" />
+    </Chain>
+  </Bundle>
+</Wix>

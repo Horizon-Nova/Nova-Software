@@ -1,0 +1,10 @@
+<Project>
+  <!-- Release 組態的散佈物。順序即執行順序：後三項都吃 Publish 的產出。
+       要多一種散佈形式，這裡加一列，並在 Package.proj 加同名 Target。 -->
+  <ItemGroup>
+    <PackageArtifact Include="Publish" />
+    <PackageArtifact Include="Msi" />
+    <PackageArtifact Include="Bundle" />
+    <PackageArtifact Include="Portable" />
+  </ItemGroup>
+</Project>

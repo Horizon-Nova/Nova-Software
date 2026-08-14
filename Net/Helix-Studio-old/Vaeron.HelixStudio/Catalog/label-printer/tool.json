@@ -1,9 +1,0 @@
-{
-  "Id": "label-printer",
-  "Name": "標籤列印服務",
-  "CategoryId": "data",
-  "Description": "依生產批次自動列印出貨標籤。",
-  "Version": "2.0.6",
-  "Developer": "官方",
-  "Requirements": "Windows 10 以上／標籤印表機驅動程式"
-}

@@ -1,9 +1,0 @@
-{
-  "Id": "backup-agent",
-  "Name": "設定備份代理",
-  "CategoryId": "maintenance",
-  "Description": "定期備份工作區設定與應用程式清單。",
-  "Version": "1.2.3",
-  "Developer": "官方",
-  "Requirements": "Windows 10 以上"
-}

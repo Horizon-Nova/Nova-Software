@@ -1,0 +1,7 @@
+<Project>
+  <!-- 中央套件版本管理會讓 WiX 擴充套件的 build 目錄注入不到編譯器，
+       打包專案自行帶版本。 -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

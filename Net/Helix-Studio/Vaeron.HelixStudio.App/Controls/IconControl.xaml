@@ -1,0 +1,18 @@
+<UserControl x:Class="Vaeron.HelixStudio.App.Controls.IconControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Name="Root"
+             Width="{Binding FontSize, ElementName=Root}"
+             Height="{Binding FontSize, ElementName=Root}">
+  <Viewbox Stretch="Uniform">
+    <Canvas Width="24" Height="24">
+      <Path x:Name="StrokeShape"
+            Stroke="{Binding Foreground, ElementName=Root}"
+            StrokeThickness="1.8"
+            StrokeStartLineCap="Round"
+            StrokeEndLineCap="Round"
+            StrokeLineJoin="Round" />
+      <Path x:Name="FillShape" Fill="{Binding Foreground, ElementName=Root}" />
+    </Canvas>
+  </Viewbox>
+</UserControl>

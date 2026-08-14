@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 根：不被任何組件引用，產出可執行檔。只做組裝，不含業務判斷。 -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <StartupObject>Vaeron.HelixStudio.App.Program</StartupObject>
+    <AssemblyTitle>Helix Studio</AssemblyTitle>
+    <ApplicationIcon>..\Assets\Vaeron_icon.ico</ApplicationIcon>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 進入點寫在 Program.cs，App.xaml 不再由 SDK 產生 Main。 -->
+    <ApplicationDefinition Remove="App.xaml" />
+    <Page Include="App.xaml" />
+    <!-- 工作列與 Alt+Tab 的視窗圖示。ApplicationIcon 管的是檔案本身的圖示，兩者來源同一個檔。 -->
+    <Resource Include="..\Assets\Vaeron_icon.ico" Link="Assets\Vaeron_icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\Vaeron.HelixStudio.Data\Vaeron.HelixStudio.Data.csproj" />
+    <ProjectReference Include="..\Shared\Vaeron.HelixStudio.Sampling\Vaeron.HelixStudio.Sampling.csproj" />
+    <ProjectReference Include="..\Vaeron.HelixStudio.Shell\Vaeron.HelixStudio.Shell.csproj" />
+    <ProjectReference Include="..\Vaeron.HelixStudio.SystemAssistant\Vaeron.HelixStudio.SystemAssistant.csproj" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+  </ItemGroup>
+</Project>

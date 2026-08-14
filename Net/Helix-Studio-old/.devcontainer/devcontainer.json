@@ -1,9 +1,0 @@
-{
-  "name": "Vaeron Helix-Studio Dev (Build + UIAutomation)",
-  "build": { "dockerfile": "Dockerfile" },
-  "workspaceFolder": "C:\\workspace",
-  "features": {
-    "ghcr.io/devcontainers/features/dotnet:2": { "version": "8.0" }
-  },
-  "postCreateCommand": "dotnet restore"
-}

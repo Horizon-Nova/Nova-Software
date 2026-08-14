@@ -1,0 +1,31 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- 由設計稿 THEME_TOKENS.light 與 accentHue=231／accentChroma=0.11 的 oklch 值換算為 sRGB。 -->
+  <SolidColorBrush x:Key="BgPage" Color="#FBFCFD" />
+  <SolidColorBrush x:Key="BgSurface" Color="#FCFEFF" />
+  <SolidColorBrush x:Key="BgSidebar" Color="#F1F4F6" />
+  <SolidColorBrush x:Key="BgHover" Color="#E4E8EB" />
+  <SolidColorBrush x:Key="Border" Color="#D4D8DB" />
+  <SolidColorBrush x:Key="Skeleton" Color="#DBDFE2" />
+  <SolidColorBrush x:Key="Text1" Color="#171B1F" />
+  <SolidColorBrush x:Key="Text2" Color="#595E63" />
+  <SolidColorBrush x:Key="Text3" Color="#82878B" />
+  <SolidColorBrush x:Key="AccentSolid" Color="#00739C" />
+  <SolidColorBrush x:Key="AccentOnSolid" Color="#F7FDFF" />
+  <SolidColorBrush x:Key="AccentText" Color="#00395D" />
+  <SolidColorBrush x:Key="AccentTint" Color="#C8EBFD" />
+  <SolidColorBrush x:Key="NotifyDot" Color="#B71824" />
+  <SolidColorBrush x:Key="OnAccent" Color="#FFFFFF" />
+
+  <!-- 表格列分隔線、可編輯欄位的邊框與底色、已修改狀態。 -->
+  <SolidColorBrush x:Key="BorderSoft" Color="#E9EBEE" />
+  <SolidColorBrush x:Key="EditBorder" Color="#E6C686" />
+  <SolidColorBrush x:Key="EditBg" Color="#FFF9E4" />
+  <SolidColorBrush x:Key="EditBorderDirty" Color="#D59800" />
+  <SolidColorBrush x:Key="EditBgDirty" Color="#FFEBB1" />
+  <SolidColorBrush x:Key="EditIconDirty" Color="#9B6500" />
+
+  <!-- 佔用熱度。 -->
+  <SolidColorBrush x:Key="StatusWarningText" Color="#7B4D00" />
+  <SolidColorBrush x:Key="StatusErrorText" Color="#AC3225" />
+</ResourceDictionary>

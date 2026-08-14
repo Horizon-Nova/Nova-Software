@@ -1,9 +1,0 @@
-{
-  "Id": "data-sync",
-  "Name": "資料同步工具",
-  "CategoryId": "data",
-  "Description": "將本機生產紀錄同步至中央資料庫。",
-  "Version": "3.1.4",
-  "Developer": "官方",
-  "Requirements": "Windows 10 以上／內部網路連線"
-}

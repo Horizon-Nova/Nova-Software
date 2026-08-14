@@ -1,0 +1,12 @@
+<UserControl x:Class="Vaeron.HelixStudio.App.Views.PlaceholderView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Grid>
+    <Rectangle Stroke="{StaticResource Border}" StrokeThickness="1.5" StrokeDashArray="4 3"
+               RadiusX="5.6" RadiusY="5.6" />
+    <TextBlock HorizontalAlignment="Center" VerticalAlignment="Center" FontFamily="Consolas"
+               FontSize="{StaticResource FsBase}" Foreground="{StaticResource Text3}">
+      <Run Text="主內容區佔位——「" /><Run Text="{Binding ActiveLabel, Mode=OneWay}" /><Run Text="」" />
+    </TextBlock>
+  </Grid>
+</UserControl>

@@ -1,0 +1,40 @@
+#nullable enable
+Vaeron.Capability.Sample.ISampleFacade
+Vaeron.Capability.Sample.ISampleFacade.LoadAsync(Vaeron.Capability.Sample.SampleRequest! request, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<Vaeron.Kernel.Result<Vaeron.Capability.Sample.SampleSnapshot!>>
+Vaeron.Capability.Sample.SampleRequest
+Vaeron.Capability.Sample.SampleRequest.SampleRequest(string! Key) -> void
+Vaeron.Capability.Sample.SampleRequest.Key.get -> string!
+Vaeron.Capability.Sample.SampleRequest.Key.init -> void
+Vaeron.Capability.Sample.SampleRequest.Equals(Vaeron.Capability.Sample.SampleRequest? other) -> bool
+Vaeron.Capability.Sample.SampleRequest.Deconstruct(out string! Key) -> void
+Vaeron.Capability.Sample.SampleRequest.<Clone>$() -> Vaeron.Capability.Sample.SampleRequest!
+static Vaeron.Capability.Sample.SampleRequest.operator !=(Vaeron.Capability.Sample.SampleRequest? left, Vaeron.Capability.Sample.SampleRequest? right) -> bool
+static Vaeron.Capability.Sample.SampleRequest.operator ==(Vaeron.Capability.Sample.SampleRequest? left, Vaeron.Capability.Sample.SampleRequest? right) -> bool
+override Vaeron.Capability.Sample.SampleRequest.ToString() -> string!
+override Vaeron.Capability.Sample.SampleRequest.GetHashCode() -> int
+override Vaeron.Capability.Sample.SampleRequest.Equals(object? obj) -> bool
+Vaeron.Capability.Sample.SampleSnapshot
+Vaeron.Capability.Sample.SampleSnapshot.SampleSnapshot(string! Key, string! Value, System.DateTimeOffset CapturedAt) -> void
+Vaeron.Capability.Sample.SampleSnapshot.Key.get -> string!
+Vaeron.Capability.Sample.SampleSnapshot.Key.init -> void
+Vaeron.Capability.Sample.SampleSnapshot.Value.get -> string!
+Vaeron.Capability.Sample.SampleSnapshot.Value.init -> void
+Vaeron.Capability.Sample.SampleSnapshot.CapturedAt.get -> System.DateTimeOffset
+Vaeron.Capability.Sample.SampleSnapshot.CapturedAt.init -> void
+Vaeron.Capability.Sample.SampleSnapshot.Equals(Vaeron.Capability.Sample.SampleSnapshot? other) -> bool
+Vaeron.Capability.Sample.SampleSnapshot.Deconstruct(out string! Key, out string! Value, out System.DateTimeOffset CapturedAt) -> void
+Vaeron.Capability.Sample.SampleSnapshot.<Clone>$() -> Vaeron.Capability.Sample.SampleSnapshot!
+static Vaeron.Capability.Sample.SampleSnapshot.operator !=(Vaeron.Capability.Sample.SampleSnapshot? left, Vaeron.Capability.Sample.SampleSnapshot? right) -> bool
+static Vaeron.Capability.Sample.SampleSnapshot.operator ==(Vaeron.Capability.Sample.SampleSnapshot? left, Vaeron.Capability.Sample.SampleSnapshot? right) -> bool
+override Vaeron.Capability.Sample.SampleSnapshot.ToString() -> string!
+override Vaeron.Capability.Sample.SampleSnapshot.GetHashCode() -> int
+override Vaeron.Capability.Sample.SampleSnapshot.Equals(object? obj) -> bool
+Vaeron.Capability.Sample.SampleOptions
+Vaeron.Capability.Sample.SampleOptions.SampleOptions() -> void
+const Vaeron.Capability.Sample.SampleOptions.SectionName = "Sample" -> string!
+Vaeron.Capability.Sample.SampleOptions.Endpoint.get -> string!
+Vaeron.Capability.Sample.SampleOptions.Endpoint.init -> void
+Vaeron.Capability.Sample.SampleOptions.TimeoutSeconds.get -> int
+Vaeron.Capability.Sample.SampleOptions.TimeoutSeconds.init -> void
+Vaeron.Capability.Sample.ServiceCollectionExtensions
+static Vaeron.Capability.Sample.ServiceCollectionExtensions.AddSampleCapability(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Microsoft.Extensions.DependencyInjection.IServiceCollection!

@@ -1,0 +1,42 @@
+<Project DefaultTargets="Package">
+  <!-- 散佈物產生器。要產出什麼由組態決定：檔名以 $(Configuration) 組出，無條件匯入。 -->
+
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)'==''">Debug</Configuration>
+    <RepoRoot>$(MSBuildThisFileDirectory)..\</RepoRoot>
+    <AppProject>$(RepoRoot)Vaeron.HelixStudio.App\Vaeron.HelixStudio.App.csproj</AppProject>
+    <ArtifactsDir>$(RepoRoot)artifacts\</ArtifactsDir>
+    <PublishDir>$(ArtifactsDir)publish\</PublishDir>
+    <InstallerDir>$(MSBuildThisFileDirectory)Installer\</InstallerDir>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildThisFileDirectory)Package.$(Configuration).props" />
+
+  <!-- 清單即相依目標，順序即執行順序。清單為空時沒有相依，這個目標什麼都不做。 -->
+  <Target Name="Package" DependsOnTargets="@(PackageArtifact)" />
+
+  <Target Name="Publish">
+    <RemoveDir Directories="$(PublishDir)" />
+    <Exec Command="dotnet publish &quot;$(AppProject)&quot; -c $(Configuration) -o &quot;$(PublishDir.TrimEnd('\'))&quot; --nologo" />
+  </Target>
+
+  <!-- WiX 專案以 dotnet build 呼叫：還原與建置須分屬兩次評估，
+       擴充套件註冊自己的 build\*.props，同一次評估內看不到剛還原的那份。 -->
+  <!-- 傳出去的路徑一律去尾端反斜線：命令列上「\"」會被當成逸出的引號，值會吃掉下一個參數。 -->
+  <Target Name="Msi">
+    <Exec Command="dotnet build &quot;$(InstallerDir)Msi\Installer.wixproj&quot; -c $(Configuration) --nologo -p:PublishRoot=&quot;$(PublishDir.TrimEnd('\'))&quot; -p:ArtifactsDir=&quot;$(ArtifactsDir.TrimEnd('\'))&quot;" />
+  </Target>
+
+  <Target Name="Bundle">
+    <Exec Command="dotnet build &quot;$(InstallerDir)Bundle\Bundle.wixproj&quot; -c $(Configuration) --nologo -p:ArtifactsDir=&quot;$(ArtifactsDir.TrimEnd('\'))&quot;" />
+  </Target>
+
+  <Target Name="Portable">
+    <PropertyGroup>
+      <PortableZip>$(ArtifactsDir)HelixStudio-Portable.zip</PortableZip>
+    </PropertyGroup>
+    <Delete Files="$(PortableZip)" />
+    <ZipDirectory SourceDirectory="$(PublishDir)" DestinationFile="$(PortableZip)" />
+    <Message Importance="high" Text="可攜版 -> $(PortableZip)" />
+  </Target>
+</Project>

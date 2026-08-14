@@ -1,0 +1,139 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- 逐項對應 components/Icon.dc.html 的 PATHS 表，24×24 檢視框。Stroke 為描邊形狀，Fill 為實心形狀。 -->
+
+  <GeometryGroup x:Key="Icon.layout-grid.Stroke">
+    <RectangleGeometry Rect="3,3,7,7" RadiusX="1" RadiusY="1" />
+    <RectangleGeometry Rect="14,3,7,7" RadiusX="1" RadiusY="1" />
+    <RectangleGeometry Rect="14,14,7,7" RadiusX="1" RadiusY="1" />
+    <RectangleGeometry Rect="3,14,7,7" RadiusX="1" RadiusY="1" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.layout-grid.Fill" />
+
+  <GeometryGroup x:Key="Icon.grid-3x3.Stroke">
+    <RectangleGeometry Rect="3,3,18,18" RadiusX="2" RadiusY="2" />
+    <PathGeometry Figures="M9 3v18M15 3v18M3 9h18M3 15h18" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.grid-3x3.Fill" />
+
+  <GeometryGroup x:Key="Icon.bell.Stroke">
+    <PathGeometry Figures="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+    <PathGeometry Figures="M13.7 21a2 2 0 0 1-3.4 0" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.bell.Fill" />
+
+  <GeometryGroup x:Key="Icon.sliders-horizontal.Stroke">
+    <PathGeometry Figures="M4 7h10M18 7h2M4 17h4M12 17h8" />
+    <EllipseGeometry Center="16,7" RadiusX="2" RadiusY="2" />
+    <EllipseGeometry Center="10,17" RadiusX="2" RadiusY="2" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.sliders-horizontal.Fill" />
+
+  <GeometryGroup x:Key="Icon.search.Stroke">
+    <EllipseGeometry Center="11,11" RadiusX="7" RadiusY="7" />
+    <PathGeometry Figures="M20 20l-3.5-3.5" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.search.Fill" />
+
+  <GeometryGroup x:Key="Icon.layout-panel-left.Stroke">
+    <RectangleGeometry Rect="3,4,18,16" RadiusX="2" RadiusY="2" />
+    <PathGeometry Figures="M11 12h9" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.layout-panel-left.Fill">
+    <PathGeometry Figures="M4.5 5.5h4v13h-4z" />
+  </GeometryGroup>
+
+  <GeometryGroup x:Key="Icon.panel-left.Stroke">
+    <RectangleGeometry Rect="3,4,18,16" RadiusX="2" RadiusY="2" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.panel-left.Fill">
+    <PathGeometry Figures="M4.5 5.5h4v13h-4z" />
+  </GeometryGroup>
+
+  <GeometryGroup x:Key="Icon.panel-right.Stroke">
+    <RectangleGeometry Rect="3,4,18,16" RadiusX="2" RadiusY="2" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.panel-right.Fill">
+    <PathGeometry Figures="M15.5 5.5h4v13h-4z" />
+  </GeometryGroup>
+
+  <GeometryGroup x:Key="Icon.chevron-right.Stroke">
+    <PathGeometry Figures="M9 6l6 6-6 6" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.chevron-right.Fill" />
+
+  <GeometryGroup x:Key="Icon.chevron-up.Stroke">
+    <PathGeometry Figures="M6 15l6-6 6 6" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.chevron-up.Fill" />
+
+  <GeometryGroup x:Key="Icon.chevron-down.Stroke">
+    <PathGeometry Figures="M6 9l6 6 6-6" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.chevron-down.Fill" />
+
+  <GeometryGroup x:Key="Icon.refresh.Stroke">
+    <PathGeometry Figures="M21 12a9 9 0 1 1-3-6.7" />
+    <PathGeometry Figures="M21 4v5h-5" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.refresh.Fill" />
+
+  <GeometryGroup x:Key="Icon.lock.Stroke">
+    <RectangleGeometry Rect="4,10,16,11" RadiusX="2" RadiusY="2" />
+    <PathGeometry Figures="M8 10V7a4 4 0 0 1 8 0v3" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.lock.Fill" />
+
+  <GeometryGroup x:Key="Icon.play.Stroke">
+    <PathGeometry Figures="M7 4.5v15l13-7.5z" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.play.Fill" />
+
+  <GeometryGroup x:Key="Icon.chevron-left.Stroke">
+    <PathGeometry Figures="M15 6l-6 6 6 6" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.chevron-left.Fill" />
+
+  <GeometryGroup x:Key="Icon.minus.Stroke">
+    <PathGeometry Figures="M5 12h14" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.minus.Fill" />
+
+  <GeometryGroup x:Key="Icon.square.Stroke">
+    <RectangleGeometry Rect="5,5,14,14" RadiusX="2" RadiusY="2" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.square.Fill" />
+
+  <!-- restore：設計稿的視窗鈕標注為原型內非功能性，只畫了 square；改為真的能動之後，還原態需要與最大化態分辨得出來。 -->
+  <GeometryGroup x:Key="Icon.restore.Stroke">
+    <RectangleGeometry Rect="8,8,11,11" RadiusX="2" RadiusY="2" />
+    <PathGeometry Figures="M5 16V7a2 2 0 0 1 2-2h9" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.restore.Fill" />
+
+  <GeometryGroup x:Key="Icon.x.Stroke">
+    <PathGeometry Figures="M6 6l12 12M18 6L6 18" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.x.Fill" />
+
+  <GeometryGroup x:Key="Icon.check.Stroke">
+    <PathGeometry Figures="M5 13l4 4L19 7" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.check.Fill" />
+
+  <GeometryGroup x:Key="Icon.plus.Stroke">
+    <PathGeometry Figures="M12 5v14M5 12h14" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.plus.Fill" />
+
+  <GeometryGroup x:Key="Icon.mic.Stroke">
+    <RectangleGeometry Rect="9,3,6,11" RadiusX="3" RadiusY="3" />
+    <PathGeometry Figures="M5 11a7 7 0 0 0 14 0M12 18v3" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.mic.Fill" />
+
+  <GeometryGroup x:Key="Icon.send.Stroke">
+    <PathGeometry Figures="M4 12l16-8-6 16-3-6-7-2z" />
+  </GeometryGroup>
+  <GeometryGroup x:Key="Icon.send.Fill" />
+</ResourceDictionary>

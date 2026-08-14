@@ -1,0 +1,225 @@
+<Project>
+
+  <!--
+    結構約束。建置期檢查,違規即建置失敗。
+    補的是引用圖本身擋不住的部分：歸屬、位置、跨軟體引用。
+
+    位置旗標在本 Target 內以專案實際路徑重新計算,不使用 Directory.Build.props
+    算出的同名屬性。Target 內的 PropertyGroup 於 Target 執行時求值,晚於所有靜態
+    賦值,因此專案無法透過自身 csproj 宣告豁免。props 的那份僅供還原前的靜態階段
+    (TFM 判定、分析器掛載)使用,可被覆寫。
+
+    引用路徑一律比對 FullPath(解析後的絕對路徑)。Identity 是 csproj 內的原始文字,
+    相對路徑不會重複寫出共同上層資料夾名,以它比對會在標準寫法下失效。
+  -->
+
+  <!--
+    慣例屬性非空斷言。MSBuild 對未定義的屬性回傳空字串而非報錯,
+    屬性名打錯或 Workspace.props 未被匯入時,所有依賴它的條件式會靜默失效
+    (檢查看似通過,實際從未執行)。此處在檢查開始前確認基準值存在。
+  -->
+  <Target Name="VaeronConventionCheck" BeforeTargets="VaeronStructureCheck">
+    <Error Condition="'$(WorkspacePrefix)'==''" Code="S900"
+           Text="WorkspacePrefix 未定義。Workspace.props 未被匯入,全部結構檢查將靜默失效。" />
+    <Error Condition="'$(SharedFolderName)'==''" Code="S900"
+           Text="SharedFolderName 未定義。" />
+    <Error Condition="'$(BuildFolderName)'==''" Code="S900"
+           Text="BuildFolderName 未定義。" />
+    <Error Condition="'$(TemplateFolderName)'==''" Code="S900"
+           Text="TemplateFolderName 未定義。" />
+    <Error Condition="'$(BaseTfm)'==''" Code="S900"
+           Text="BaseTfm 未定義。" />
+    <Error Condition="'$(WindowsTfm)'==''" Code="S900"
+           Text="WindowsTfm 未定義。" />
+    <Error Condition="'$(_WsRoot)'==''" Code="S900"
+           Text="_WsRoot 未定義。Directory.Build.props 未被匯入。" />
+  </Target>
+
+  <Target Name="VaeronStructureCheck" BeforeTargets="CoreCompile">
+
+    <PropertyGroup>
+      <_CheckRelPath>$(MSBuildProjectDirectory.Substring($(_WsRoot.Length)))</_CheckRelPath>
+      <_CheckTopFolder>$(_CheckRelPath.Replace('\','/').Split('/')[0])</_CheckTopFolder>
+
+      <_CheckIsBuild>false</_CheckIsBuild>
+      <_CheckIsBuild Condition="'$(_CheckTopFolder)'=='$(BuildFolderName)'">true</_CheckIsBuild>
+
+      <_CheckIsTemplate>false</_CheckIsTemplate>
+      <_CheckIsTemplate Condition="'$(_CheckTopFolder)'=='$(TemplateFolderName)'">true</_CheckIsTemplate>
+
+      <_CheckIsShared>false</_CheckIsShared>
+      <_CheckIsShared Condition="'$(_CheckTopFolder)'=='$(SharedFolderName)'">true</_CheckIsShared>
+
+      <_CheckIsApp>false</_CheckIsApp>
+      <_CheckIsApp Condition="'$(_CheckIsBuild)'=='false' AND '$(_CheckIsTemplate)'=='false' AND '$(_CheckIsShared)'=='false'">true</_CheckIsApp>
+
+      <_CheckOwningApp Condition="'$(_CheckIsApp)'=='true'">$(_CheckTopFolder)</_CheckOwningApp>
+
+      <_CheckIsTest>false</_CheckIsTest>
+      <_CheckIsTest Condition="$(MSBuildProjectName.EndsWith('.Tests'))">true</_CheckIsTest>
+
+      <_CheckIsRoot>false</_CheckIsRoot>
+      <_CheckIsRoot Condition="$(MSBuildProjectName.EndsWith('.App'))">true</_CheckIsRoot>
+
+      <_PrefixDot>$(WorkspacePrefix).</_PrefixDot>
+      <_NameNoPrefix>$(MSBuildProjectName.Replace('$(_PrefixDot)', ''))</_NameNoPrefix>
+      <_AppSegment>$(WorkspacePrefix).$(_CheckOwningApp).</_AppSegment>
+      <_TestsSuffix>.Tests</_TestsSuffix>
+      <_TargetName>$(MSBuildProjectName.Replace('$(_TestsSuffix)', ''))</_TargetName>
+      <_SiblingTargetDir>$(MSBuildProjectDirectory)\..\$(_TargetName)</_SiblingTargetDir>
+      <_SharedSeg>\$(SharedFolderName)\</_SharedSeg>
+      <_AppSeg>\$(_CheckOwningApp)\</_AppSeg>
+
+      <_RunChecks>true</_RunChecks>
+      <_RunChecks Condition="'$(_CheckIsTemplate)'=='true'">false</_RunChecks>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(_RunChecks)'=='true' AND '$(_CheckIsBuild)'=='false'">
+      <_VaeronAnalyzer Include="@(Analyzer)"
+                       Condition="$([System.String]::Copy('%(Analyzer.Identity)').Contains('$(WorkspacePrefix).Analyzers'))" />
+    </ItemGroup>
+    <Error Condition="'$(_RunChecks)'=='true' AND '$(_CheckIsBuild)'=='false' AND '@(_VaeronAnalyzer)'==''"
+           Code="S000"
+           Text="分析器未掛載。VAE 規則在本專案不生效——請勿移除 Directory.Build.targets 的分析器引用。" />
+
+    <Error Condition="'$(_RunChecks)'=='true' AND !$(MSBuildProjectName.StartsWith('$(_PrefixDot)'))"
+           Code="S001"
+           Text="組件名須以 $(_PrefixDot) 開頭：$(MSBuildProjectName)" />
+
+    <PropertyGroup>
+      <_SharedAllowed>false</_SharedAllowed>
+      <_SharedAllowed Condition="$(_NameNoPrefix.StartsWith('Kernel'))">true</_SharedAllowed>
+      <_SharedAllowed Condition="$(_NameNoPrefix.StartsWith('Capability.'))">true</_SharedAllowed>
+      <_SharedAllowed Condition="'$(_CheckIsTest)'=='true'">true</_SharedAllowed>
+    </PropertyGroup>
+    <Error Condition="'$(_RunChecks)'=='true' AND '$(_CheckIsShared)'=='true' AND '$(_SharedAllowed)'=='false'"
+           Code="S002"
+           Text="$(SharedFolderName) 只放 $(WorkspacePrefix).Kernel* 或 $(WorkspacePrefix).Capability.*。$(MSBuildProjectName) 帶軟體歸屬,應移入該軟體資料夾。" />
+
+    <Error Condition="'$(_RunChecks)'=='true' AND '$(_CheckIsApp)'=='true' AND !$(MSBuildProjectName.StartsWith('$(_AppSegment)'))"
+           Code="S003"
+           Text="位於 $(_CheckOwningApp) 的組件須命名為 $(_AppSegment)*：$(MSBuildProjectName)" />
+
+    <Error Condition="'$(_RunChecks)'=='true' AND '$(_CheckIsApp)'=='true' AND $(MSBuildProjectName.Contains('.Capability.'))"
+           Code="S004"
+           Text="Capability. 保留給 $(SharedFolderName) 的跨軟體能力。軟體內部共用請用 $(_AppSegment)Internal.*：$(MSBuildProjectName)" />
+
+    <Error Condition="'$(_RunChecks)'=='true' AND $([System.Text.RegularExpressions.Regex]::IsMatch($(MSBuildProjectName), '[^\x00-\x7F]'))"
+           Code="S005"
+           Text="組件名須為 ASCII：$(MSBuildProjectName)" />
+    <Error Condition="'$(_RunChecks)'=='true' AND $([System.Text.RegularExpressions.Regex]::IsMatch($(MSBuildProjectDirectory), '[^\x00-\x7F]'))"
+           Code="S005"
+           Text="路徑須為 ASCII：$(MSBuildProjectDirectory)" />
+
+    <ItemGroup Condition="'$(_RunChecks)'=='true' AND '$(_CheckIsShared)'=='true'">
+      <_KernelRef Include="@(ProjectReference)"
+                  Condition="$(MSBuildProjectName.StartsWith('$(_PrefixDot)Kernel'))
+                             AND '%(ProjectReference.OutputItemType)'!='Analyzer'
+                             AND !$([System.String]::Copy('%(ProjectReference.FullPath)').Contains('$(_SharedSeg)$(_PrefixDot)Kernel'))" />
+    </ItemGroup>
+    <Error Condition="'@(_KernelRef)'!=''"
+           Code="S006"
+           Text="Kernel 是葉組件,不得引用 Kernel 家族以外的工作區內組件：@(_KernelRef)" />
+
+    <ItemGroup Condition="'$(_RunChecks)'=='true' AND '$(_CheckIsShared)'=='true'">
+      <_BadRef Include="@(ProjectReference)"
+               Condition="'%(ProjectReference.OutputItemType)'!='Analyzer'
+                          AND !$([System.String]::Copy('%(ProjectReference.FullPath)').Contains('$(_SharedSeg)'))" />
+    </ItemGroup>
+    <Error Condition="'@(_BadRef)'!=''"
+           Code="S007"
+           Text="$(SharedFolderName) 組件不得引用軟體專屬組件：@(_BadRef)" />
+
+    <ItemGroup Condition="'$(_RunChecks)'=='true' AND '$(_CheckIsApp)'=='true'">
+      <_CrossApp Include="@(ProjectReference)"
+                 Condition="'%(ProjectReference.OutputItemType)'!='Analyzer'
+                            AND !$([System.String]::Copy('%(ProjectReference.FullPath)').Contains('$(_SharedSeg)'))
+                            AND !$([System.String]::Copy('%(ProjectReference.FullPath)').Contains('$(_AppSeg)'))" />
+    </ItemGroup>
+    <Error Condition="'@(_CrossApp)'!=''"
+           Code="S008"
+           Text="軟體之間不得互相引用。需共用請下沉至 $(SharedFolderName)：@(_CrossApp)" />
+
+    <Error Condition="'$(_RunChecks)'=='true'
+                      AND '$(_CheckIsShared)'=='true'
+                      AND $(TargetFramework.Contains('-windows'))
+                      AND !$(MSBuildProjectName.EndsWith('.Windows'))"
+           Code="S009"
+           Text="$(SharedFolderName) 組件須為 $(BaseTfm)。需 Windows API 者另立 *.Windows 組件：$(MSBuildProjectName)" />
+
+    <ItemGroup Condition="'$(_RunChecks)'=='true' AND '$(_CheckIsApp)'=='true' AND '$(_CheckIsRoot)'=='false'">
+      <_PeerRef Include="@(ProjectReference)"
+                Condition="'%(ProjectReference.OutputItemType)'!='Analyzer'
+                           AND $([System.String]::Copy('%(ProjectReference.FullPath)').Contains('$(_AppSeg)'))
+                           AND !$([System.String]::Copy('%(ProjectReference.FullPath)').Contains('.Internal.'))" />
+    </ItemGroup>
+    <Warning Condition="'@(_PeerRef)'!=''"
+             Code="S011"
+             Text="上層組件互相引用：@(_PeerRef)。共用邏輯請下沉至 $(_AppSegment)Internal.* 或 $(SharedFolderName)" />
+
+    <PropertyGroup>
+      <_ShortTargetName>$(_TargetName.Replace('$(_PrefixDot)', ''))</_ShortTargetName>
+      <_SiblingShortDir>$(MSBuildProjectDirectory)\..\$(_ShortTargetName)</_SiblingShortDir>
+    </PropertyGroup>
+    <!--
+      位於 Build\ 的測試專案測的是建置基礎設施本身,沒有單一目標組件可同層對應。
+      這不是豁免的例外,是 S012 的適用前提(每個測試專案測某一個目標組件)在此不成立。
+    -->
+    <Error Condition="'$(_RunChecks)'=='true' AND '$(_CheckIsTest)'=='true'
+                      AND '$(_CheckIsBuild)'=='false'
+                      AND !Exists($(_SiblingTargetDir)) AND !Exists($(_SiblingShortDir))"
+           Code="S012"
+           Text="測試組件須與受測組件同層,且命名為 {TargetAssembly}.Tests：$(MSBuildProjectName)" />
+
+  </Target>
+
+  <Target Name="VaeronRootCheck" BeforeTargets="CoreCompile">
+
+    <PropertyGroup>
+      <_RootRelPath>$(MSBuildProjectDirectory.Substring($(_WsRoot.Length)))</_RootRelPath>
+      <_RootTopFolder>$(_RootRelPath.Replace('\','/').Split('/')[0])</_RootTopFolder>
+
+      <!--
+        排除不該套用根組件檢查的專案。
+        判定用建置系統自己設定的屬性,不用名稱比對——名稱是代理指標,
+        每出現一種新的工具產生專案就得補一條字串,案例集合會被寫進規則結構。
+
+        _TargetAssemblyProjectName：WPF 編譯 XAML 時自動產生的暫存專案
+          (*_wpftmp.csproj) 設定此屬性指向原專案名稱,人寫的專案不會有值。
+        IsTestProject：測試 SDK 設定。測試專案的 OutputType 被設為 Exe,但它不是根組件。
+
+        名稱後備條件(EndsWith('Tests'))暫留,待上述兩條經 binlog 查證成立後移除;
+        同時存在不縮小放行範圍,不影響現有專案。
+      -->
+      <_RootRunChecks>true</_RootRunChecks>
+      <_RootRunChecks Condition="'$(_RootTopFolder)'=='$(TemplateFolderName)'">false</_RootRunChecks>
+      <_RootRunChecks Condition="'$(_RootTopFolder)'=='$(BuildFolderName)'">false</_RootRunChecks>
+      <_RootRunChecks Condition="'$(_TargetAssemblyProjectName)'!=''">false</_RootRunChecks>
+      <_RootRunChecks Condition="'$(IsTestProject)'=='true'">false</_RootRunChecks>
+      <_RootRunChecks Condition="$(MSBuildProjectName.EndsWith('Tests'))">false</_RootRunChecks>
+
+      <!--
+        查證用輸出,binlog 內搜尋 [VAERON-PROBE] 即可比對各專案的實際屬性值。
+        兩條結構訊號確認成立後連同名稱後備條件一併移除。
+      -->
+      <_RootProbe>[VAERON-PROBE] Project=$(MSBuildProjectName) OutputType=$(OutputType) _TargetAssemblyProjectName=$(_TargetAssemblyProjectName) IsTestProject=$(IsTestProject) RunChecks=$(_RootRunChecks)</_RootProbe>
+
+      <_RootIsApp>false</_RootIsApp>
+      <_RootIsApp Condition="$(MSBuildProjectName.EndsWith('.App'))">true</_RootIsApp>
+
+      <_RootIsExe>false</_RootIsExe>
+      <_RootIsExe Condition="'$(OutputType)'=='Exe' OR '$(OutputType)'=='WinExe'">true</_RootIsExe>
+    </PropertyGroup>
+
+    <Message Importance="high" Text="$(_RootProbe)" />
+
+    <Error Condition="'$(_RootRunChecks)'=='true' AND '$(_RootIsExe)'=='true' AND '$(_RootIsApp)'=='false'"
+           Code="S010"
+           Text="產出可執行檔的組件(根)須命名為 *.App：$(MSBuildProjectName)" />
+
+    <Error Condition="'$(_RootRunChecks)'=='true' AND '$(_RootIsApp)'=='true' AND '$(_RootIsExe)'=='false'"
+           Code="S013"
+           Text="*.App 為根組件,須產出可執行檔(OutputType=Exe 或 WinExe)：$(MSBuildProjectName)" />
+  </Target>
+
+</Project>

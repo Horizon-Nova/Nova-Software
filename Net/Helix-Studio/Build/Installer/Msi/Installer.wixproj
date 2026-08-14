@@ -1,0 +1,15 @@
+<Project Sdk="WixToolset.Sdk/5.0.2">
+  <!-- 一個目錄一個 wixproj：WiX SDK 以萬用字元收集同目錄的 .wxs，共用目錄會互相收進去。 -->
+  <PropertyGroup>
+    <OutputType>Package</OutputType>
+    <OutputName>HelixStudio</OutputName>
+    <OutputPath>$(ArtifactsDir)\</OutputPath>
+    <!-- 中央套件版本管理會讓 WiX 擴充套件的 build 目錄注入不到編譯器，本專案自行帶版本。 -->
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <DefineConstants>PublishRoot=$(PublishRoot);ProductName=$(Product);Manufacturer=$(Company);ProductVersion=$(VersionPrefix);IconFile=$(MSBuildThisFileDirectory)..\..\..\Assets\Vaeron_icon.ico</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
+  </ItemGroup>
+</Project>
