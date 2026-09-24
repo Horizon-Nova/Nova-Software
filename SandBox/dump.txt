@@ -1,0 +1,440 @@
+====================================================================================================
+一　連線表　GetExtendedTcpTable / GetExtendedUdpTable
+====================================================================================================
+TCP 131 條、UDP 154 個端點
+
+[TCP 全欄位，有遠端對象者]
+  protocol  local_address                            local_port  remote_address                         remote_port  state        process_id
+  --------  ---------------------------------------  ----------  -------------------------------------  -----------  -----------  ----------
+  TCP       127.0.0.1                                9010        127.0.0.1                              55037        Established  4812      
+  TCP       192.168.0.154                            50377       203.132.26.96                          443          Established  23220     
+  TCP       127.0.0.1                                52158       127.0.0.1                              53145        Established  16256     
+  TCP       192.168.0.154                            53137       104.18.41.183                          443          CloseWait    32900     
+  TCP       127.0.0.1                                53145       127.0.0.1                              52158        Established  32900     
+  TCP       127.0.0.1                                53145       127.0.0.1                              57765        Established  32900     
+  TCP       127.0.0.1                                53145       127.0.0.1                              57792        Established  32900     
+  TCP       127.0.0.1                                53145       127.0.0.1                              57816        Established  32900     
+  TCP       127.0.0.1                                53145       127.0.0.1                              57886        Established  32900     
+  TCP       127.0.0.1                                53145       127.0.0.1                              63393        TimeWait     0         
+  TCP       192.168.0.154                            53277       172.64.151.57                          443          TimeWait     0         
+  TCP       192.168.0.154                            54661       162.159.130.234                        443          Established  32752     
+  TCP       127.0.0.1                                55032       127.0.0.1                              57885        Established  33300     
+  TCP       127.0.0.1                                55034       127.0.0.1                              57885        Established  33300     
+  TCP       127.0.0.1                                55035       127.0.0.1                              57885        Established  33300     
+  TCP       127.0.0.1                                55037       127.0.0.1                              9010         Established  33300     
+  TCP       192.168.0.154                            55041       72.25.64.32                            443          Established  28332     
+  TCP       192.168.0.154                            55044       104.16.55.40                           443          CloseWait    33300     
+  TCP       127.0.0.1                                55658       127.0.0.1                              55661        Established  9396      
+  TCP       127.0.0.1                                55661       127.0.0.1                              55658        Established  9396      
+  TCP       127.0.0.1                                57765       127.0.0.1                              53145        Established  27368     
+  TCP       127.0.0.1                                57792       127.0.0.1                              53145        Established  33768     
+  TCP       127.0.0.1                                57816       127.0.0.1                              53145        Established  33768     
+  TCP       127.0.0.1                                57885       127.0.0.1                              55032        Established  16256     
+  TCP       127.0.0.1                                57885       127.0.0.1                              55034        Established  16256     
+  TCP       127.0.0.1                                57885       127.0.0.1                              55035        Established  16256     
+  TCP       127.0.0.1                                57885       127.0.0.1                              57939        Established  16256     
+  TCP       127.0.0.1                                57885       127.0.0.1                              57996        Established  16256     
+  TCP       127.0.0.1                                57885       127.0.0.1                              58008        Established  16256     
+  TCP       127.0.0.1                                57886       127.0.0.1                              53145        Established  16256     
+  TCP       192.168.0.154                            57891       104.18.40.25                           443          Established  16256     
+  TCP       127.0.0.1                                57939       127.0.0.1                              57885        Established  33716     
+  TCP       192.168.0.154                            57955       13.214.71.49                           2099         Established  16256     
+  TCP       127.0.0.1                                57996       127.0.0.1                              57885        Established  26456     
+  TCP       127.0.0.1                                58008       127.0.0.1                              57885        Established  26456     
+  TCP       127.0.0.1                                58330       127.0.0.1                              58338        Established  13100     
+  TCP       127.0.0.1                                58333       127.0.0.1                              58337        Established  13100     
+  TCP       127.0.0.1                                58337       127.0.0.1                              58333        Established  5824      
+  TCP       127.0.0.1                                58338       127.0.0.1                              58330        Established  5824      
+  TCP       127.0.0.1                                60844       127.0.0.1                              60845        Established  9184      
+  TCP       127.0.0.1                                60845       127.0.0.1                              60844        Established  9184      
+  TCP       192.168.0.154                            60846       60.199.191.153                         443          CloseWait    9184      
+  TCP       192.168.0.154                            61022       45.121.184.100                         27020        Established  13100     
+  TCP       192.168.0.154                            61268       34.0.245.166                           443          CloseWait    19320     
+  TCP       192.168.0.154                            61635       160.79.104.10                          443          Established  13168     
+  TCP       192.168.0.154                            62394       104.18.41.99                           443          CloseWait    32900     
+  TCP       192.168.0.154                            62404       104.18.40.25                           443          Established  32900     
+  TCP       192.168.0.154                            62405       172.65.217.212                         5223         Established  32900     
+  TCP       192.168.0.154                            62441       166.117.137.155                        443          Established  23220     
+  TCP       192.168.0.154                            62820       65.9.180.3                             443          Established  33768     
+  TCP       192.168.0.154                            62839       104.16.55.40                           443          TimeWait     0         
+  TCP       192.168.0.154                            63363       104.16.119.50                          443          Established  16256     
+  TCP       192.168.0.154                            63367       104.16.56.21                           443          Established  16256     
+  TCP       192.168.0.154                            63384       104.18.36.199                          443          Established  32900     
+  TCP       192.168.0.154                            63388       104.16.119.50                          443          TimeWait     0         
+  TCP       192.168.0.154                            63397       104.16.56.21                           443          Established  16256     
+  TCP       192.168.0.154                            63398       104.16.56.21                           443          Established  32900     
+  TCP       192.168.0.154                            65142       104.18.41.168                          8443         TimeWait     0         
+  TCP       192.168.0.154                            65145       104.18.41.168                          8443         TimeWait     0         
+  TCP       192.168.0.154                            65151       35.85.4.204                            443          TimeWait     0         
+  TCP       192.168.0.154                            65154       104.18.41.168                          8443         TimeWait     0         
+  TCP       192.168.0.154                            65173       3.169.137.46                           443          Established  32900     
+  TCP       192.168.0.154                            65189       104.18.41.168                          8443         TimeWait     0         
+  TCP       127.0.0.1                                65191       127.0.0.1                              28194        SynSent      4812      
+  TCP       192.168.0.154                            65300       48.210.190.78                          443          Established  28644     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  51031       2603:1046:c10:809::2                   443          Established  28644     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  52155       2001:4860:482c:400::                   443          Established  19320     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  52161       2600:9000:202b:1c00:18:3d46:fdc0:93a1  443          Established  32900     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  52164       2600:9000:202b:7a00:18:3d46:fdc0:93a1  443          TimeWait     0         
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  52366       2001:4546:1003:299::2c1a               443          Established  28644     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  53881       2607:6bc0::10                          443          Established  13168     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  54095       2603:1063:2001:3500::                  443          Established  24872     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  54096       2603:1063:2001:3500::                  443          Established  24872     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  54097       2603:1063:2001:3500::                  443          Established  24872     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  54098       2603:1063:2001:3500::                  443          Established  24872     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  56096       2607:6bc0::10                          443          Established  19320     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  57582       2600:1901:1:292::                      443          Established  32752     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  59513       2404:6800:4008:c01::bc                 5228         Established  19320     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  61271       2606:4700:440b::ac40:9249              443          Established  16256     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  61971       2404:6800:4008:c1b::bc                 5228         Established  19320     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  62082       2603:1020:705:8::402                   443          Established  28644     
+  TCP       2407:4d00:4c06:14a3:ed72:6b11:47a3:6b0e  62722       2603:1020:705:8::400                   443          Established  5504      
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  62825       2606:4700:440b::ac40:9249              443          TimeWait     0         
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  62826       2606:4700:4409::ac40:9739              443          Established  16256     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  62840       2606:4700:440b::ac40:9249              443          TimeWait     0         
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  63336       2606:4700:440b::ac40:9249              443          TimeWait     0         
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  63359       2404:6800:4008:c19::5e                 443          Established  19320     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  63379       2606:4700:440b::ac40:9249              443          TimeWait     0         
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  63394       2606:4700:440b::ac40:9249              443          Established  32900     
+  TCP       2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  65181       2600:1901:0:9e23::                     443          Established  13168     
+
+[TCP 監聽中]
+  local_address  local_port  state   process_id
+  -------------  ----------  ------  ----------
+  0.0.0.0        135         Listen  2128      
+  192.168.0.154  139         Listen  4         
+  127.0.0.1      2999        Listen  33300     
+  0.0.0.0        5040        Listen  13084     
+  127.0.0.1      6463        Listen  13584     
+  127.0.0.1      9010        Listen  4812      
+  127.0.0.1      9180        Listen  5660      
+  127.0.0.1      9222        Listen  19840     
+  0.0.0.0        27036       Listen  13100     
+  127.0.0.1      27060       Listen  13100     
+  127.0.0.1      32683       Listen  8528      
+  127.0.0.1      33683       Listen  8528      
+  127.0.0.1      45654       Listen  4812      
+  0.0.0.0        49664       Listen  1988      
+  0.0.0.0        49665       Listen  1836      
+  0.0.0.0        49666       Listen  2212      
+  0.0.0.0        49667       Listen  3140      
+  0.0.0.0        49668       Listen  4924      
+  0.0.0.0        49672       Listen  1916      
+  127.0.0.1      53145       Listen  32900     
+
+[UDP 端點，前 20]
+  local_address  local_port  process_id
+  -------------  ----------  ----------
+  0.0.0.0        123         12144     
+  192.168.0.154  137         4         
+  192.168.0.154  138         4         
+  0.0.0.0        500         5352      
+  127.0.0.1      1900        8940      
+  192.168.0.154  1900        8940      
+  192.168.0.154  2177        16308     
+  0.0.0.0        3702        10636     
+  0.0.0.0        3702        10636     
+  0.0.0.0        4500        5352      
+  0.0.0.0        5050        13084     
+  0.0.0.0        5353        2856      
+  0.0.0.0        5353        19320     
+  0.0.0.0        5353        32280     
+  0.0.0.0        5353        10452     
+  0.0.0.0        5353        19840     
+  0.0.0.0        5355        2856      
+  127.0.0.1      10020       9184      
+  127.0.0.1      10021       14680     
+  127.0.0.1      10022       15512     
+
+====================================================================================================
+二　芳鄰表　GetIpNetTable2
+====================================================================================================
+總計 453 筆，其中有實體位址且非全零者 72 筆
+
+  address          link_layer_address  state      interface_index  is_router
+  ---------------  ------------------  ---------  ---------------  ---------
+  192.168.0.255    FF:FF:FF:FF:FF:FF   Permanent  11               False    
+  224.0.0.22       01:00:5E:00:00:16   Permanent  11               False    
+  224.0.0.251      01:00:5E:00:00:FB   Permanent  11               False    
+  224.0.0.252      01:00:5E:00:00:FC   Permanent  11               False    
+  239.255.255.250  01:00:5E:7F:FF:FA   Permanent  11               False    
+  255.255.255.255  FF:FF:FF:FF:FF:FF   Permanent  11               False    
+  224.0.0.22       01:00:5E:00:00:16   Permanent  4                False    
+  224.0.0.251      01:00:5E:00:00:FB   Permanent  4                False    
+  224.0.0.252      01:00:5E:00:00:FC   Permanent  4                False    
+  239.255.255.250  01:00:5E:7F:FF:FA   Permanent  4                False    
+  192.168.0.1      FC:77:7B:7B:FB:82   Reachable  8                False    
+  192.168.0.43     DC:62:79:42:C0:A7   Stale      8                False    
+  192.168.0.111    B8:27:EB:16:CE:D5   Stale      8                False    
+  192.168.0.254    BC:14:01:00:00:80   Stale      8                False    
+  192.168.0.255    FF:FF:FF:FF:FF:FF   Permanent  8                False    
+  192.168.100.1    FC:77:7B:7B:FB:82   Stale      8                False    
+  192.168.100.2    BC:14:01:00:00:80   Stale      8                False    
+  224.0.0.22       01:00:5E:00:00:16   Permanent  8                False    
+  224.0.0.251      01:00:5E:00:00:FB   Permanent  8                False    
+  224.0.0.252      01:00:5E:00:00:FC   Permanent  8                False    
+  239.255.255.250  01:00:5E:7F:FF:FA   Permanent  8                False    
+  255.255.255.255  FF:FF:FF:FF:FF:FF   Permanent  8                False    
+  224.0.0.22       01:00:5E:00:00:16   Permanent  10               False    
+  224.0.0.251      01:00:5E:00:00:FB   Permanent  10               False    
+  224.0.0.252      01:00:5E:00:00:FC   Permanent  10               False    
+  239.255.255.250  01:00:5E:7F:FF:FA   Permanent  10               False    
+  224.0.0.22       01:00:5E:00:00:16   Permanent  5                False    
+  224.0.0.251      01:00:5E:00:00:FB   Permanent  5                False    
+  224.0.0.252      01:00:5E:00:00:FC   Permanent  5                False    
+  239.255.255.250  01:00:5E:7F:FF:FA   Permanent  5                False    
+
+====================================================================================================
+三　介面表　GetAdaptersAddresses
+====================================================================================================
+[5] 乙太網路 3
+    description          Intel(R) Ethernet Controller I226-V
+    link_layer_address   34:5A:60:1D:D6:7F
+    type                 Ethernet
+    status               Down
+    mtu                  1500
+    transmit_link_speed  18446744073709551615
+    receive_link_speed   18446744073709551615
+    dns_suffix           -
+    ip_addresses         fe80::5610:1247:f41:aae0, 169.254.31.84
+    gateways             -
+    dns_servers          fec0:0:0:ffff::1, fec0:0:0:ffff::2, fec0:0:0:ffff::3
+
+[4] 區域連線* 1
+    description          Microsoft Wi-Fi Direct Virtual Adapter
+    link_layer_address   88:F4:DA:8D:14:50
+    type                 Wireless80211
+    status               Down
+    mtu                  1500
+    transmit_link_speed  18446744073709551615
+    receive_link_speed   18446744073709551615
+    dns_suffix           -
+    ip_addresses         fe80::e3fe:2894:93ce:6ee4, 169.254.174.178
+    gateways             -
+    dns_servers          fec0:0:0:ffff::1, fec0:0:0:ffff::2, fec0:0:0:ffff::3
+
+[10] 區域連線* 2
+    description          Microsoft Wi-Fi Direct Virtual Adapter #2
+    link_layer_address   8A:F4:DA:8D:14:4F
+    type                 Wireless80211
+    status               Down
+    mtu                  1500
+    transmit_link_speed  18446744073709551615
+    receive_link_speed   18446744073709551615
+    dns_suffix           -
+    ip_addresses         fe80::2f70:1f65:3e9e:4e41, 169.254.21.24
+    gateways             -
+    dns_servers          fec0:0:0:ffff::1, fec0:0:0:ffff::2, fec0:0:0:ffff::3
+
+[8] 乙太網路 2
+    description          Intel(R) Ethernet Connection (17) I219-V
+    link_layer_address   34:5A:60:1D:D6:80
+    type                 Ethernet
+    status               Up
+    mtu                  1500
+    transmit_link_speed  100000000
+    receive_link_speed   100000000
+    dns_suffix           hitronhub.home
+    ip_addresses         2407:4d00:4c06:14a3:ff:ff:ff:ed, 2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a, 2407:4d00:4c06:14a3:ed72:6b11:47a3:6b0e, fe80::5174:e7dd:1015:8cd4, 192.168.0.154
+    gateways             fe80::fe77:7bff:fe7b:fb82, 192.168.0.1
+    dns_servers          2001:4546:1::1, 192.168.0.1, 61.31.1.1, 61.31.233.1, 2001:4546:1::1, 2001:4546:2::1
+
+[11] Wi-Fi
+    description          Intel(R) Wi-Fi 6E AX211 160MHz
+    link_layer_address   88:F4:DA:8D:14:4F
+    type                 Wireless80211
+    status               Down
+    mtu                  1500
+    transmit_link_speed  144400000
+    receive_link_speed   173300000
+    dns_suffix           hitronhub.home
+    ip_addresses         2407:4d00:4c06:14a3:ff:ff:ff:54, 2407:4d00:4c06:14a3:5ce0:1071:9332:11e7, 2407:4d00:4c06:14a3:aadb:d0af:1a40:8436, fe80::e078:e988:6be3:f0cd, 192.168.0.48
+    gateways             192.168.0.1
+    dns_servers          192.168.0.1, 61.31.1.1, 61.31.233.1
+
+[1] Loopback Pseudo-Interface 1
+    description          Software Loopback Interface 1
+    link_layer_address   
+    type                 Loopback
+    status               Up
+    mtu                  4294967295
+    transmit_link_speed  1073741824
+    receive_link_speed   1073741824
+    dns_suffix           -
+    ip_addresses         ::1, 127.0.0.1
+    gateways             -
+    dns_servers          fec0:0:0:ffff::1, fec0:0:0:ffff::2, fec0:0:0:ffff::3
+
+====================================================================================================
+四　DNS 快取　MSFT_DNSClientCache
+====================================================================================================
+總計 65 筆
+
+  entry                                                                     name                                                                      type   data                                                ttl   
+  ------------------------------------------------------------------------  ------------------------------------------------------------------------  -----  --------------------------------------------------  ------
+  apne-prod.pp.sgp.pvp.net                                                  apne-prod.pp.sgp.pvp.net                                                  CNAME  apne-prod.pp.sgp.pvp.net.cdn.cloudflare.net         24    
+  apne-prod.pp.sgp.pvp.net                                                  apne-prod.pp.sgp.pvp.net.cdn.cloudflare.net                               AAAA   2a06:98c1:3104::6812:29b7                           24    
+  apne-prod.pp.sgp.pvp.net                                                  apne-prod.pp.sgp.pvp.net.cdn.cloudflare.net                               AAAA   2606:4700:440b::ac40:9249                           24    
+  8.8.8.8.in-addr.arpa                                                      8.8.8.8.in-addr.arpa                                                      PTR    dns.google                                          18082 
+  tp-in-f94.1e100.net                                                       tp-in-f94.1e100.net                                                       AAAA   2404:6800:4008:c01::5e                              2000  
+  tp-in-f94.1e100.net                                                       tp-in-f94.1e100.net                                                       A      108.177.125.94                                      2000  
+  kubernetes.docker.internal                                                                                                                          AAAA   -                                                   0     
+  kubernetes.docker.internal                                                kubernetes.docker.internal                                                A      127.0.0.1                                           452539
+  riot-client.dyn.riotcdn.net                                               riot-client.dyn.riotcdn.net                                               CNAME  d6jn3ymiolxbr.cloudfront.net                        12    
+  riot-client.dyn.riotcdn.net                                               d6jn3ymiolxbr.cloudfront.net                                              A      3.169.137.46                                        12    
+  riot-client.dyn.riotcdn.net                                               d6jn3ymiolxbr.cloudfront.net                                              A      3.169.137.52                                        12    
+  riot-client.dyn.riotcdn.net                                               d6jn3ymiolxbr.cloudfront.net                                              A      3.169.137.117                                       12    
+  riot-client.dyn.riotcdn.net                                               d6jn3ymiolxbr.cloudfront.net                                              A      3.169.137.69                                        12    
+  sentry.io                                                                 sentry.io                                                                 A      35.186.247.156                                      2901  
+  sieve.services.riotcdn.net                                                sieve.services.riotcdn.net                                                CNAME  sieve.services.riotcdn.net.cdn.cloudflare.net       120   
+  sieve.services.riotcdn.net                                                sieve.services.riotcdn.net.cdn.cloudflare.net                             A      104.18.36.199                                       120   
+  sieve.services.riotcdn.net                                                sieve.services.riotcdn.net.cdn.cloudflare.net                             A      172.64.151.57                                       120   
+  4.8.0.0.0.0.0.0.0.0.0.0.0.0.0.0.2.0.c.0.8.0.0.4.0.0.8.6.4.0.4.2.ip6.arpa  4.8.0.0.0.0.0.0.0.0.0.0.0.0.0.0.2.0.c.0.8.0.0.4.0.0.8.6.4.0.4.2.ip6.arpa  PTR    tg-in-f132.1e100.net                                2992  
+  4.8.0.0.0.0.0.0.0.0.0.0.0.0.0.0.2.0.c.0.8.0.0.4.0.0.8.6.4.0.4.2.ip6.arpa  4.8.0.0.0.0.0.0.0.0.0.0.0.0.0.0.2.0.c.0.8.0.0.4.0.0.8.6.4.0.4.2.ip6.arpa  PTR    tg-in-x84.1e100.net                                 2992  
+  p2p-tyo3.discovery.steamserver.net                                        p2p-tyo3.discovery.steamserver.net                                        A      45.121.184.21                                       52    
+  p2p-tyo3.discovery.steamserver.net                                        p2p-tyo3.discovery.steamserver.net                                        A      45.121.184.23                                       52    
+  p2p-tyo3.discovery.steamserver.net                                        p2p-tyo3.discovery.steamserver.net                                        A      45.121.184.22                                       52    
+  p2p-tyo3.discovery.steamserver.net                                        p2p-tyo3.discovery.steamserver.net                                        A      45.121.184.20                                       52    
+  array818.prod.do.dsp.mp.microsoft.com                                     array818.prod.do.dsp.mp.microsoft.com                                     A      72.154.7.111                                        870   
+  c.b.0.0.0.0.0.0.0.0.0.0.0.0.0.0.b.1.c.0.8.0.0.4.0.0.8.6.4.0.4.2.ip6.arpa  c.b.0.0.0.0.0.0.0.0.0.0.0.0.0.0.b.1.c.0.8.0.0.4.0.0.8.6.4.0.4.2.ip6.arpa  PTR    td-in-f188.1e100.net                                2993  
+  153.191.199.60.in-addr.arpa                                               153.191.199.60.in-addr.arpa                                               PTR    60-199-191-153.static.tfn.net.tw                    85773 
+  e.5.0.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.c.0.8.0.0.4.0.0.8.6.4.0.4.2.ip6.arpa  e.5.0.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.c.0.8.0.0.4.0.0.8.6.4.0.4.2.ip6.arpa  PTR    tp-in-f94.1e100.net                                 1999  
+  auth.riotgames.com                                                        auth.riotgames.com                                                        CNAME  auth.riotgames.com.cdn.cloudflare.net               10    
+  auth.riotgames.com                                                        auth.riotgames.com.cdn.cloudflare.net                                     A      104.16.119.50                                       10    
+  auth.riotgames.com                                                        auth.riotgames.com.cdn.cloudflare.net                                     A      104.16.120.50                                       10    
+  host.docker.internal                                                                                                                                AAAA   -                                                   0     
+  host.docker.internal                                                      host.docker.internal                                                      A      192.168.0.154                                       452539
+  ap.vg.ac.pvp.net                                                          ap.vg.ac.pvp.net                                                          CNAME  ap.vg.ac.pvp.net.cdn.cloudflare.net                 122   
+  ap.vg.ac.pvp.net                                                          ap.vg.ac.pvp.net.cdn.cloudflare.net                                       A      104.18.41.168                                       122   
+  ap.vg.ac.pvp.net                                                          ap.vg.ac.pvp.net.cdn.cloudflare.net                                       A      172.64.146.88                                       122   
+  1.0.0.127.in-addr.arpa                                                    1.0.0.127.in-addr.arpa.                                                   PTR    kubernetes.docker.internal                          452539
+  e.5.0.0.0.0.0.0.0.0.0.0.0.0.0.0.3.1.c.0.1.0.0.4.0.5.4.1.0.0.a.2.ip6.arpa  e.5.0.0.0.0.0.0.0.0.0.0.0.0.0.0.3.1.c.0.1.0.0.4.0.5.4.1.0.0.a.2.ip6.arpa  PTR    wt-in-f94.1e100.net                                 3086  
+  c.b.0.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.c.0.8.0.0.4.0.0.8.6.4.0.4.2.ip6.arpa  c.b.0.0.0.0.0.0.0.0.0.0.0.0.0.0.1.0.c.0.8.0.0.4.0.0.8.6.4.0.4.2.ip6.arpa  PTR    tp-in-f188.1e100.net                                2993  
+  gateway.docker.internal                                                                                                                             AAAA   -                                                   0     
+  gateway.docker.internal                                                   gateway.docker.internal                                                   A      192.168.0.154                                       452539
+  telemetry.sgp.pvp.net                                                     telemetry.sgp.pvp.net                                                     CNAME  telemetry.sgp.pvp.net.cdn.cloudflare.net            16    
+  telemetry.sgp.pvp.net                                                     telemetry.sgp.pvp.net.cdn.cloudflare.net                                  A      172.64.146.73                                       16    
+  telemetry.sgp.pvp.net                                                     telemetry.sgp.pvp.net.cdn.cloudflare.net                                  A      104.18.41.183                                       16    
+  1.112.25.172.in-addr.arpa                                                 1.112.25.172.in-addr.arpa.                                                PTR    DESKTOP-GKGK7PL.mshome.net                          452539
+  154.0.168.192.in-addr.arpa                                                154.0.168.192.in-addr.arpa.                                               PTR    host.docker.internal                                452539
+  154.0.168.192.in-addr.arpa                                                154.0.168.192.in-addr.arpa.                                               PTR    gateway.docker.internal                             452539
+  http-intake.logs.us5.datadoghq.com                                        http-intake.logs.us5.datadoghq.com                                        AAAA   2600:1901:0:9e23::                                  240   
+  http-intake.logs.us5.datadoghq.com                                        http-intake.logs.us5.datadoghq.com                                        A      34.149.66.165                                       103   
+  96.26.132.203.in-addr.arpa                                                96.26.132.203.in-addr.arpa                                                PTR    lb-upc-dmx.ubisoft.com                              2943  
+  entitlements.auth.riotgames.com                                           entitlements.auth.riotgames.com                                           CNAME  entitlements.auth.riotgames.com.cdn.cloudflare.net  55    
+  entitlements.auth.riotgames.com                                           entitlements.auth.riotgames.com.cdn.cloudflare.net                        A      104.16.56.21                                        55    
+  entitlements.auth.riotgames.com                                           entitlements.auth.riotgames.com.cdn.cloudflare.net                        A      104.16.57.21                                        55    
+  pypi.org                                                                  pypi.org                                                                  AAAA   2a04:4e42:400::223                                  26097 
+  pypi.org                                                                  pypi.org                                                                  AAAA   2a04:4e42::223                                      26097 
+  pypi.org                                                                  pypi.org                                                                  AAAA   2a04:4e42:200::223                                  26097 
+  pypi.org                                                                  pypi.org                                                                  AAAA   2a04:4e42:600::223                                  26097 
+  pypi.org                                                                  pypi.org                                                                  A      151.101.64.223                                      26095 
+  pypi.org                                                                  pypi.org                                                                  A      151.101.0.223                                       26095 
+  pypi.org                                                                  pypi.org                                                                  A      151.101.192.223                                     26095 
+  pypi.org                                                                  pypi.org                                                                  A      151.101.128.223                                     26095 
+  4.5.0.0.0.0.0.0.0.0.0.0.0.0.0.0.3.1.c.0.8.0.0.4.0.0.8.6.4.0.4.2.ip6.arpa  4.5.0.0.0.0.0.0.0.0.0.0.0.0.0.0.3.1.c.0.8.0.0.4.0.0.8.6.4.0.4.2.ip6.arpa  PTR    ta-in-f84.1e100.net                                 2913  
+  102.248.192.54.in-addr.arpa                                               102.248.192.54.in-addr.arpa                                               PTR    server-54-192-248-102.tpe53.r.cloudfront.net        82069 
+  desktop-gkgk7pl.mshome.net                                                DESKTOP-GKGK7PL.mshome.net                                                A      172.25.112.1                                        452539
+  desktop-gkgk7pl.mshome.net                                                                                                                          AAAA   -                                                   0     
+  array808.prod.do.dsp.mp.microsoft.com                                     array808.prod.do.dsp.mp.microsoft.com                                     A      72.154.7.101                                        1136  
+
+====================================================================================================
+五　合併結果：對方是誰
+====================================================================================================
+有遠端對象 90 條，其中對外 56 條
+
+  process                 pid    local                                    lport  remote                                 rport  state        iface   mac  name(cache)                         name(reverse)                                        
+  ----------------------  -----  ---------------------------------------  -----  -------------------------------------  -----  -----------  ------  ---  ----------------------------------  -----------------------------------------------------
+  upc.exe                 23220  192.168.0.154                            50377  203.132.26.96                          443    Established  乙太網路 2  -    -                                   lb-upc-dmx.ubisoft.com                               
+  RiotClientServices.exe  32900  192.168.0.154                            53137  104.18.41.183                          443    CloseWait    乙太網路 2  -    telemetry.sgp.pvp.net                                                                    
+  System Idle Process     0      192.168.0.154                            53277  172.64.151.57                          443    TimeWait     乙太網路 2  -    sieve.services.riotcdn.net                                                               
+  Discord.exe             32752  192.168.0.154                            54661  162.159.130.234                        443    Established  乙太網路 2  -    -                                                                                        
+  NVIDIA Overlay.exe      28332  192.168.0.154                            55041  72.25.64.32                            443    Established  乙太網路 2  -    -                                                                                        
+  League of Legends.exe   33300  192.168.0.154                            55044  104.16.55.40                           443    CloseWait    乙太網路 2  -    -                                                                                        
+  LeagueClient.exe        16256  192.168.0.154                            57891  104.18.40.25                           443    Established  乙太網路 2  -    -                                                                                        
+  LeagueClient.exe        16256  192.168.0.154                            57955  13.214.71.49                           2099   Established  乙太網路 2  -    -                                   ec2-13-214-71-49.ap-southeast-1.compute.amazonaws.com
+  nvcontainer.exe         9184   192.168.0.154                            60846  60.199.191.153                         443    CloseWait    乙太網路 2  -    -                                   60-199-191-153.static.tfn.net.tw                     
+  steam.exe               13100  192.168.0.154                            61022  45.121.184.100                         27020  Established  乙太網路 2  -    -                                                                                        
+  chrome.exe              19320  192.168.0.154                            61268  34.0.245.166                           443    CloseWait    乙太網路 2  -    -                                   166.245.0.34.bc.googleusercontent.com                
+  claude.exe              13168  192.168.0.154                            61635  160.79.104.10                          443    Established  乙太網路 2  -    -                                                                                        
+  RiotClientServices.exe  32900  192.168.0.154                            62394  104.18.41.99                           443    CloseWait    乙太網路 2  -    -                                                                                        
+  RiotClientServices.exe  32900  192.168.0.154                            62404  104.18.40.25                           443    Established  乙太網路 2  -    -                                                                                        
+  RiotClientServices.exe  32900  192.168.0.154                            62405  172.65.217.212                         5223   Established  乙太網路 2  -    -                                                                                        
+  upc.exe                 23220  192.168.0.154                            62441  166.117.137.155                        443    Established  乙太網路 2  -    -                                   a774141db61d2a5c6.awsglobalaccelerator.com           
+  Riot Client.exe         33768  192.168.0.154                            62820  65.9.180.3                             443    Established  乙太網路 2  -    -                                   server-65-9-180-3.tpe53.r.cloudfront.net             
+  System Idle Process     0      192.168.0.154                            62839  104.16.55.40                           443    TimeWait     乙太網路 2  -    -                                                                                        
+  LeagueClient.exe        16256  192.168.0.154                            63363  104.16.119.50                          443    Established  乙太網路 2  -    auth.riotgames.com                                                                       
+  LeagueClient.exe        16256  192.168.0.154                            63367  104.16.56.21                           443    Established  乙太網路 2  -    entitlements.auth.riotgames.com                                                          
+  RiotClientServices.exe  32900  192.168.0.154                            63384  104.18.36.199                          443    Established  乙太網路 2  -    sieve.services.riotcdn.net                                                               
+  System Idle Process     0      192.168.0.154                            63388  104.16.119.50                          443    TimeWait     乙太網路 2  -    auth.riotgames.com                                                                       
+  LeagueClient.exe        16256  192.168.0.154                            63397  104.16.56.21                           443    Established  乙太網路 2  -    entitlements.auth.riotgames.com                                                          
+  RiotClientServices.exe  32900  192.168.0.154                            63398  104.16.56.21                           443    Established  乙太網路 2  -    entitlements.auth.riotgames.com                                                          
+  System Idle Process     0      192.168.0.154                            65142  104.18.41.168                          8443   TimeWait     乙太網路 2  -    ap.vg.ac.pvp.net                                                                         
+  System Idle Process     0      192.168.0.154                            65145  104.18.41.168                          8443   TimeWait     乙太網路 2  -    ap.vg.ac.pvp.net                                                                         
+  System Idle Process     0      192.168.0.154                            65151  35.85.4.204                            443    TimeWait     乙太網路 2  -    -                                   ec2-35-85-4-204.us-west-2.compute.amazonaws.com      
+  System Idle Process     0      192.168.0.154                            65154  104.18.41.168                          8443   TimeWait     乙太網路 2  -    ap.vg.ac.pvp.net                                                                         
+  RiotClientServices.exe  32900  192.168.0.154                            65173  3.169.137.46                           443    Established  乙太網路 2  -    riot-client.dyn.riotcdn.net         server-3-169-137-46.tpe54.r.cloudfront.net           
+  System Idle Process     0      192.168.0.154                            65189  104.18.41.168                          8443   TimeWait     乙太網路 2  -    ap.vg.ac.pvp.net                                                                         
+  msedge.exe              28644  192.168.0.154                            65300  48.210.190.78                          443    Established  乙太網路 2  -    -                                                                                        
+  msedge.exe              28644  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  51031  2603:1046:c10:809::2                   443    Established  乙太網路 2  -    -                                                                                        
+  chrome.exe              19320  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  52155  2001:4860:482c:400::                   443    Established  乙太網路 2  -    -                                                                                        
+  RiotClientServices.exe  32900  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  52161  2600:9000:202b:1c00:18:3d46:fdc0:93a1  443    Established  乙太網路 2  -    -                                                                                        
+  System Idle Process     0      2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  52164  2600:9000:202b:7a00:18:3d46:fdc0:93a1  443    TimeWait     乙太網路 2  -    -                                                                                        
+  msedge.exe              28644  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  52366  2001:4546:1003:299::2c1a               443    Established  乙太網路 2  -    -                                                                                        
+  claude.exe              13168  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  53881  2607:6bc0::10                          443    Established  乙太網路 2  -    -                                                                                        
+  explorer.exe            24872  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  54095  2603:1063:2001:3500::                  443    Established  乙太網路 2  -    -                                                                                        
+  explorer.exe            24872  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  54096  2603:1063:2001:3500::                  443    Established  乙太網路 2  -    -                                                                                        
+  explorer.exe            24872  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  54097  2603:1063:2001:3500::                  443    Established  乙太網路 2  -    -                                                                                        
+  explorer.exe            24872  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  54098  2603:1063:2001:3500::                  443    Established  乙太網路 2  -    -                                                                                        
+  chrome.exe              19320  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  56096  2607:6bc0::10                          443    Established  乙太網路 2  -    -                                                                                        
+  Discord.exe             32752  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  57582  2600:1901:1:292::                      443    Established  乙太網路 2  -    -                                                                                        
+  chrome.exe              19320  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  59513  2404:6800:4008:c01::bc                 5228   Established  乙太網路 2  -    -                                   tp-in-f188.1e100.net                                 
+  LeagueClient.exe        16256  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  61271  2606:4700:440b::ac40:9249              443    Established  乙太網路 2  -    apne-prod.pp.sgp.pvp.net                                                                 
+  chrome.exe              19320  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  61971  2404:6800:4008:c1b::bc                 5228   Established  乙太網路 2  -    -                                   td-in-f188.1e100.net                                 
+  msedge.exe              28644  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  62082  2603:1020:705:8::402                   443    Established  乙太網路 2  -    -                                                                                        
+  svchost.exe             5504   2407:4d00:4c06:14a3:ed72:6b11:47a3:6b0e  62722  2603:1020:705:8::400                   443    Established  乙太網路 2  -    -                                                                                        
+  System Idle Process     0      2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  62825  2606:4700:440b::ac40:9249              443    TimeWait     乙太網路 2  -    apne-prod.pp.sgp.pvp.net                                                                 
+  LeagueClient.exe        16256  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  62826  2606:4700:4409::ac40:9739              443    Established  乙太網路 2  -    -                                                                                        
+  System Idle Process     0      2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  62840  2606:4700:440b::ac40:9249              443    TimeWait     乙太網路 2  -    apne-prod.pp.sgp.pvp.net                                                                 
+  System Idle Process     0      2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  63336  2606:4700:440b::ac40:9249              443    TimeWait     乙太網路 2  -    apne-prod.pp.sgp.pvp.net                                                                 
+  chrome.exe              19320  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  63359  2404:6800:4008:c19::5e                 443    Established  乙太網路 2  -    -                                   tc-in-f94.1e100.net                                  
+  System Idle Process     0      2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  63379  2606:4700:440b::ac40:9249              443    TimeWait     乙太網路 2  -    apne-prod.pp.sgp.pvp.net                                                                 
+  RiotClientServices.exe  32900  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  63394  2606:4700:440b::ac40:9249              443    Established  乙太網路 2  -    apne-prod.pp.sgp.pvp.net                                                                 
+  claude.exe              13168  2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a  65181  2600:1901:0:9e23::                     443    Established  乙太網路 2  -    http-intake.logs.us5.datadoghq.com                                                       
+
+[本機端內部連線]
+  process                   pid    local      lport  remote     rport  state      
+  ------------------------  -----  ---------  -----  ---------  -----  -----------
+  lghub_agent.exe           4812   127.0.0.1  9010   127.0.0.1  55037  Established
+  LeagueClient.exe          16256  127.0.0.1  52158  127.0.0.1  53145  Established
+  RiotClientServices.exe    32900  127.0.0.1  53145  127.0.0.1  57765  Established
+  System Idle Process       0      127.0.0.1  53145  127.0.0.1  63393  TimeWait   
+  RiotClientServices.exe    32900  127.0.0.1  53145  127.0.0.1  57816  Established
+  RiotClientServices.exe    32900  127.0.0.1  53145  127.0.0.1  57792  Established
+  RiotClientServices.exe    32900  127.0.0.1  53145  127.0.0.1  52158  Established
+  RiotClientServices.exe    32900  127.0.0.1  53145  127.0.0.1  57886  Established
+  League of Legends.exe     33300  127.0.0.1  55032  127.0.0.1  57885  Established
+  League of Legends.exe     33300  127.0.0.1  55034  127.0.0.1  57885  Established
+  League of Legends.exe     33300  127.0.0.1  55035  127.0.0.1  57885  Established
+  League of Legends.exe     33300  127.0.0.1  55037  127.0.0.1  9010   Established
+  python.exe                9396   127.0.0.1  55658  127.0.0.1  55661  Established
+  python.exe                9396   127.0.0.1  55661  127.0.0.1  55658  Established
+  Riot Client.exe           27368  127.0.0.1  57765  127.0.0.1  53145  Established
+  Riot Client.exe           33768  127.0.0.1  57792  127.0.0.1  53145  Established
+  Riot Client.exe           33768  127.0.0.1  57816  127.0.0.1  53145  Established
+  LeagueClient.exe          16256  127.0.0.1  57885  127.0.0.1  57939  Established
+  LeagueClient.exe          16256  127.0.0.1  57885  127.0.0.1  57996  Established
+  LeagueClient.exe          16256  127.0.0.1  57885  127.0.0.1  55035  Established
+  LeagueClient.exe          16256  127.0.0.1  57885  127.0.0.1  58008  Established
+  LeagueClient.exe          16256  127.0.0.1  57885  127.0.0.1  55032  Established
+  LeagueClient.exe          16256  127.0.0.1  57885  127.0.0.1  55034  Established
+  LeagueClient.exe          16256  127.0.0.1  57886  127.0.0.1  53145  Established
+  LeagueClientUx.exe        33716  127.0.0.1  57939  127.0.0.1  57885  Established
+  LeagueClientUxRender.exe  26456  127.0.0.1  57996  127.0.0.1  57885  Established
+  LeagueClientUxRender.exe  26456  127.0.0.1  58008  127.0.0.1  57885  Established
+  steam.exe                 13100  127.0.0.1  58330  127.0.0.1  58338  Established
+  steam.exe                 13100  127.0.0.1  58333  127.0.0.1  58337  Established
+  steamwebhelper.exe        5824   127.0.0.1  58337  127.0.0.1  58333  Established
+  steamwebhelper.exe        5824   127.0.0.1  58338  127.0.0.1  58330  Established
+  nvcontainer.exe           9184   127.0.0.1  60844  127.0.0.1  60845  Established
+  nvcontainer.exe           9184   127.0.0.1  60845  127.0.0.1  60844  Established
+  lghub_agent.exe           4812   127.0.0.1  65191  127.0.0.1  28194  SynSent    

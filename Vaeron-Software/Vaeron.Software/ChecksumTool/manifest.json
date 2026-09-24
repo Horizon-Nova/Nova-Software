@@ -1,0 +1,26 @@
+{
+  "tool_no": "local.checksum",
+  "name": "檔案校驗碼",
+  "version": "1.0.0",
+  "vendor": "資訊部 · 平台組",
+  "cat": "生產力",
+  "icon": "shield",
+  "audience": "全體員工",
+  "size": "",
+  "description": "算出一個檔案的 SHA-256，跟對方給的值比對，確認傳過來的檔案沒有被改過。檔案只在這台電腦上讀取。",
+  "entry": "ChecksumTool.dll",
+  "class": "ChecksumTool.Board",
+  "capabilities": [
+    "拖放或選檔算 SHA-256",
+    "一次算多個檔案，剛算好的排在最前面",
+    "一鍵複製校驗碼",
+    "顯示檔案大小與位元組數"
+  ],
+  "permissions": [
+    "讀取你選擇的檔案",
+    "寫入剪貼簿"
+  ],
+  "changelog": [
+    { "ver": "1.0.0", "date": "2026-09-23", "note": "第一版" }
+  ]
+}

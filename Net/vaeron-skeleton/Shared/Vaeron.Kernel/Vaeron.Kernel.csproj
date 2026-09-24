@@ -1,3 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <!-- 葉：ProjectReference 清單為空(Analyzer 除外)。此事實由 S006 於建置期驗證。 -->
-</Project>

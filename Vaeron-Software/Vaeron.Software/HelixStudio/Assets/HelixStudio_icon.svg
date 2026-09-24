@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <!-- 背景：圓角深色底 -->
+  <rect width="500" height="500" rx="112" fill="#1b1b1a"/>
+
+  <!-- 標誌縮到 84%，線條加粗，小尺寸仍看得清 -->
+  <g stroke="#f5f0db" fill="#f5f0db" transform="translate(250 250) scale(.84) translate(-250 -250)">
+    <!-- 中央菱形 -->
+    <polygon points="250,130 360,250 250,370 140,250" fill="none" stroke-width="22" stroke-linejoin="miter"/>
+
+    <!-- 十字準星線 -->
+    <line x1="250" y1="185" x2="250" y2="315" stroke-width="18" stroke-linecap="round"/>
+    <line x1="185" y1="250" x2="315" y2="250" stroke-width="18" stroke-linecap="round"/>
+
+    <!-- 四個方向的圓點，右側另有一顆小圓點 -->
+    <circle cx="250" cy="85" r="22" stroke="none"/>
+    <circle cx="250" cy="415" r="22" stroke="none"/>
+    <circle cx="80" cy="250" r="22" stroke="none"/>
+    <circle cx="420" cy="250" r="22" stroke="none"/>
+    <circle cx="455.6" cy="250" r="5" stroke="none"/>
+
+    <!-- 外圍圓弧：右上、右下、左側 -->
+    <path d="M 161.2 62.8 A 210 210 0 0 1 443.3 165" fill="none" stroke-width="20" stroke-linecap="round"/>
+    <path d="M 443.3 335 A 210 210 0 0 1 207.2 455.6" fill="none" stroke-width="20" stroke-linecap="round"/>
+    <path d="M 129.5 78.1 A 210 210 0 0 0 129.5 421.9" fill="none" stroke-width="20" stroke-linecap="round"/>
+  </g>
+</svg>

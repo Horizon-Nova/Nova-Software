@@ -1,0 +1,186 @@
+{
+  "summary": {
+    "connections_tcp": 99,
+    "endpoints_udp": 150,
+    "neighbors_total": 459,
+    "neighbors_with_mac": 72,
+    "interfaces": 6,
+    "dns_cache": 48,
+    "merged_total": 59,
+    "merged_public": 44,
+    "merged_public_named": 20,
+    "merged_public_with_mac": 0,
+    "merged_no_owner": 7
+  },
+  "connections_tcp": [
+    {
+      "protocol": "TCP",
+      "local_address": "192.168.0.154",
+      "local_port": 50377,
+      "remote_address": "203.132.26.96",
+      "remote_port": 443,
+      "state": "Established",
+      "process_id": 23220
+    },
+    {
+      "protocol": "TCP",
+      "local_address": "192.168.0.154",
+      "local_port": 51581,
+      "remote_address": "166.117.208.151",
+      "remote_port": 443,
+      "state": "Established",
+      "process_id": 23220
+    }
+  ],
+  "endpoints_udp": [
+    {
+      "protocol": "UDP",
+      "local_address": "0.0.0.0",
+      "local_port": 123,
+      "remote_address": null,
+      "remote_port": null,
+      "state": null,
+      "process_id": 12144
+    }
+  ],
+  "neighbors": [
+    {
+      "address": "192.168.0.255",
+      "link_layer_address": "FF:FF:FF:FF:FF:FF",
+      "state": "Permanent",
+      "interface_index": 11,
+      "is_router": false
+    },
+    {
+      "address": "192.168.0.1",
+      "link_layer_address": "FC:77:7B:7B:FB:82",
+      "state": "Reachable",
+      "interface_index": 8,
+      "is_router": false
+    },
+    {
+      "address": "192.168.0.43",
+      "link_layer_address": "DC:62:79:42:C0:A7",
+      "state": "Stale",
+      "interface_index": 8,
+      "is_router": false
+    }
+  ],
+  "interfaces": [
+    {
+      "interface_index": 8,
+      "name": "乙太網路 2",
+      "description": "Intel(R) Ethernet Connection (17) I219-V",
+      "link_layer_address": "34:5A:60:1D:D6:80",
+      "type": "Ethernet",
+      "status": "Up",
+      "mtu": 1500,
+      "transmit_link_speed": 100000000,
+      "receive_link_speed": 100000000,
+      "dns_suffix": "hitronhub.home",
+      "ip_addresses": [
+        "2407:4d00:4c06:14a3:ff:ff:ff:ed",
+        "2407:4d00:4c06:14a3:fd57:dffb:45dc:9d9a",
+        "2407:4d00:4c06:14a3:ed72:6b11:47a3:6b0e",
+        "fe80::5174:e7dd:1015:8cd4",
+        "192.168.0.154"
+      ],
+      "gateways": [
+        "fe80::fe77:7bff:fe7b:fb82",
+        "192.168.0.1"
+      ],
+      "dns_servers": [
+        "2001:4546:1::1",
+        "192.168.0.1",
+        "61.31.1.1",
+        "61.31.233.1",
+        "2001:4546:1::1",
+        "2001:4546:2::1"
+      ]
+    }
+  ],
+  "dns_cache": [
+    {
+      "entry": "8.8.8.8.in-addr.arpa",
+      "name": "8.8.8.8.in-addr.arpa",
+      "type": "PTR",
+      "type_code": 12,
+      "data": "dns.google",
+      "ttl": 16567,
+      "status": 0
+    },
+    {
+      "entry": "api.anthropic.com",
+      "name": "api.anthropic.com",
+      "type": "AAAA",
+      "type_code": 28,
+      "data": "2607:6bc0::10",
+      "ttl": 59,
+      "status": 0
+    }
+  ],
+  "log_channels": [
+    {
+      "log_name": "Microsoft-Windows-DNS-Client/Operational",
+      "enabled": false,
+      "record_count": null,
+      "log_mode": 0,
+      "max_size_bytes": 1052672
+    }
+  ],
+  "merged_有名稱範例": [
+    {
+      "process_id": 23220,
+      "process_name": "upc.exe",
+      "protocol": "TCP",
+      "state": "Established",
+      "local_address": "192.168.0.154",
+      "local_port": 50377,
+      "remote_address": "203.132.26.96",
+      "remote_port": 443,
+      "remote_kind": "public",
+      "remote_name_cache": null,
+      "remote_mac": null,
+      "interface_index": "8",
+      "interface_name": "乙太網路 2",
+      "remote_name_reverse": "lb-upc-dmx.ubisoft.com",
+      "remote_name": "lb-upc-dmx.ubisoft.com"
+    },
+    {
+      "process_id": 23220,
+      "process_name": "upc.exe",
+      "protocol": "TCP",
+      "state": "Established",
+      "local_address": "192.168.0.154",
+      "local_port": 51581,
+      "remote_address": "166.117.208.151",
+      "remote_port": 443,
+      "remote_kind": "public",
+      "remote_name_cache": null,
+      "remote_mac": null,
+      "interface_index": "8",
+      "interface_name": "乙太網路 2",
+      "remote_name_reverse": "a1cf65b34f82ea41f.awsglobalaccelerator.com",
+      "remote_name": "a1cf65b34f82ea41f.awsglobalaccelerator.com"
+    }
+  ],
+  "merged_無名稱範例": [
+    {
+      "process_id": 28332,
+      "process_name": "NVIDIA Overlay.exe",
+      "protocol": "TCP",
+      "state": "Established",
+      "local_address": "192.168.0.154",
+      "local_port": 51631,
+      "remote_address": "72.25.64.32",
+      "remote_port": 443,
+      "remote_kind": "public",
+      "remote_name_cache": null,
+      "remote_mac": null,
+      "interface_index": "8",
+      "interface_name": "乙太網路 2",
+      "remote_name_reverse": null,
+      "remote_name": null
+    }
+  ]
+}

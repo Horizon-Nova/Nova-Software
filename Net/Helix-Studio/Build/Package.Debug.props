@@ -1,4 +1,0 @@
-<Project>
-  <!-- Debug 組態不產出散佈物。清單為空，Package.proj 逐項處理時跑零次。 -->
-  <ItemGroup />
-</Project>

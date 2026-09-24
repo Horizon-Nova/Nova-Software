@@ -1,0 +1,178 @@
+{
+  "同網段裝置": [
+    {
+      "實體位址": "B8:27:EB:16:CE:D5",
+      "位址": [
+        "192.168.0.111"
+      ],
+      "芳鄰狀態": [
+        "Stale"
+      ],
+      "介面": [
+        8
+      ],
+      "是否為路由器": false,
+      "TTL": "64",
+      "作業系統族": "Linux/Android/macOS/嵌入式",
+      "主機名稱": "pi.local",
+      "製造商": null
+    },
+    {
+      "實體位址": "BC:14:01:00:00:80",
+      "位址": [
+        "192.168.0.254",
+        "192.168.100.2"
+      ],
+      "芳鄰狀態": [
+        "Stale"
+      ],
+      "介面": [
+        8
+      ],
+      "是否為路由器": false,
+      "TTL": null,
+      "作業系統族": null,
+      "主機名稱": null,
+      "製造商": null
+    },
+    {
+      "實體位址": "DC:62:79:42:C0:A7",
+      "位址": [
+        "192.168.0.43"
+      ],
+      "芳鄰狀態": [
+        "Stale"
+      ],
+      "介面": [
+        8
+      ],
+      "是否為路由器": false,
+      "TTL": "255",
+      "作業系統族": "網路設備/IoT",
+      "主機名稱": null,
+      "製造商": null
+    },
+    {
+      "實體位址": "FC:77:7B:7B:FB:82",
+      "位址": [
+        "192.168.0.1",
+        "192.168.100.1",
+        "2407:4d00:4c06:14a3:fe77:7bff:fe7b:fb82",
+        "fe80::fe77:7bff:fe7b:fb82"
+      ],
+      "芳鄰狀態": [
+        "Reachable",
+        "Stale"
+      ],
+      "介面": [
+        8,
+        11
+      ],
+      "是否為路由器": true,
+      "TTL": "64",
+      "作業系統族": "Linux/Android/macOS/嵌入式",
+      "主機名稱": null,
+      "製造商": null
+    }
+  ],
+  "對外連線_範例": [
+    {
+      "本機行程": {
+        "pid": 23220,
+        "名稱": "upc.exe",
+        "路徑": "C:\\Program Files (x86)\\Ubisoft\\Ubisoft Game Launcher\\upc.exe",
+        "命令列": "\"C:\\Program Files (x86)\\Ubisoft\\Ubisoft Game Launcher\\upc.exe\" -upc_uplay_id 3619 -uplay_steam_mode -upc_game_starter ",
+        "父行程": "19276",
+        "服務": [],
+        "簽章": "Valid",
+        "簽署者": "CN=UBISOFT ENTERTAINMENT INC., O=UBISOFT ENTERTAINMENT INC., L=San Francisco, S=California, C=US"
+      },
+      "通道": {
+        "協定": "TCP",
+        "狀態": "Established",
+        "本機": "192.168.0.154:50377",
+        "介面": "乙太網路 2"
+      },
+      "對方": {
+        "位址": "203.132.26.96",
+        "連接埠": 443,
+        "網域名稱": "lb-upc-dmx.ubisoft.com",
+        "憑證主體": "dmx.upc.ubisoft.com",
+        "憑證組織": "Ubisoft Divertissements Inc.",
+        "憑證國別": "CA",
+        "憑證簽發者": "Sectigo Limited",
+        "憑證涵蓋": [
+          "dmx.upc.ubisoft.com",
+          "edgeone-cert2-dmx.upc.ubisoft.com",
+          "edgeone-dmx.upc.ubisoft.com",
+          "lb-upc-dmx.ubisoft.com"
+        ],
+        "TLS": "TLSv1.2",
+        "憑證取得失敗": null
+      }
+    },
+    {
+      "本機行程": {
+        "pid": 23220,
+        "名稱": "upc.exe",
+        "路徑": "C:\\Program Files (x86)\\Ubisoft\\Ubisoft Game Launcher\\upc.exe",
+        "命令列": "\"C:\\Program Files (x86)\\Ubisoft\\Ubisoft Game Launcher\\upc.exe\" -upc_uplay_id 3619 -uplay_steam_mode -upc_game_starter ",
+        "父行程": "19276",
+        "服務": [],
+        "簽章": "Valid",
+        "簽署者": "CN=UBISOFT ENTERTAINMENT INC., O=UBISOFT ENTERTAINMENT INC., L=San Francisco, S=California, C=US"
+      },
+      "通道": {
+        "協定": "TCP",
+        "狀態": "Established",
+        "本機": "192.168.0.154:51581",
+        "介面": "乙太網路 2"
+      },
+      "對方": {
+        "位址": "166.117.208.151",
+        "連接埠": 443,
+        "網域名稱": "a1cf65b34f82ea41f.awsglobalaccelerator.com",
+        "憑證主體": "*.ubi.com",
+        "憑證組織": "Ubisoft Entertainment Inc.",
+        "憑證國別": "CA",
+        "憑證簽發者": "DigiCert, Inc.",
+        "憑證涵蓋": [
+          "*.ubi.com",
+          "ubi.com"
+        ],
+        "TLS": "TLSv1.2",
+        "憑證取得失敗": null
+      }
+    },
+    {
+      "本機行程": {
+        "pid": 32900,
+        "名稱": "RiotClientServices.exe",
+        "路徑": "D:\\Riot Games\\Riot Client\\RiotClientServices.exe",
+        "命令列": "\"D:\\Riot Games\\Riot Client\\RiotClientServices.exe\" --launch-product=league_of_legends --launch-patchline=live",
+        "父行程": "24872",
+        "服務": [],
+        "簽章": "Valid",
+        "簽署者": "CN=\"Riot Games, Inc.\", O=\"Riot Games, Inc.\", L=Los Angeles, S=California, C=US, SERIALNUMBER=4155843, OID.2.5.4.15=Private Organization, OID.1.3.6.1.4.1.311.60.2.1.2=Delaware, OID.1.3.6.1.4.1.311.60.2.1.3=US"
+      },
+      "通道": {
+        "協定": "TCP",
+        "狀態": "CloseWait",
+        "本機": "192.168.0.154:53137",
+        "介面": "乙太網路 2"
+      },
+      "對方": {
+        "位址": "104.18.41.183",
+        "連接埠": 443,
+        "網域名稱": null,
+        "憑證主體": null,
+        "憑證組織": null,
+        "憑證國別": null,
+        "憑證簽發者": null,
+        "憑證涵蓋": [],
+        "TLS": null,
+        "憑證取得失敗": "SSLError"
+      }
+    }
+  ]
+}

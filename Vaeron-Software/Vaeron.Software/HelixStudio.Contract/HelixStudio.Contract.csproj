@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>HelixStudio.Contract</RootNamespace>
+    <AssemblyName>HelixStudio.Contract</AssemblyName>
+  </PropertyGroup>
+
+</Project>

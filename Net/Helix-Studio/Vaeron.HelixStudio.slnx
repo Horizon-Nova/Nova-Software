@@ -1,8 +1,0 @@
-<Solution>
-  <Project Path="Vaeron.HelixStudio.Kernel/Vaeron.HelixStudio.Kernel.csproj" />
-  <Project Path="Shared/Vaeron.HelixStudio.Data/Vaeron.HelixStudio.Data.csproj" />
-  <Project Path="Shared/Vaeron.HelixStudio.Sampling/Vaeron.HelixStudio.Sampling.csproj" />
-  <Project Path="Vaeron.HelixStudio.Shell/Vaeron.HelixStudio.Shell.csproj" />
-  <Project Path="Vaeron.HelixStudio.SystemAssistant/Vaeron.HelixStudio.SystemAssistant.csproj" />
-  <Project Path="Vaeron.HelixStudio.App/Vaeron.HelixStudio.App.csproj" />
-</Solution>

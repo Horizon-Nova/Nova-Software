@@ -1,0 +1,17 @@
+services:
+  helix-studio-db:
+    image: postgres:16
+    container_name: helix-studio-db
+    environment:
+      POSTGRES_DB: helix_studio
+      POSTGRES_USER: helix
+      POSTGRES_PASSWORD: helix
+    ports:
+      - "5432:5432"
+    volumes:
+      - helix-studio-data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d:ro
+    restart: unless-stopped
+
+volumes:
+  helix-studio-data:

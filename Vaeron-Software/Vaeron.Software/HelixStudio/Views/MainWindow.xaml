@@ -1,0 +1,336 @@
+<Window x:Class="HelixStudio.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:views="clr-namespace:HelixStudio.Views"
+        Title="HelixStudio" Width="1440" Height="900"
+        Background="{DynamicResource WindowBack}" Foreground="{DynamicResource TextPrimary}"
+        FontFamily="{StaticResource UiFont}" FontSize="{DynamicResource Body}" UseLayoutRounding="True" SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType"
+        ToolTipService.InitialShowDelay="300" PreviewKeyDown="Shortcut">
+
+    <shell:WindowChrome.WindowChrome>
+        <shell:WindowChrome CaptionHeight="32" ResizeBorderThickness="6" CornerRadius="0" GlassFrameThickness="0" />
+    </shell:WindowChrome.WindowChrome>
+
+    <Grid x:Name="Root">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="28" />
+        </Grid.RowDefinitions>
+
+        <!-- 標題列：品牌、搜尋藥丸、視窗按鈕 -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" Content="跳至主內容" Click="SkipToMain" VerticalAlignment="Center"
+                    shell:WindowChrome.IsHitTestVisibleInChrome="True" Panel.ZIndex="3">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource FillButton}">
+                        <Setter Property="Width" Value="0" />
+                        <Setter Property="Height" Value="0" />
+                        <Setter Property="Opacity" Value="0" />
+                        <Style.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter Property="Width" Value="Auto" />
+                                <Setter Property="Height" Value="24" />
+                                <Setter Property="Opacity" Value="1" />
+                                <Setter Property="Margin" Value="8,0,0,0" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0">
+                <Border Width="16" Height="16" CornerRadius="4" Background="{DynamicResource Accent}">
+                    <TextBlock Text="S" Foreground="{DynamicResource OnAccent}" FontSize="{DynamicResource Caption}" FontWeight="SemiBold"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+                <TextBlock Text="{Binding Product}" FontSize="{DynamicResource Caption}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                <TextBlock x:Name="CrumbText" Text="{Binding Crumb}" FontSize="{DynamicResource Caption}" Foreground="{DynamicResource TextMuted}"
+                           Margin="8,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            </StackPanel>
+
+            <Button Grid.Column="2" Style="{StaticResource FillButton}" Height="24" MaxWidth="288"
+                    Margin="0,4" Padding="8,0" FontWeight="Normal" Click="OpenPalette"
+                    ToolTip="{Binding SearchHint}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <ContentControl Width="12" Height="12" VerticalAlignment="Center"
+                                    Content="{Binding Icons[search]}" ContentTemplate="{StaticResource LucideIcon}" />
+                    <TextBlock Text="{Binding SearchLabel}" FontSize="{DynamicResource Caption}" Foreground="{DynamicResource TextMuted}"
+                               Margin="8,0" VerticalAlignment="Center" />
+                    <Border BorderBrush="{DynamicResource HairLine}" BorderThickness="1" CornerRadius="4" Padding="8,4">
+                        <TextBlock Text="Ctrl K" FontFamily="{StaticResource MonoFont}" FontSize="{DynamicResource Caption}"
+                                   Foreground="{DynamicResource TextMuted}" />
+                    </Border>
+                </StackPanel>
+            </Button>
+
+            <StackPanel Grid.Column="4" Orientation="Horizontal" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+                <Button Style="{StaticResource WindowButton}" ToolTip="最小化" Click="Minimize"
+                        Content="{Binding Icons[minus]}" ContentTemplate="{StaticResource LucideIcon12}" />
+                <Button x:Name="MaxButton" Style="{StaticResource WindowButton}" ToolTip="最大化" Click="ToggleMax"
+                        Content="{Binding Icons[square]}" ContentTemplate="{StaticResource LucideIcon12}" />
+                <Button Style="{StaticResource CloseButton}" ToolTip="關閉" Click="CloseWindow"
+                        Content="{Binding Icons[x]}" ContentTemplate="{StaticResource LucideIcon12}" />
+            </StackPanel>
+        </Grid>
+
+        <!-- 主區：側邊導覽列 48、內容區 -->
+        <Grid Grid.Row="1" Margin="8,0,8,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="48" />
+                <ColumnDefinition Width="8" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="8" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <DockPanel Grid.Column="0">
+
+                <StackPanel DockPanel.Dock="Bottom" HorizontalAlignment="Center">
+                    <ToggleButton x:Name="AssistToggle" Style="{StaticResource AssistButton}" Checked="ToggleAssist" Unchecked="ToggleAssist"
+                                  ToolTip="開啟 AI 助理（側邊面板，不中斷作業） · Ctrl J">
+                        <ContentControl Content="{Binding Icons[sparkles]}" ContentTemplate="{StaticResource LucideIcon20}" />
+                    </ToggleButton>
+                    <Border Width="24" Height="1" Margin="0,4" Background="{DynamicResource Divider}" />
+                    <ToggleButton x:Name="SettingsToggle" Style="{StaticResource GearButton}" Checked="ToggleSettings" Unchecked="ToggleSettings"
+                                  ToolTip="設定">
+                        <ContentControl Content="{Binding Icons[settings]}" ContentTemplate="{StaticResource LucideIcon20}" />
+                    </ToggleButton>
+                    <Button Margin="0,4,0,4" Click="OpenPalette" Style="{StaticResource AvatarButton}"
+                            ToolTip="{Binding PersonTip}" Content="{Binding Initial}" />
+                </StackPanel>
+
+                <ListBox x:Name="RailList" Style="{StaticResource RailList}"
+                         ItemContainerStyle="{StaticResource RailItem}"
+                         SelectionChanged="PickRail">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid ToolTip="{Binding Tip}">
+                                <ContentControl Content="{Binding Paths}" ContentTemplate="{StaticResource LucideIcon20}"
+                                                Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" />
+                                <ItemsControl ItemsSource="{Binding Badges}" HorizontalAlignment="Right" VerticalAlignment="Top">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border MinWidth="16" Height="16" CornerRadius="8" Padding="4,0" Margin="0,4,4,0"
+                                                    Background="{DynamicResource Badge}">
+                                                <TextBlock Text="{Binding}" Foreground="{DynamicResource OnAccent}" FontFamily="{StaticResource UiFont}"
+                                                           FontSize="{DynamicResource Caption}" FontWeight="SemiBold"
+                                                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+
+            <views:AssistPanel x:Name="Assist" Grid.Column="4" Visibility="Collapsed" />
+
+            <Border Grid.Column="2" Background="{DynamicResource ContentBack}" BorderBrush="{DynamicResource HairLine}"
+                    BorderThickness="1" CornerRadius="8">
+                <Grid x:Name="Body">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <!-- 出了狀況：停到使用者按重試或關掉為止 -->
+                    <ItemsControl x:Name="FaultList" Grid.Row="0" Panel.ZIndex="1">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{Binding Back}" BorderBrush="{Binding Line}"
+                                        BorderThickness="0,0,0,1" Padding="16,12">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ContentControl Grid.Column="0" Content="{Binding Paths}" Foreground="{Binding Ink}"
+                                                        ContentTemplate="{StaticResource LucideIcon16}"
+                                                        VerticalAlignment="Top" Margin="0,4,12,0" />
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="{Binding Text}" FontSize="{DynamicResource Body}" FontWeight="SemiBold"
+                                                       Foreground="{Binding Ink}" TextWrapping="Wrap" />
+                                            <TextBlock Text="{Binding Detail}" Style="{StaticResource MonoText}"
+                                                       Margin="0,4,0,0" LineHeight="{DynamicResource CaptionLine}" TextWrapping="Wrap" />
+                                        </StackPanel>
+                                        <Button Grid.Column="2" Style="{StaticResource FillButton}" Margin="12,0,0,0"
+                                                Content="{Binding RetryLabel}" Click="Retry" VerticalAlignment="Top" />
+                                        <Button Grid.Column="3" Style="{StaticResource WindowButton}" Width="28" Height="28"
+                                                Margin="4,0,0,0" VerticalAlignment="Top" ToolTip="關閉" Click="DropFault"
+                                                ContentTemplate="{StaticResource LucideIcon12}"
+                                                Content="{Binding DataContext.Icons[x], RelativeSource={RelativeSource AncestorType=Window}}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <views:CatalogPanel x:Name="Catalog" Grid.Row="1" />
+                    <views:DetailPanel x:Name="Detail" Grid.Row="1" Visibility="Collapsed" />
+                    <views:HostPanel x:Name="Host" Grid.Row="1" Visibility="Collapsed" />
+
+                    <!-- 通知：右下角，新的把舊的往上推 -->
+                    <ItemsControl x:Name="NoteList" Grid.RowSpan="2" Panel.ZIndex="2" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="16">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid MaxWidth="360" Margin="0,8,0,0" Style="{StaticResource Enter}">
+
+                                    <!-- 陰影單獨一層，通知裡的字才留得住 ClearType -->
+                                    <Border CornerRadius="8" Background="{DynamicResource Surface}" IsHitTestVisible="False">
+                                        <Border.Effect>
+                                            <DropShadowEffect BlurRadius="32" ShadowDepth="6" Direction="270" Opacity="0.16" />
+                                        </Border.Effect>
+                                    </Border>
+
+                                <Border CornerRadius="8" Background="{DynamicResource Surface}"
+                                        BorderBrush="{DynamicResource Divider}" BorderThickness="1"
+                                        MouseEnter="HoldNote" MouseLeave="ResumeNote">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Grid.Column="0" Width="3" CornerRadius="8,0,0,8" Background="{Binding Ink}" />
+                                        <ContentControl Grid.Column="1" Content="{Binding Paths}" Foreground="{Binding Ink}"
+                                                        ContentTemplate="{StaticResource LucideIcon16}"
+                                                        Margin="12,0,0,0" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Text}" FontSize="{DynamicResource Caption}" LineHeight="{DynamicResource CaptionLine}"
+                                                   TextWrapping="Wrap" Margin="12,12,12,12" VerticalAlignment="Center" />
+
+                                        <!-- 可以撤回的那一則才有這顆 -->
+                                        <ItemsControl Grid.Column="3" ItemsSource="{Binding Undos}" VerticalAlignment="Center">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Button Style="{StaticResource FillButton}" Height="24" Padding="8,0"
+                                                            FontWeight="Normal" Content="復原" Click="Undo" />
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <Button Grid.Column="4" Style="{StaticResource WindowButton}" Width="32" Height="32"
+                                                ToolTip="關閉" Click="DropNote"
+                                                ContentTemplate="{StaticResource LucideIcon12}"
+                                                Content="{Binding DataContext.Icons[x], RelativeSource={RelativeSource AncestorType=Window}}" />
+                                    </Grid>
+                                </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </Border>
+        </Grid>
+
+            <!-- 合規氣泡：錨在側欄右側，浮在狀態列上方 -->
+            <Grid x:Name="Bubble" Grid.Row="1" Visibility="Collapsed"
+                  HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="64,0,0,4"
+                  Width="360" DataContext="{Binding Bubble}">
+
+                <!-- 陰影單獨一層，氣泡裡的字才留得住 ClearType -->
+                <Border CornerRadius="8" Background="{DynamicResource Surface}" IsHitTestVisible="False">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="32" ShadowDepth="12" Direction="270" Opacity="0.18" />
+                    </Border.Effect>
+                </Border>
+
+                <Border CornerRadius="8" Background="{DynamicResource Surface}"
+                        BorderBrush="{DynamicResource Divider}" BorderThickness="1" ClipToBounds="True">
+                    <StackPanel>
+                        <Grid Margin="16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="20" Height="20" CornerRadius="16" Margin="0,1,12,0"
+                                    VerticalAlignment="Top" Background="{Binding Back}"
+                                    BorderBrush="{Binding Line}" BorderThickness="1">
+                                <ContentControl Content="{Binding Paths}" Foreground="{Binding Ink}"
+                                                ContentTemplate="{StaticResource LucideIcon12}"
+                                                HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{Binding Title}" FontSize="{DynamicResource Body}"
+                                           FontWeight="SemiBold" Margin="0,0,0,4" TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding Text}" FontSize="{DynamicResource Caption}"
+                                           LineHeight="{DynamicResource CaptionLine}" TextWrapping="Wrap"
+                                           Foreground="{DynamicResource TextSecondary}" />
+                            </StackPanel>
+                            <Button Grid.Column="2" Style="{StaticResource WindowButton}" Width="24" Height="24"
+                                    Margin="12,0,0,0" VerticalAlignment="Top" ToolTip="關閉" Click="CloseBubble"
+                                    Foreground="{DynamicResource TextMuted}"
+                                    ContentTemplate="{StaticResource LucideIcon14}" Content="{Binding ClosePaths}" />
+                        </Grid>
+
+                        <Border Padding="16,12" Background="{DynamicResource ContentBack}"
+                                BorderBrush="{DynamicResource HairLine}" BorderThickness="0,1,0,0">
+                            <Grid>
+                                <Button Style="{StaticResource FillButton}" FontWeight="Normal"
+                                        HorizontalAlignment="Left"
+                                        Content="{Binding ReviewLabel}" Click="Review" />
+
+                                <!-- 設計圖在兩顆之間放了彈性空白，這一顆貼右邊 -->
+                                <Button Style="{StaticResource FillButton}" Margin="8,0,0,0" MaxWidth="216"
+                                        HorizontalAlignment="Right"
+                                        Content="{Binding FixLabel}" Background="{Binding FixBack}"
+                                        Foreground="{Binding FixInk}" Click="Fix" />
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+        <!-- 指令面板：蓋在所有東西上面 -->
+        <views:PalettePanel x:Name="Palette" Grid.RowSpan="3" Visibility="Collapsed" />
+
+        <!-- 設定：蓋在所有東西上面 -->
+        <views:SettingsPanel x:Name="Settings" Grid.RowSpan="3" Visibility="Collapsed" />
+
+        <!-- 狀態列 -->
+        <Grid Grid.Row="2" Margin="8,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <Button Style="{StaticResource StatusButton}" ToolTip="{Binding ComplianceTip}" Click="ToggleBubble">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="14" Height="14" CornerRadius="16" Margin="0,0,8,0"
+                                Background="{Binding ComplianceBack}"
+                                BorderBrush="{Binding ComplianceLine}" BorderThickness="1">
+                            <ContentControl Content="{Binding CompliancePaths}" ContentTemplate="{StaticResource LucideIcon10}" />
+                        </Border>
+                        <TextBlock Text="{Binding Compliance}" VerticalAlignment="Center"
+                                   Foreground="{Binding ComplianceInk}" />
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource StatusButton}" Content="{Binding Update}" ToolTip="更新可用的工具" />
+                <TextBlock Style="{StaticResource StatusText}" Text="{Binding InstalledCount}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Border Width="1" Height="14" Margin="4,0" Background="{DynamicResource Divider}" />
+                <TextBlock Style="{StaticResource StatusMono}" Text="{Binding DeviceLine}" ToolTip="{Binding DeviceTip}" />
+                <Border Width="1" Height="14" Margin="4,0" Background="{DynamicResource Divider}" />
+                <TextBlock Style="{StaticResource StatusText}" Text="{Binding Connection}" />
+                <TextBlock Style="{StaticResource StatusText}" Text="{Binding Sync}" />
+                <Border Width="1" Height="14" Margin="4,0" Background="{DynamicResource Divider}" />
+                <TextBlock Style="{StaticResource StatusMono}" Text="{Binding Client}" ToolTip="{Binding ClientTip}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

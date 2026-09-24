@@ -1,0 +1,212 @@
+upc.exe                203.132.26.96:443                      lb-upc-dmx.ubisoft.com  【Ubisoft Divertissements Inc.】
+    本機  C:\Program Files (x86)\Ubisoft\Ubisoft Game Launcher\upc.exe | Valid | 無服務
+    對方  簽發者=Sectigo Limited  TLS=TLSv1.2  SAN=dmx.upc.ubisoft.com,edgeone-cert2-dmx.upc.ubisoft.com
+
+upc.exe                166.117.208.151:443                    a1cf65b34f82ea41f.awsglobalaccelerator.com  【Ubisoft Entertainment Inc.】
+    本機  C:\Program Files (x86)\Ubisoft\Ubisoft Game Launcher\upc.exe | Valid | 無服務
+    對方  簽發者=DigiCert, Inc.  TLS=TLSv1.2  SAN=*.ubi.com,ubi.com
+
+UplayWebCore.exe       166.117.116.173:443                    a774141db61d2a5c6.awsglobalaccelerator.com  【Ubisoft Entertainment Inc.】
+    本機  C:\Program Files (x86)\Ubisoft\Ubisoft Game Launcher\UplayWebCore.exe | Valid | 無服務
+    對方  簽發者=DigiCert, Inc.  TLS=TLSv1.2  SAN=*.ubi.com,ubi.com
+
+RiotClientServices.exe 104.18.41.183:443                      (不可辨識)
+    本機  D:\Riot Games\Riot Client\RiotClientServices.exe | Valid | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+Riot Client.exe        60.199.191.110:443                     60-199-191-110.static.tfn.net.tw  【Akamai Technologies, Inc.】
+    本機  D:\Riot Games\Riot Client\RiotClientElectron\Riot Client.exe | Valid | 無服務
+    對方  簽發者=DigiCert Inc  TLS=TLSv1.3  SAN=a248.e.akamai.net,*.akamaized.net
+
+RiotClientServices.exe 127.0.0.1:57765                        kubernetes.docker.internal
+    本機  D:\Riot Games\Riot Client\RiotClientServices.exe | Valid | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+RiotClientServices.exe 127.0.0.1:57792                        kubernetes.docker.internal
+    本機  D:\Riot Games\Riot Client\RiotClientServices.exe | Valid | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+RiotClientServices.exe 127.0.0.1:57816                        kubernetes.docker.internal
+    本機  D:\Riot Games\Riot Client\RiotClientServices.exe | Valid | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+python.exe             127.0.0.1:55661                        kubernetes.docker.internal
+    本機  C:\Users\user\AppData\Roaming\uv\python\cpython-3.13-windows-x86_64-none\python.exe | NotSigned | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+python.exe             127.0.0.1:55658                        kubernetes.docker.internal
+    本機  C:\Users\user\AppData\Roaming\uv\python\cpython-3.13-windows-x86_64-none\python.exe | NotSigned | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+Riot Client.exe        127.0.0.1:53145                        kubernetes.docker.internal
+    本機  D:\Riot Games\Riot Client\RiotClientElectron\Riot Client.exe | Valid | 無服務
+    對方  簽發者=Riot Games  TLS=TLSv1.3  SAN=localhost
+
+Riot Client.exe        127.0.0.1:53145                        kubernetes.docker.internal
+    本機  D:\Riot Games\Riot Client\RiotClientElectron\Riot Client.exe | Valid | 無服務
+    對方  簽發者=Riot Games  TLS=TLSv1.3  SAN=localhost
+
+Riot Client.exe        127.0.0.1:53145                        kubernetes.docker.internal
+    本機  D:\Riot Games\Riot Client\RiotClientElectron\Riot Client.exe | Valid | 無服務
+    對方  簽發者=Riot Games  TLS=TLSv1.3  SAN=localhost
+
+steam.exe              127.0.0.1:58338                        kubernetes.docker.internal
+    本機  C:\Program Files (x86)\Steam\steam.exe | Valid | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+steam.exe              127.0.0.1:58337                        kubernetes.docker.internal
+    本機  C:\Program Files (x86)\Steam\steam.exe | Valid | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+steamwebhelper.exe     127.0.0.1:58333                        kubernetes.docker.internal
+    本機  C:\Program Files (x86)\Steam\bin\cef\cef.win64\steamwebhelper.exe | Valid | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+steamwebhelper.exe     127.0.0.1:58330                        kubernetes.docker.internal
+    本機  C:\Program Files (x86)\Steam\bin\cef\cef.win64\steamwebhelper.exe | Valid | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+WatchDogs2.exe         166.117.208.151:443                    a1cf65b34f82ea41f.awsglobalaccelerator.com  【Ubisoft Entertainment Inc.】
+    本機  - | - | 無服務
+    對方  簽發者=DigiCert, Inc.  TLS=TLSv1.2  SAN=*.ubi.com,ubi.com
+
+nvcontainer.exe        127.0.0.1:60845                        kubernetes.docker.internal
+    本機  C:\Program Files\NVIDIA Corporation\NvContainer\nvcontainer.exe | Valid | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+nvcontainer.exe        127.0.0.1:60844                        kubernetes.docker.internal
+    本機  C:\Program Files\NVIDIA Corporation\NvContainer\nvcontainer.exe | Valid | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+nvcontainer.exe        60.199.191.153:443                     60-199-191-153.static.tfn.net.tw
+    本機  C:\Program Files\NVIDIA Corporation\NvContainer\nvcontainer.exe | Valid | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+steam.exe              45.121.184.100:27020                   cmp1-tyo3.steamserver.net
+    本機  C:\Program Files (x86)\Steam\steam.exe | Valid | 無服務
+    對方  簽發者=Let's Encrypt  TLS=TLSv1.3  SAN=cmp1-tyo3.steamserver.net
+
+RiotClientServices.exe 104.18.41.99:443                       (不可辨識)
+    本機  D:\Riot Games\Riot Client\RiotClientServices.exe | Valid | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+Discord.exe            162.159.133.234:443                    discord.gg
+    本機  C:\Users\user\AppData\Local\Discord\app-1.0.9254\Discord.exe | Valid | 無服務
+    對方  簽發者=Google Trust Services  TLS=TLSv1.3  SAN=discord.gg,*.discord.gg
+
+RiotClientServices.exe 104.18.40.25:443                       (不可辨識)
+    本機  D:\Riot Games\Riot Client\RiotClientServices.exe | Valid | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+RiotClientServices.exe 172.65.217.212:5223                    jp1.chat.si.riotgames.com
+    本機  D:\Riot Games\Riot Client\RiotClientServices.exe | Valid | 無服務
+    對方  簽發者=Amazon  TLS=TLSv1.2  SAN=jp1.chat.si.riotgames.com
+
+msedge.exe             48.210.190.78:443                      access-point.cloudmessaging.edge.microsoft.com  【Microsoft Corporation】
+    本機  C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe | Valid | 無服務
+    對方  簽發者=Microsoft Corporation  TLS=TLSv1.3  SAN=access-point.cloudmessaging.edge.microsoft.com,*.access-point.cloudmessaging.edge.microsoft.com
+
+UplayWebCore.exe       76.223.19.28:443                       a5aef20610330547e.awsglobalaccelerator.com  【Ubisoft Entertainment Inc.】
+    本機  C:\Program Files (x86)\Ubisoft\Ubisoft Game Launcher\UplayWebCore.exe | Valid | 無服務
+    對方  簽發者=DigiCert, Inc.  TLS=TLSv1.2  SAN=*.ubi.com,ubi.com
+
+RiotClientServices.exe 172.64.151.57:443                      sieve.services.riotcdn.net  【Riot Games Inc】
+    本機  D:\Riot Games\Riot Client\RiotClientServices.exe | Valid | 無服務
+    對方  簽發者=IdenTrust  TLS=TLSv1.3  SAN=services.riotcdn.net,*.services.riotcdn.net
+
+WatchDogs2.exe         76.223.19.28:443                       a5aef20610330547e.awsglobalaccelerator.com  【Ubisoft Entertainment Inc.】
+    本機  - | - | 無服務
+    對方  簽發者=DigiCert, Inc.  TLS=TLSv1.2  SAN=*.ubi.com,ubi.com
+
+MpDefenderCoreService.exe 20.184.175.19:443                      *.events.data.microsoft.com  【Microsoft Corporation】
+    本機  - | - | MDCoreSvc
+    對方  簽發者=Microsoft Corporation  TLS=TLSv1.3  SAN=*.events.data.microsoft.com,events.data.microsoft.com
+
+upc.exe                166.117.30.225:443                     a5aef20610330547e.awsglobalaccelerator.com  【Ubisoft Entertainment Inc.】
+    本機  C:\Program Files (x86)\Ubisoft\Ubisoft Game Launcher\upc.exe | Valid | 無服務
+    對方  簽發者=DigiCert, Inc.  TLS=TLSv1.2  SAN=*.ubi.com,ubi.com
+
+WatchDogs2.exe         127.0.0.1:4455                         kubernetes.docker.internal
+    本機  - | - | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+WatchDogs2.exe         172.28.195.1:4455                      (不可辨識)
+    本機  - | - | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+WatchDogs2.exe         172.68.195.1:4455                      (不可辨識)
+    本機  - | - | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+explorer.exe           2603:1063:2001:3500:::443              outlook.com  【Microsoft Corporation】
+    本機  C:\Windows\Explorer.EXE | Valid | 無服務
+    對方  簽發者=DigiCert Inc  TLS=TLSv1.3  SAN=outlook.com,*.hotmail.com
+
+explorer.exe           2603:1063:2001:3500:::443              outlook.com  【Microsoft Corporation】
+    本機  C:\Windows\Explorer.EXE | Valid | 無服務
+    對方  簽發者=DigiCert Inc  TLS=TLSv1.3  SAN=outlook.com,*.hotmail.com
+
+explorer.exe           2603:1063:2001:3500:::443              outlook.com  【Microsoft Corporation】
+    本機  C:\Windows\Explorer.EXE | Valid | 無服務
+    對方  簽發者=DigiCert Inc  TLS=TLSv1.3  SAN=outlook.com,*.hotmail.com
+
+explorer.exe           2603:1063:2001:3500:::443              outlook.com  【Microsoft Corporation】
+    本機  C:\Windows\Explorer.EXE | Valid | 無服務
+    對方  簽發者=DigiCert Inc  TLS=TLSv1.3  SAN=outlook.com,*.hotmail.com
+
+chrome.exe             2607:6bc0::10:443                      api.anthropic.com
+    本機  C:\Program Files\Google\Chrome\Application\chrome.exe | Valid | 無服務
+    對方  簽發者=Google Trust Services  TLS=TLSv1.3  SAN=api.anthropic.com
+
+Discord.exe            2600:1901:1:292:::443                  *.g2.spotify.com  【Spotify AB】
+    本機  C:\Users\user\AppData\Local\Discord\app-1.0.9254\Discord.exe | Valid | 無服務
+    對方  簽發者=DigiCert Inc  TLS=TLSv1.3  SAN=*.g2.spotify.com,g2.spotify.com
+
+msedge.exe             2603:1020:705:8::401:443               *.wns.windows.com  【Microsoft Corporation】
+    本機  C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe | Valid | 無服務
+    對方  簽發者=Microsoft Corporation  TLS=TLSv1.2  SAN=*.wns.windows.com
+
+chrome.exe             2404:6800:4008:c01::bc:5228            tp-in-f188.1e100.net
+    本機  C:\Program Files\Google\Chrome\Application\chrome.exe | Valid | 無服務
+    對方  簽發者=Google Trust Services  TLS=TLSv1.3  SAN=*.google.com,*.appengine.google.com
+
+chrome.exe             2404:6800:4008:c1b::bc:5228            td-in-f188.1e100.net
+    本機  C:\Program Files\Google\Chrome\Application\chrome.exe | Valid | 無服務
+    對方  簽發者=Google Trust Services  TLS=TLSv1.3  SAN=*.google.com,*.appengine.google.com
+
+svchost.exe            2603:1020:705:8::400:443               *.wns.windows.com  【Microsoft Corporation】
+    本機  - | - | WpnService
+    對方  簽發者=Microsoft Corporation  TLS=TLSv1.2  SAN=*.wns.windows.com
+
+System Idle Process    2600:9000:202b:e00:18:3d46:fdc0:93a1:443 (不可辨識)
+    本機  - | - | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+System Idle Process    2600:9000:202b:e00:18:3d46:fdc0:93a1:443 (不可辨識)
+    本機  - | - | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+MpDefenderCoreService.exe 2603:1063:3b:100:::443                 outlook.com  【Microsoft Corporation】
+    本機  - | - | MDCoreSvc
+    對方  簽發者=DigiCert Inc  TLS=TLSv1.3  SAN=outlook.com,*.hotmail.com
+
+RiotClientServices.exe 2600:9000:202b:0:18:3d46:fdc0:93a1:443 (不可辨識)
+    本機  D:\Riot Games\Riot Client\RiotClientServices.exe | Valid | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+RiotClientServices.exe 2600:9000:202b:0:18:3d46:fdc0:93a1:443 (不可辨識)
+    本機  D:\Riot Games\Riot Client\RiotClientServices.exe | Valid | 無服務
+    對方  簽發者=-  TLS=-  SAN=-
+
+claude.exe             2607:6bc0::10:443                      api.anthropic.com
+    本機  C:\Users\user\.local\bin\claude.exe | Valid | 無服務
+    對方  簽發者=Google Trust Services  TLS=TLSv1.3  SAN=api.anthropic.com
+
+claude.exe             2607:6bc0::10:443                      api.anthropic.com
+    本機  C:\Users\user\.local\bin\claude.exe | Valid | 無服務
+    對方  簽發者=Google Trust Services  TLS=TLSv1.3  SAN=api.anthropic.com
+
+claude.exe             2600:1901:0:9e23:::443                 http-intake.logs.us5.datadoghq.com  【Datadog, Inc.】
+    本機  C:\Users\user\.local\bin\claude.exe | Valid | 無服務
+    對方  簽發者=DigiCert Inc  TLS=TLSv1.3  SAN=*.logs.us5.datadoghq.com,logs.us5.datadoghq.com
+
