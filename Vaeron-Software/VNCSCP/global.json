@@ -1,0 +1,7 @@
+﻿{
+  "sdk": {
+    "version": "10.0.100",
+    "rollForward": "latestFeature",
+    "errorMessage": "本專案需要 .NET 10 SDK（或更新的 10.0.x 功能版本）。請至 https://dotnet.microsoft.com/download/dotnet/10.0 下載安裝，安裝完成後重新開啟終端機再試一次。"
+  }
+}

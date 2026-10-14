@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 葉：app.db 的唯一資料容器。主表映射、View 映射、結構套用集中於此。 -->
+  <ItemGroup>
+    <ProjectReference Include="..\Vaeron.Kernel\Vaeron.Kernel.csproj" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Schema\*.sql" />
+  </ItemGroup>
+</Project>

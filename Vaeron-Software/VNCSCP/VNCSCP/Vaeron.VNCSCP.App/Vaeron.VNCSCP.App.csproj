@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- 根：不被任何組件引用，產出可執行檔。只做組裝。 -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Shared\Vaeron.Kernel\Vaeron.Kernel.csproj" />
+    <ProjectReference Include="..\..\Shared\Vaeron.Kernel.Windows\Vaeron.Kernel.Windows.csproj" />
+    <ProjectReference Include="..\..\Shared\Vaeron.Kernel.Data\Vaeron.Kernel.Data.csproj" />
+    <ProjectReference Include="..\Vaeron.VNCSCP.Internal.Contracts\Vaeron.VNCSCP.Internal.Contracts.csproj" />
+    <ProjectReference Include="..\Vaeron.VNCSCP.Internal.Shell\Vaeron.VNCSCP.Internal.Shell.csproj" />
+    <ProjectReference Include="..\Vaeron.VNCSCP.Internal.Wpf\Vaeron.VNCSCP.Internal.Wpf.csproj" />
+    <ProjectReference Include="..\Vaeron.VNCSCP.ConnectionManagement\Vaeron.VNCSCP.ConnectionManagement.csproj" />
+    <ProjectReference Include="..\Vaeron.VNCSCP.EventLog\Vaeron.VNCSCP.EventLog.csproj" />
+    <ProjectReference Include="..\Vaeron.VNCSCP.RemoteDeployment\Vaeron.VNCSCP.RemoteDeployment.csproj" />
+    <ProjectReference Include="..\Vaeron.VNCSCP.Dashboard\Vaeron.VNCSCP.Dashboard.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

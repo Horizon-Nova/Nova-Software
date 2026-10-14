@@ -1,0 +1,27 @@
+﻿root = true
+
+[*]
+charset = utf-8
+end_of_line = crlf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+
+[*.{csproj,props,targets,json,xml}]
+indent_size = 2
+
+[*.cs]
+dotnet_diagnostic.VAE001.severity = error
+dotnet_diagnostic.VAE002.severity = error
+dotnet_diagnostic.VAE003.severity = error
+dotnet_diagnostic.VAE004.severity = error
+dotnet_diagnostic.VAE005.severity = error
+dotnet_diagnostic.VAE006.severity = error
+dotnet_diagnostic.VAE007.severity = error
+
+dotnet_diagnostic.RS0016.severity = error
+dotnet_diagnostic.RS0017.severity = error
+dotnet_diagnostic.CA2007.severity = none
+
+csharp_style_namespace_declarations = file_scoped:error
+dotnet_style_require_accessibility_modifiers = always:error

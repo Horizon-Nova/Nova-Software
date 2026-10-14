@@ -1,0 +1,99 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!-- 色票定義 -->
+
+    <!-- 背景層級 -->
+    <Color x:Key="PageBackgroundColor">#FCFCFD</Color>
+    <SolidColorBrush x:Key="PageBackground" Color="{StaticResource PageBackgroundColor}" />
+
+    <Color x:Key="SurfaceColor">#FEFEFE</Color>
+    <SolidColorBrush x:Key="Surface" Color="{StaticResource SurfaceColor}" />
+
+    <Color x:Key="SidebarBackgroundColor">#F5F6F8</Color>
+    <SolidColorBrush x:Key="SidebarBackground" Color="{StaticResource SidebarBackgroundColor}" />
+
+    <Color x:Key="HoverBgColor">#F0F1F3</Color>
+    <SolidColorBrush x:Key="HoverBg" Color="{StaticResource HoverBgColor}" />
+
+    <!-- 邊框 -->
+    <Color x:Key="BorderColor">#DEE1E5</Color>
+    <SolidColorBrush x:Key="Border" Color="{StaticResource BorderColor}" />
+
+    <Color x:Key="BorderSubtleColor">#EBEDEF</Color>
+    <SolidColorBrush x:Key="BorderSubtle" Color="{StaticResource BorderSubtleColor}" />
+
+    <!-- 文字 -->
+    <Color x:Key="InkColor">#23262B</Color>
+    <SolidColorBrush x:Key="Ink" Color="{StaticResource InkColor}" />
+
+    <Color x:Key="TextSecondaryColor">#5B6169</Color>
+    <SolidColorBrush x:Key="TextSecondary" Color="{StaticResource TextSecondaryColor}" />
+
+    <Color x:Key="TextTertiaryColor">#8A9099</Color>
+    <SolidColorBrush x:Key="TextTertiary" Color="{StaticResource TextTertiaryColor}" />
+
+    <!-- 品牌強調色（鋼藍） -->
+    <Color x:Key="AccentColor">#3E6FA8</Color>
+    <SolidColorBrush x:Key="Accent" Color="{StaticResource AccentColor}" />
+
+    <Color x:Key="AccentHoverColor">#325D8F</Color>
+    <SolidColorBrush x:Key="AccentHover" Color="{StaticResource AccentHoverColor}" />
+
+    <Color x:Key="AccentTextColor">#2E5A8C</Color>
+    <SolidColorBrush x:Key="AccentText" Color="{StaticResource AccentTextColor}" />
+
+    <Color x:Key="AccentTintColor">#E7EEF6</Color>
+    <SolidColorBrush x:Key="AccentTint" Color="{StaticResource AccentTintColor}" />
+
+    <Color x:Key="AccentLabelColor">#5B7794</Color>
+    <SolidColorBrush x:Key="AccentLabel" Color="{StaticResource AccentLabelColor}" />
+
+    <Color x:Key="OnAccentColor">#FFFFFF</Color>
+    <SolidColorBrush x:Key="OnAccent" Color="{StaticResource OnAccentColor}" />
+
+    <!-- 狀態色 -->
+    <Color x:Key="SuccessColor">#2E9F5C</Color>
+    <SolidColorBrush x:Key="Success" Color="{StaticResource SuccessColor}" />
+
+    <Color x:Key="SuccessBgColor">#E8F7EE</Color>
+    <SolidColorBrush x:Key="SuccessBg" Color="{StaticResource SuccessBgColor}" />
+
+    <Color x:Key="WarningColor">#C77D11</Color>
+    <SolidColorBrush x:Key="Warning" Color="{StaticResource WarningColor}" />
+
+    <Color x:Key="WarningBgColor">#FEF6EA</Color>
+    <SolidColorBrush x:Key="WarningBg" Color="{StaticResource WarningBgColor}" />
+
+    <Color x:Key="DangerColor">#D64545</Color>
+    <SolidColorBrush x:Key="Danger" Color="{StaticResource DangerColor}" />
+
+    <Color x:Key="DangerBgColor">#FDECEC</Color>
+    <SolidColorBrush x:Key="DangerBg" Color="{StaticResource DangerBgColor}" />
+
+    <Color x:Key="DangerBorderColor">#F3C9C9</Color>
+    <SolidColorBrush x:Key="DangerBorder" Color="{StaticResource DangerBorderColor}" />
+
+    <Color x:Key="SkeletonColor">#E9EBEE</Color>
+    <SolidColorBrush x:Key="Skeleton" Color="{StaticResource SkeletonColor}" />
+
+    <!-- 捲軸 thumb -->
+    <Color x:Key="ScrollThumbColor">#CBD0D6</Color>
+    <SolidColorBrush x:Key="ScrollThumb" Color="{StaticResource ScrollThumbColor}" />
+    <Color x:Key="ScrollThumbHoverColor">#A2A9B2</Color>
+    <SolidColorBrush x:Key="ScrollThumbHover" Color="{StaticResource ScrollThumbHoverColor}" />
+
+    <!-- 標題列關閉鈕 hover 色 -->
+    <Color x:Key="CloseButtonHoverBgColor">#E81123</Color>
+    <SolidColorBrush x:Key="CloseButtonHoverBg" Color="{StaticResource CloseButtonHoverBgColor}" />
+
+    <!-- 字體 -->
+    <FontFamily x:Key="AppFontFamily">Segoe UI</FontFamily>
+    <FontFamily x:Key="MonoFontFamily">Cascadia Code, Consolas</FontFamily>
+
+    <!-- 控制項高度 -->
+    <sys:Double x:Key="ControlHeightSm">24</sys:Double>
+    <sys:Double x:Key="ControlHeightMd">28</sys:Double>
+
+</ResourceDictionary>

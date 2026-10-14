@@ -1,0 +1,23 @@
+<Solution>
+  <Folder Name="/Build/">
+    <Project Path="Build/Analyzers/Vaeron.Analyzers.csproj" />
+    <Project Path="Build/Analyzers.Tests/Vaeron.Analyzers.Tests.csproj" />
+    <Project Path="Build/Generators/Vaeron.Generators.csproj" />
+  </Folder>
+  <Folder Name="/Shared/">
+    <Project Path="Shared/Vaeron.Kernel/Vaeron.Kernel.csproj" />
+    <Project Path="Shared/Vaeron.Kernel.Windows/Vaeron.Kernel.Windows.csproj" />
+    <Project Path="Shared/Vaeron.Kernel.Data/Vaeron.Kernel.Data.csproj" />
+  </Folder>
+  <Folder Name="/VNCSCP/">
+    <Project Path="VNCSCP/Vaeron.VNCSCP.App/Vaeron.VNCSCP.App.csproj" />
+    <Project Path="VNCSCP/Vaeron.VNCSCP.Dashboard/Vaeron.VNCSCP.Dashboard.csproj" />
+    <Project Path="VNCSCP/Vaeron.VNCSCP.ConnectionManagement/Vaeron.VNCSCP.ConnectionManagement.csproj" />
+    <Project Path="VNCSCP/Vaeron.VNCSCP.EventLog/Vaeron.VNCSCP.EventLog.csproj" />
+    <Project Path="VNCSCP/Vaeron.VNCSCP.RemoteDeployment/Vaeron.VNCSCP.RemoteDeployment.csproj" />
+    <Project Path="VNCSCP/Vaeron.VNCSCP.Internal.Contracts/Vaeron.VNCSCP.Internal.Contracts.csproj" />
+    <Project Path="VNCSCP/Vaeron.VNCSCP.Internal.Rfb/Vaeron.VNCSCP.Internal.Rfb.csproj" />
+    <Project Path="VNCSCP/Vaeron.VNCSCP.Internal.Shell/Vaeron.VNCSCP.Internal.Shell.csproj" />
+    <Project Path="VNCSCP/Vaeron.VNCSCP.Internal.Wpf/Vaeron.VNCSCP.Internal.Wpf.csproj" />
+  </Folder>
+</Solution>
