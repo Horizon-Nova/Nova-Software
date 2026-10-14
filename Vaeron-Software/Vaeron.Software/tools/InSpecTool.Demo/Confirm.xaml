@@ -1,0 +1,34 @@
+<Window x:Class="InSpecTool.Confirm"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="NoResize"
+        SizeToContent="Height" Width="416" ShowInTaskbar="False" Topmost="True"
+        WindowStartupLocation="CenterOwner"
+        FontFamily="{DynamicResource UiFont}" FontSize="{DynamicResource Body}" Foreground="{DynamicResource TextPrimary}"
+        Loaded="Ready" PreviewKeyDown="Keys">
+
+    <!-- 平平的對話框：圓角 4、細框、淡陰影 -->
+    <Border Margin="8" Background="{DynamicResource Surface}" BorderBrush="#33000000" BorderThickness="1" CornerRadius="4">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="24" ShadowDepth="8" Direction="270" Opacity=".18" />
+        </Border.Effect>
+        <StackPanel Margin="20">
+            <TextBlock x:Name="Heading" FontSize="{DynamicResource Heading}" FontWeight="SemiBold" />
+            <TextBlock x:Name="Asked" FontSize="{DynamicResource Caption}" Foreground="{DynamicResource TextMuted}" Margin="0,4,0,16" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" MinWidth="56" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="FieldName" Grid.Column="0" FontSize="{DynamicResource Caption}" Foreground="{DynamicResource TextMuted}"
+                           VerticalAlignment="Center" Margin="0,0,12,0" />
+                <Border Grid.Column="1" Style="{StaticResource SearchFrame}" Height="32" CornerRadius="2">
+                    <TextBox x:Name="Value" Style="{StaticResource SearchBox}" />
+                </Border>
+            </Grid>
+            <Button Content="確認填入" IsDefault="True" HorizontalAlignment="Right" Margin="0,16,0,0" Height="32"
+                    Padding="16,0" FontSize="{DynamicResource Body}" Style="{StaticResource FillButton}" Background="{DynamicResource Accent}"
+                    Foreground="{DynamicResource OnAccent}" BorderBrush="Transparent" Click="Done" />
+        </StackPanel>
+    </Border>
+</Window>

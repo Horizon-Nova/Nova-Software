@@ -1,0 +1,19 @@
+{
+  "name": "HelixStudio-Demo",
+  "project": "src/HelixStudio.Demo/HelixStudio.Demo.csproj",
+  "appId": "15D57A8D-5AA9-45A3-A5E9-8A82B298F9E9",
+  "appName": "HelixStudio Demo",
+  "installFolder": "HelixStudio Demo",
+  "dataFolder": "HelixStudioDemo",
+  "service": "HelixStudioDemoDB",
+  "port": 5434,
+  "signingKey": "keys/demo/helix-signing-key.pem",
+  "obfuscationGate": ["Anchors", "PackageStore", "SecretStore"],
+  "tools": ["tools/InSpecTool.Demo/InSpecTool.Demo.csproj"],
+  "toolsInInstaller": true,
+  "afterInstallSql": "delete from dbo.setting where setting_key in ('source', 'toolKeyMinutes')",
+  "editions": [
+    { "label": "Win10-11-x64", "fw": "net10.0-windows", "rid": "win-x64", "arch": "x64", "minOs": "10.0", "pg": "pg16-x64", "redists": ["vc2022_redist.x64.exe"], "needKb": "" },
+    { "label": "Win10-11-x32", "fw": "net10.0-windows", "rid": "win-x86", "arch": "x86", "minOs": "10.0", "pg": "pg10-x86", "redists": ["vc2013_redist.x86.exe"], "needKb": "" }
+  ]
+}

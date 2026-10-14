@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Demo 版只給 Win10～11 -->
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <!-- 選資料夾用 Windows Forms 的對話框 -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>InSpecTool</RootNamespace>
+    <AssemblyName>InSpecTool</AssemblyName>
+  </PropertyGroup>
+
+  <!-- 平台已經載入這些組件；工具執行時用平台那一份，套件裡只放 InSpecTool.dll -->
+  <!-- Windows Forms 只拿來選資料夾；不加入全域 using，免得跟 WPF 的同名型別撞在一起 -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\HelixStudio.Contract\HelixStudio.Contract.csproj" Private="false" />
+  </ItemGroup>
+
+</Project>

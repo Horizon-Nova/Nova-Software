@@ -5,3 +5,9 @@ keys/
 
 bin/
 obj/
+
+# 建置與發佈的輸出：開發用簽章金鑰（out\dev）、發佈的中間檔（out\build）、安裝檔（out\release）；都由建置與 dev\Release 重新產生
+out/
+
+# 打包用的外部檔案（PostgreSQL、VC++、NuGet 離線套件）：太大不進版控，清單與檢查碼在 package\vendor.json，第一次建置時由 dev\Setup 下載並驗證
+package/vendor/

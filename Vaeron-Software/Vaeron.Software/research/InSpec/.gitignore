@@ -1,0 +1,11 @@
+# 編出來的東西：照原始碼重編就有
+bin/
+obj/
+.vs/
+*.dll
+*.exp
+*.lib
+*.pdb
+
+# InSpec 廠商自己的檔案（資源 dll），只留在本機研究用，不上傳
+backup/

@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFrameworks>net10.0-windows;net6.0-windows</TargetFrameworks>
+    <!-- 同一套程式編兩份：net10 給 Win10～11，net6 給 Win7（.NET 7 之後不支援 Win7）；net6 已停止支援，關掉那一條提醒 -->
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>HelixStudio</RootNamespace>
+    <AssemblyName>HelixStudio</AssemblyName>
+    <ApplicationTitle>HelixStudio</ApplicationTitle>
+    <!-- 對外的版本：狀態列與「新增或移除程式」都照這個顯示 -->
+    <Version>2.0.0</Version>
+    <FileVersion>2.0.0</FileVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <!-- 公司尚未完成登記，先寫品牌名稱；登記後換成正式名稱 -->
+    <Company>曜域科技 Vaeron</Company>
+    <Copyright>Copyright © 2026 曜域科技 Vaeron</Copyright>
+    <ApplicationIcon>Assets\HelixStudio_icon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+  </ItemGroup>
+
+  <!-- Win10～11：.NET 10 與對應的 EF Core 10 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageReference Include="System.Management" Version="10.0.0" />
+  </ItemGroup>
+
+  <!-- Win7：.NET 6 能用的最後一版 EF Core 是 7 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0-windows'">
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.18" />
+    <PackageReference Include="System.Management" Version="6.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HelixStudio.Contract\HelixStudio.Contract.csproj" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <None Update="Seed\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!-- Debug 版信這台開發電腦自己的開發用簽章金鑰（dev\Setup 產生在 $(DevKeyFolder)）；Release 版不嵌，信的是 Core\Anchors.cs 裡的正式公鑰 -->
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <EmbeddedResource Include="$(DevKeyFolder)helix-public-key.txt" LogicalName="DevPackageKey" Visible="false" />
+  </ItemGroup>
+
+</Project>

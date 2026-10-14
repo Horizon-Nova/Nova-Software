@@ -1,0 +1,8 @@
+<style>
+    /* 頁面自己的樣式只留 Bootstrap 沒有的：依 data- 狀態決定哪一塊出現。
+       按鈕忙碌時換哪一顆圖示是全站共用的，在 Layout.css，不在這裡。 */
+
+    /* 一筆都沒有才寫那一行，也才收起表格。 */
+    .item-empty:not([data-count="0"]) { display: none; }
+    #itemResults:has(.item-empty[data-count="0"]) table { display: none; }
+</style>

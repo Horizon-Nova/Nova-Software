@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+  <!-- 背景：圓角，平台主色 -->
+  <rect width="500" height="500" rx="112" fill="#0f6cbd"/>
+
+  <g fill="#ffffff" stroke="#ffffff" stroke-linejoin="round">
+    <!-- 核心：平台本身 -->
+    <polygon points="215,158 294.7,204 294.7,296 215,342 135.3,296 135.3,204" stroke-width="10"/>
+
+    <!-- 接在核心上的工具 -->
+    <polygon points="365,102 418.7,133 418.7,195 365,226 311.3,195 311.3,133" stroke-width="10"/>
+    <polygon points="365,274 418.7,305 418.7,367 365,398 311.3,367 311.3,305" stroke-width="10"/>
+
+    <!-- 空著的一格：還可以再接一支 -->
+    <polygon points="90,109.4 137.3,136.7 137.3,191.3 90,218.6 42.7,191.3 42.7,136.7" fill="none" stroke-width="16"/>
+  </g>
+</svg>

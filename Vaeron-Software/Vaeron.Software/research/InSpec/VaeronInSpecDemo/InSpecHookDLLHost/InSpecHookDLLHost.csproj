@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <PlatformTarget>x86</PlatformTarget>
+    <!-- InSpec.exe is 32-bit; cross-bitness CreateRemoteThread into it is unreliable
+         (confirmed this session), so this host must also run as x86, not AnyCPU. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Keep the host's copy of the DLL in sync with the source project's latest build. -->
+    <None Include="..\InSpecHookDLL_Source\InSpecHookDLL.dll" CopyToOutputDirectory="PreserveNewest" Link="InSpecHookDLL.dll" Condition="Exists('..\InSpecHookDLL_Source\InSpecHookDLL.dll')" />
+  </ItemGroup>
+
+</Project>

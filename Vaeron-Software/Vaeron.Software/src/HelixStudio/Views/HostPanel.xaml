@@ -1,0 +1,29 @@
+<UserControl x:Class="HelixStudio.Views.HostPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="{StaticResource UiFont}" FontSize="{DynamicResource Body}"
+             Foreground="{DynamicResource TextPrimary}">
+
+    <Grid>
+        <!-- 工具自己的畫面掛在這一區 -->
+        <Grid x:Name="Mount" />
+
+        <!-- 載不起來時說原因 -->
+        <ItemsControl ItemsSource="{Binding Faults}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><Grid /></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel MaxWidth="480" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="這支工具載不起來" FontSize="{DynamicResource Heading}" FontWeight="SemiBold"
+                                   Margin="0,0,0,8" TextAlignment="Center" />
+                        <TextBlock Text="{Binding}" FontSize="{DynamicResource Caption}"
+                                   LineHeight="{DynamicResource CaptionLine}" TextAlignment="Center"
+                                   TextWrapping="Wrap" Foreground="{DynamicResource TextMuted}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Grid>
+</UserControl>

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PlatformTarget>x86</PlatformTarget>
+    <!-- InSpec.exe is 32-bit; injection requires matching bitness, same reason as InSpecHookDLLHost. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 重用 InSpecHookDLLHost 已驗證過的注入邏輯，不重寫第二份——這三個檔案本身
+         不依賴 WPF，是純 CLR 程式碼，適合被這個沒有 UI 的啟動器共用。 -->
+    <Compile Include="..\InSpecHookDLLHost\InSpecController.cs" Link="InSpecController.cs" />
+    <Compile Include="..\InSpecHookDLLHost\AppLog.cs" Link="AppLog.cs" />
+    <Compile Include="..\InSpecHookDLLHost\NativeMethods.cs" Link="NativeMethods.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\InSpecHookDLL_Source\InSpecHookDLL.dll" CopyToOutputDirectory="PreserveNewest" Link="InSpecHookDLL.dll" Condition="Exists('..\InSpecHookDLL_Source\InSpecHookDLL.dll')" />
+  </ItemGroup>
+
+</Project>

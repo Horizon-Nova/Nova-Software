@@ -1,0 +1,58 @@
+@model TopicLogic.ItemForm
+@{
+    Layout = null;
+}
+
+@* 表單提交：新增與修改是同一支，同一個代碼已經有了就是改那一筆。
+   表單 id 是 FormData 加這一份是什麼：FormDataItem。一頁上可以有好幾份表單，名字帶著主題才不會互相指錯。
+   _Scripts 的 Submit() 把這一份連同選好的檔案整份用 FormData 送出去；每一格的 name 就是伺服器那一支輸入模型的屬性名。
+   防偽權杖寫在這一份裡，頁面一打開就在，這一頁每一支 POST 都從這裡取。
+   送出鈕不是 type="submit"：它呼叫 Submit(this)，由那一支決定送去哪、回來怎麼提示。
+   大類 > 小類是「一個選單的分組」（optgroup），不是兩個選單加 JS 連動：每一個選項自己帶著它屬於哪一組，Razor 照它畫成 optgroup。 *@
+<form id="FormDataItem" class="card" autocomplete="off" aria-labelledby="itemFormTitle">
+    @Html.AntiForgeryToken()
+
+    <div class="card-body d-flex flex-column gap-3">
+        <h2 id="itemFormTitle" class="fs-6 fw-semibold mb-0">新增或修改一個項目</h2>
+
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label" for="code">代碼</label>
+                <input type="text" class="form-control" id="code" name="code" maxlength="20" required />
+            </div>
+            <div class="col-md-8">
+                <label class="form-label" for="name">名稱</label>
+                <input type="text" class="form-control" id="name" name="name" maxlength="100" required />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="kind">分類</label>
+                <select class="form-select" id="kind" name="kind">
+                    <option value="">不適用</option>
+                    @foreach (var group in Model.kinds.GroupBy(one => one.group))
+                    {
+                        <optgroup label="@group.Key">
+                            @foreach (var one in group)
+                            {
+                                <option value="@one.code">@one.name</option>
+                            }
+                        </optgroup>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="due_at">期限</label>
+                <input type="datetime-local" class="form-control" id="due_at" name="due_at" required />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label" for="itemFiles">附件</label>
+                <input type="file" class="form-control" id="itemFiles" multiple />
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end">
+            <button type="button" class="btn look-primary d-inline-flex align-items-center gap-1" data-busy="false" onclick="Submit(this)">
+                <i data-lucide="save" class="icon-idle" aria-hidden="true"></i><i data-lucide="loader-circle" class="icon-busy" aria-hidden="true"></i>儲存
+            </button>
+        </div>
+    </div>
+</form>

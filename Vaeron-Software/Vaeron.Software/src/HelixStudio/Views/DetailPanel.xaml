@@ -1,0 +1,323 @@
+<UserControl x:Class="HelixStudio.Views.DetailPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="{StaticResource UiFont}" FontSize="{DynamicResource Body}"
+             Foreground="{DynamicResource TextPrimary}" PreviewKeyDown="Escape">
+
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="Shown" />
+
+        <!-- 分頁：現在看的那一頁才出現 -->
+        <Style x:Key="Page" TargetType="FrameworkElement">
+            <Setter Property="Visibility" Value="Collapsed" />
+        </Style>
+
+        <!-- 灰字一行：總覽左邊的功能、權限，更新日誌的日期；行高 20 -->
+        <Style x:Key="Label" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="{DynamicResource Caption}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+            <Setter Property="LineHeight" Value="20" />
+        </Style>
+
+        <!-- 一段裡的一行：字 12、行高 20 -->
+        <Style x:Key="Line" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="{DynamicResource Caption}" />
+            <Setter Property="LineHeight" Value="20" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="{DynamicResource Surface}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 這一支工具：圖示、名稱、說明、版本、匯入日期、大小，右邊開啟 -->
+        <Border Grid.Row="0" Padding="16" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8" VerticalAlignment="Top"
+                        Background="{DynamicResource WindowBack}" Margin="0,0,12,0">
+                    <ContentControl Content="{Binding Paths}" Foreground="{DynamicResource TextSecondary}"
+                                    ContentTemplate="{StaticResource LucideIcon20}"
+                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
+                </Border>
+
+                <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                    <TextBlock Text="{Binding Tool.name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Text="{Binding Tool.description}" FontSize="{DynamicResource Caption}" LineHeight="{DynamicResource CaptionLine}"
+                               Margin="0,4,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextMuted}" />
+                    <Grid Margin="0,8,0,0" TextElement.FontSize="{DynamicResource Caption}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="64" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="20" />
+                            <RowDefinition Height="20" />
+                            <RowDefinition Height="20" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Text="版本" Foreground="{DynamicResource TextMuted}" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Tool.version_text}" FontFamily="{StaticResource MonoFont}" />
+                        <TextBlock Grid.Row="1" Text="匯入日期" Foreground="{DynamicResource TextMuted}" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Tool.updated_text}" FontFamily="{StaticResource MonoFont}" />
+                        <TextBlock Grid.Row="2" Text="大小" Foreground="{DynamicResource TextMuted}" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Tool.size}" FontFamily="{StaticResource MonoFont}" />
+                    </Grid>
+                </StackPanel>
+
+                <Button Grid.Column="2" Style="{StaticResource FillButton}" Content="開啟" VerticalAlignment="Top"
+                        Background="{DynamicResource Accent}" Foreground="{DynamicResource OnAccent}"
+                        BorderBrush="Transparent" FontWeight="SemiBold" Padding="16,0" Click="Primary" />
+            </Grid>
+        </Border>
+
+        <!-- 總覽、操作說明、更新日誌：分頁切換，下面這一欄自己捲 -->
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Padding="8,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
+                <ListBox Style="{StaticResource TabList}" ItemContainerStyle="{StaticResource TabItem}"
+                         SelectedIndex="{Binding Selected, Mode=OneWay}" SelectionChanged="PickTab">
+                    <ListBoxItem Content="總覽" />
+                    <ListBoxItem Content="操作說明" />
+                    <ListBoxItem Content="更新日誌" />
+                </ListBox>
+            </Border>
+
+            <ScrollViewer x:Name="InfoScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="16,12,16,16">
+                <Grid>
+                    <!-- 總覽：功能、權限 -->
+                    <StackPanel>
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel" BasedOn="{StaticResource Page}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Selected}" Value="0">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="56" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="功能" Style="{StaticResource Label}" />
+                            <ItemsControl Grid.Column="1" ItemsSource="{Binding Tool.capabilities}" Focusable="False">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="12" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Ellipse Width="4" Height="4" Fill="{DynamicResource TextFaint}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,5,0,0" />
+                                            <TextBlock Grid.Column="1" Text="{Binding}" Style="{StaticResource Line}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                        <Grid Margin="0,16,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="56" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="權限" Style="{StaticResource Label}" />
+                            <ItemsControl Grid.Column="1" ItemsSource="{Binding Tool.permissions}" Focusable="False">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="0,0,0,4">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="12" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <Ellipse Width="4" Height="4" Fill="{DynamicResource TextFaint}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,5,0,0" />
+                                            <TextBlock Grid.Column="1" Text="{Binding}" Style="{StaticResource Line}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- 操作說明：一步一段，編號、這一步做什麼、截圖；點圖放大 -->
+                    <StackPanel>
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel" BasedOn="{StaticResource Page}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Selected}" Value="1">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                        <ItemsControl ItemsSource="{Binding Steps}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,16">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="20" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+                                        <Border Width="20" Height="20" CornerRadius="10" Background="{DynamicResource WindowBack}" VerticalAlignment="Top">
+                                            <TextBlock Text="{Binding sort}" FontFamily="{StaticResource MonoFont}" FontSize="11"
+                                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <TextBlock Grid.Column="1" Text="{Binding note}" Margin="8,0,0,0" FontSize="{DynamicResource Caption}"
+                                                   LineHeight="20" TextWrapping="Wrap" />
+                                        <Border Grid.Row="1" Grid.Column="1" Margin="8,8,0,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="1"
+                                                CornerRadius="4" ClipToBounds="True" Cursor="Hand" HorizontalAlignment="Left"
+                                                Tag="{Binding image}" MouseLeftButtonUp="ZoomIn" ToolTip="點一下放大">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding image}" Value="{x:Null}">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <Image Source="{Binding image}" Stretch="Uniform" StretchDirection="DownOnly" />
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Text="這支工具沒有附操作說明" FontSize="{DynamicResource Caption}" Foreground="{DynamicResource TextMuted}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Steps.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+
+                    <!-- 更新日誌：一版一段，新到舊；左邊版本，右邊日期與這一版改了什麼 -->
+                    <ItemsControl ItemsSource="{Binding Changes}">
+                        <ItemsControl.Style>
+                            <Style TargetType="ItemsControl" BasedOn="{StaticResource Page}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Selected}" Value="2">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ItemsControl.Style>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,0,0,16">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="56" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding ver}" Style="{StaticResource Line}" FontFamily="{StaticResource MonoFont}" />
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="{Binding date}" Style="{StaticResource Label}" FontFamily="{StaticResource MonoFont}" />
+                                        <TextBlock Text="{Binding note}" Style="{StaticResource Line}" />
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- 移除：放在最下面，和開啟分開 -->
+        <Border Grid.Row="2" Margin="16,0,16,16" Padding="0,12,0,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="移除後檔案一併刪掉；工具金鑰與使用紀錄留著" FontSize="{DynamicResource Caption}"
+                           Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                <Button Grid.Column="1" Style="{StaticResource FillButton}" Content="移除工具" Margin="8,0,0,0"
+                        Foreground="{DynamicResource Danger}" BorderBrush="{DynamicResource DangerLine}"
+                        FontWeight="Normal" Click="Secondary" />
+            </Grid>
+        </Border>
+
+        <!-- 移除前先確認：檔案會刪掉，回不去，所以要打對名稱 -->
+        <Border Grid.RowSpan="3" Background="{DynamicResource Scrim}"
+                Visibility="{Binding Asking, Converter={StaticResource Shown}}">
+            <Grid Margin="16" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+
+                <!-- 陰影單獨一層，內容才留得住 ClearType -->
+                <Border CornerRadius="16" Background="{DynamicResource Surface}" IsHitTestVisible="False">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="64" ShadowDepth="16" Direction="270" Opacity="0.26" />
+                    </Border.Effect>
+                </Border>
+
+                <Border CornerRadius="16" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Divider}" BorderThickness="1"
+                        KeyboardNavigation.TabNavigation="Cycle">
+                    <StackPanel>
+                        <StackPanel Margin="20,20,20,16">
+                            <TextBlock FontSize="{DynamicResource Heading}" FontWeight="SemiBold" Margin="0,0,0,8" TextWrapping="Wrap">
+                                <Run Text="移除「" /><Run Text="{Binding Tool.name, Mode=OneWay}" /><Run Text="」" />
+                            </TextBlock>
+                            <TextBlock Text="這支工具的檔案會從這台電腦刪掉，之後要用得重新匯入套件檔。" FontSize="{DynamicResource Caption}"
+                                       LineHeight="{DynamicResource CaptionLine}" Margin="0,0,0,16" TextWrapping="Wrap"
+                                       Foreground="{DynamicResource TextSecondary}" />
+                            <TextBlock FontSize="{DynamicResource Caption}" Margin="0,0,0,8" TextWrapping="Wrap" Foreground="{DynamicResource TextMuted}">
+                                <Run Text="輸入工具名稱「" /><Run Text="{Binding Tool.name, Mode=OneWay}" /><Run Text="」以確認" />
+                            </TextBlock>
+                            <Border Style="{StaticResource SearchFrame}">
+                                <TextBox x:Name="ConfirmText" Style="{StaticResource SearchBox}" TextChanged="TypeName" />
+                            </Border>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="20,0,20,20">
+                            <Button Style="{StaticResource FillButton}" Content="保留這支工具" FontWeight="Normal" Click="KeepTool" />
+                            <Button x:Name="ConfirmButton" Style="{StaticResource FillButton}" Margin="8,0,0,0"
+                                    Background="{DynamicResource Danger}" Foreground="{DynamicResource OnAccent}"
+                                    BorderBrush="Transparent" IsEnabled="False" Click="RemoveTool">
+                                <TextBlock>
+                                    <Run Text="移除" /> <Run Text="{Binding Tool.name, Mode=OneWay}" />
+                                </TextBlock>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- 放大看截圖：一張圖卡浮在視窗正中，點它、點外面或按 Esc 收起 -->
+        <Popup x:Name="ZoomLayer" Placement="Center" AllowsTransparency="True" StaysOpen="False" Closed="ZoomOut">
+            <Border x:Name="ZoomBack" Margin="16" Background="{DynamicResource Surface}" CornerRadius="8" Padding="8"
+                    BorderBrush="{DynamicResource HairLine}" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ZoomOut">
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="32" ShadowDepth="6" Direction="270" Opacity="0.16" />
+                </Border.Effect>
+                <ItemsControl ItemsSource="{Binding Zooms}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Image Source="{Binding}" Stretch="Uniform" StretchDirection="DownOnly" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
+        </Popup>
+    </Grid>
+</UserControl>
