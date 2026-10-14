@@ -1,0 +1,3 @@
+<Project>
+  <!-- 研究用的小專案各自獨立建置：擋住上層 Vaeron.Software\Directory.Build.targets，不觸發平台的環境準備 -->
+</Project>

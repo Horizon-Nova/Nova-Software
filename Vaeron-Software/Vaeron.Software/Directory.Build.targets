@@ -1,0 +1,26 @@
+<Project>
+
+  <!--
+    建置之前先把環境準備好：外部檔案（PostgreSQL、VC++）、NuGet 離線套件、開發用簽章金鑰、開發資料庫，由 dev\Setup 做。
+    同一次建置裡同一個專案、同一組屬性、同一個目標只跑一次：平行建置的專案在這裡等它做完，不會各做一次。
+    第二次建置每一樣都在，一下就跳過、不連網。
+    不觸發的情況：Setup 自己（以及它建置時順帶建的專案）、Visual Studio 的設計階段建置、明確寫了 PrepareEnvironment=false（dev\Release 發佈時）。
+  -->
+  <PropertyGroup>
+    <HelixRoot>$(MSBuildThisFileDirectory)</HelixRoot>
+    <HelixSetupProject>$(HelixRoot)dev\Setup\Setup.csproj</HelixSetupProject>
+    <!-- 開發用簽章金鑰：Setup 產生在這裡，Debug 版的平台嵌進它的公鑰 -->
+    <DevKeyFolder>$(HelixRoot)out\dev\signing\</DevKeyFolder>
+  </PropertyGroup>
+
+  <Target Name="PrepareEnvironment"
+          BeforeTargets="BeforeBuild"
+          Condition="'$(PrepareEnvironment)' != 'false' and '$(DesignTimeBuild)' != 'true' and '$(MSBuildProjectFullPath)' != '$(HelixSetupProject)'">
+    <!-- 拿掉每個專案各自不同的屬性，所有專案呼叫的都是同一個 Setup，才只跑一次 -->
+    <MSBuild Projects="$(HelixSetupProject)"
+             Targets="Prepare"
+             Properties="Configuration=Release;Platform=AnyCPU"
+             RemoveProperties="TargetFramework;TargetFrameworks;RuntimeIdentifier;SelfContained;PlatformTarget;BuildProjectReferences;OutDir;OutputPath;IntermediateOutputPath" />
+  </Target>
+
+</Project>

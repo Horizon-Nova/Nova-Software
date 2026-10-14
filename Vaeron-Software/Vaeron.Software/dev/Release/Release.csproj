@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    發佈一個產品：在工作區根目錄 dotnet run（專案 dev\Release，參數 HelixStudio 或 HelixStudio.Demo），完整命令見 package\README.md。
+    Visual Studio 裡把它設成啟始專案，在啟動設定檔挑產品。
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>HelixStudio.Release</RootNamespace>
+    <AssemblyName>Release</AssemblyName>
+    <!-- 打包工具的版本只寫在這裡：環境準備把這兩個套件收進離線倉庫，發佈從那裡解開來用 -->
+    <ObfuscarVersion>2.2.50</ObfuscarVersion>
+    <InnoSetupVersion>6.7.3</InnoSetupVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageDownload Include="obfuscar.globaltool" Version="[$(ObfuscarVersion)]" />
+    <PackageDownload Include="Tools.InnoSetup" Version="[$(InnoSetupVersion)]" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 工具套件用同一支程式簽 -->
+    <ProjectReference Include="..\HelixStudio.Pack\HelixStudio.Pack.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyMetadata Include="WorkspaceRoot" Value="$(MSBuildProjectDirectory)\..\.." />
+    <AssemblyMetadata Include="Obfuscar" Value="$(ObfuscarVersion)" />
+    <AssemblyMetadata Include="InnoSetup" Value="$(InnoSetupVersion)" />
+  </ItemGroup>
+
+</Project>

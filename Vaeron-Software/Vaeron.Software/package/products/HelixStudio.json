@@ -1,0 +1,21 @@
+{
+  "name": "HelixStudio",
+  "project": "src/HelixStudio/HelixStudio.csproj",
+  "appId": "F29A12DA-ACBC-48A8-AD25-DD8BA859DC7B",
+  "appName": "HelixStudio",
+  "installFolder": "HelixStudio",
+  "dataFolder": "HelixStudio",
+  "service": "HelixStudioDB",
+  "port": 5433,
+  "signingKey": "keys/helix-signing-key.pem",
+  "obfuscationGate": ["LicenceStore", "Anchors", "PackageStore", "DeviceStore", "SecretStore"],
+  "tools": ["tools/InSpecTool/InSpecTool.csproj", "tools/ChecksumTool/ChecksumTool.csproj"],
+  "toolsInInstaller": false,
+  "afterInstallSql": "",
+  "editions": [
+    { "label": "Win10-11-x64", "fw": "net10.0-windows", "rid": "win-x64", "arch": "x64", "minOs": "10.0", "pg": "pg16-x64", "redists": ["vc2022_redist.x64.exe"], "needKb": "" },
+    { "label": "Win10-11-x32", "fw": "net10.0-windows", "rid": "win-x86", "arch": "x86", "minOs": "10.0", "pg": "pg10-x86", "redists": ["vc2013_redist.x86.exe"], "needKb": "" },
+    { "label": "Win7-x64", "fw": "net6.0-windows", "rid": "win-x64", "arch": "x64", "minOs": "6.1sp1", "pg": "pg10-x64", "redists": ["vc2019_redist.x64.exe", "vc2013_redist.x64.exe"], "needKb": "KB3063858" },
+    { "label": "Win7-x32", "fw": "net6.0-windows", "rid": "win-x86", "arch": "x86", "minOs": "6.1sp1", "pg": "pg10-x86", "redists": ["vc2019_redist.x86.exe", "vc2013_redist.x86.exe"], "needKb": "KB3063858" }
+  ]
+}

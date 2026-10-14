@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - 範例</title>
+
+    @* 範例的外殼：只載入頁面用得到的那幾份，檔案都是正式站台 wwwroot 裡的同一份（Program.cs 把它掛成靜態檔）。
+       正式站台的版面另外有部門列、功能面板、分頁，Layout.js 依賴那些元素，所以這裡不載入它。 *@
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/Saas/css/Layout.css" />
+    <link rel="stylesheet" href="~/Saas/css/Toast.css" />
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lucide@@0.454.0/dist/umd/lucide.min.js"></script>
+    <script src="~/Saas/js/Toast.js"></script>
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <div id="toast-container" aria-live="polite"></div>
+
+    @* 通知的樣子，與正式站台的版面同一段；Toast.js 照 kind 填上圖示與訊息。 *@
+    <div id="toast-template"
+         class="toast d-none"
+         role="alert" aria-live="assertive" aria-atomic="true"
+         data-toast-template="true">
+        <div class="toast-body d-flex align-items-center gap-2">
+            <i data-toast-role="icon"></i>
+            <span class="flex-fill text-break" data-toast-role="message"></span>
+            <button type="button" class="toast-action" data-toast-role="action"></button>
+            <button type="button" class="btn-close flex-shrink-0" data-bs-dismiss="toast" aria-label="關閉通知"></button>
+        </div>
+    </div>
+
+    <main id="main">
+        @RenderBody()
+    </main>
+
+    @* 提示框：正式站台由 Layout.js 啟用，範例沒有載入它，所以只留這一行；ajax 換進來的元素一樣吃得到。 *@
+    <script>new bootstrap.Tooltip(document.body, { selector: '[data-bs-toggle="tooltip"]', delay: { show: 300, hide: 0 } });</script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,24 @@
+# 開發資料庫：平台開發版（src\HelixStudio\appsettings.json）連的就是這一個，埠 5433、資料庫 helix_studio、帳號 helix。
+# 第一次建置時由 dev\Setup 啟動（docker compose up -d）；容器已經在就只會啟動它，不重建、不清資料。
+# 資料表照 init\*.sql 建：只在資料卷是空的那一次跑。
+name: helix-studio
+
+services:
+  helix-studio-db:
+    image: postgres:16
+    container_name: helix-studio-db
+    environment:
+      POSTGRES_DB: helix_studio
+      POSTGRES_USER: helix
+      POSTGRES_PASSWORD: helix
+    ports:
+      - "5433:5432"
+    volumes:
+      - helix-studio-data:/var/lib/postgresql/data
+      - ./init:/docker-entrypoint-initdb.d:ro
+    restart: unless-stopped
+
+volumes:
+  helix-studio-data:
+    # 沿用原本 deploy\docker-compose.yml 建出來的那一個資料卷名稱：已經有資料的電腦接著用同一份
+    name: deploy_helix-studio-data

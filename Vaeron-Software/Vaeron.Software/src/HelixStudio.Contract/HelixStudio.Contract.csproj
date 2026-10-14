@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net6.0</TargetFrameworks>
+    <!-- 同一套程式編兩份：net10 給 Win10～11，net6 給 Win7（.NET 7 之後不支援 Win7）；net6 已停止支援，關掉那一條提醒 -->
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>HelixStudio.Contract</RootNamespace>
+    <AssemblyName>HelixStudio.Contract</AssemblyName>
+  </PropertyGroup>
+
+</Project>

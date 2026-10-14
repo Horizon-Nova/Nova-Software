@@ -1,0 +1,13 @@
+{
+  "files": [
+    { "id": "pg16-x64", "name": "PostgreSQL 16.6 x64", "path": "pg/postgresql-16.6-1-windows-x64-binaries.zip", "sha256": "6a1bfb6435b13d9563ae481445c70ac2a19846bd8a430b12903b408eec300f9b", "source": "https://get.enterprisedb.com/postgresql/postgresql-16.6-1-windows-x64-binaries.zip" },
+    { "id": "pg10-x64", "name": "PostgreSQL 10.23 x64", "path": "pg/postgresql-10.23-1-windows-x64-binaries.zip", "sha256": "a87722e090e2dcded01c237609e9ad1673a0ca31c90bd766b63a8dfbb666ac47", "source": "https://get.enterprisedb.com/postgresql/postgresql-10.23-1-windows-x64-binaries.zip" },
+    { "id": "pg10-x86", "name": "PostgreSQL 10.23 x86", "path": "pg/postgresql-10.23-1-windows-binaries.zip", "sha256": "cddcd3ca5fa95c144a38acce0452d9ffc4505c2aba3be4011fd7f7ce31fe164f", "source": "https://get.enterprisedb.com/postgresql/postgresql-10.23-1-windows-binaries.zip" },
+    { "id": "vc2022_redist.x64.exe", "name": "VC++ 2022 x64", "path": "redist/vc2022_redist.x64.exe", "sha256": "cc0ff0eb1dc3f5188ae6300faef32bf5beeba4bdd6e8e445a9184072096b713b", "source": "https://aka.ms/vs/17/release/vc_redist.x64.exe" },
+    { "id": "vc2019_redist.x64.exe", "name": "VC++ 2019 x64", "path": "redist/vc2019_redist.x64.exe", "sha256": "6afae68a783f11292149175844aed0e2ce3f247bc0250f6cb18c931295b3f399", "source": "https://aka.ms/vs/16/release/vc_redist.x64.exe" },
+    { "id": "vc2019_redist.x86.exe", "name": "VC++ 2019 x86", "path": "redist/vc2019_redist.x86.exe", "sha256": "38c9437e6e9ef1db2671b3f0c879febec08521bd2c23231199f626b69ae1c65e", "source": "https://aka.ms/vs/16/release/vc_redist.x86.exe" },
+    { "id": "vc2013_redist.x64.exe", "name": "VC++ 2013 x64", "path": "redist/vc2013_redist.x64.exe", "sha256": "a4bba7701e355ae29c403431f871a537897c363e215cafe706615e270984f17c", "source": "https://aka.ms/highdpimfc2013x64enu" },
+    { "id": "vc2013_redist.x86.exe", "name": "VC++ 2013 x86", "path": "redist/vc2013_redist.x86.exe", "sha256": "53b605d1100ab0a88b867447bbf9274b5938125024ba01f5105a9e178a3dcdbd", "source": "https://aka.ms/highdpimfc2013x86enu" }
+  ],
+  "nuget": "nuget"
+}

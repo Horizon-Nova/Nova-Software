@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "HelixStudio": {
+      "commandName": "Project",
+      "commandLineArgs": "HelixStudio"
+    },
+    "HelixStudio.Demo": {
+      "commandName": "Project",
+      "commandLineArgs": "HelixStudio.Demo"
+    }
+  }
+}

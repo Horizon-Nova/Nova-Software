@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-windows;net6.0-windows</TargetFrameworks>
+    <!-- 同一套程式編兩份：net10 給 Win10～11，net6 給 Win7（.NET 7 之後不支援 Win7）；net6 已停止支援，關掉那一條提醒 -->
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>ChecksumTool</RootNamespace>
+    <AssemblyName>ChecksumTool</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\HelixStudio.Contract\HelixStudio.Contract.csproj" />
+  </ItemGroup>
+
+</Project>

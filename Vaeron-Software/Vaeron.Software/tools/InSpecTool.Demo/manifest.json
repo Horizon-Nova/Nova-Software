@@ -1,0 +1,49 @@
+{
+  "tool_no": "local.inspec",
+  "name": "InSpecTool",
+  "version": "2.0.0",
+  "vendor": "曜域科技 Vaeron",
+  "cat": "生產力",
+  "icon": "qr",
+  "audience": "量測站操作員",
+  "size": "",
+  "description": "掃條碼帶出料號與批號，找到對應的 InSpec 量測程式，執行時自動填入提示，跑完顯示這次的結果。Demo 版不歸檔。",
+  "entry": "InSpecTool.dll",
+  "class": "InSpecTool.Measure",
+  "capabilities": [
+    "掃條碼自動填欄位",
+    "依料號找 SETUP 量測程式",
+    "用 iscmd 執行並自動填入 InSpec 提示",
+    "跑完顯示這次的結果"
+  ],
+  "permissions": [
+    "讀取搜尋資料夾裡的量測程式",
+    "啟動 InSpec 並填入它的提示",
+    "讀取 InSpec 匯出到 C:\\InSpecTool\\Input.txt 的結果",
+    "讀寫平台資料庫"
+  ],
+  "guide": [
+    {
+      "text": "掃條碼，或在欄位直接打。條碼照欄位順序帶出料號、批號、壓合、機台、操作員。",
+      "image": "guide/barcode.png"
+    },
+    {
+      "text": "右邊列出檔名含 SETUP 與這個料號的量測程式，新的在上。",
+      "image": "guide/programs.png"
+    },
+    {
+      "text": "雙擊量測程式：用 iscmd 執行，InSpec 的提示自動填入。"
+    },
+    {
+      "text": "InSpec 跑完記下這一次；勾了「跑完顯示結果」會跳出這次的結果。"
+    }
+  ],
+  "changelog": [
+    {
+      "ver": "2.0.0",
+      "date": "2026-10-13",
+      "note": "Demo 版：掃條碼、找量測程式、執行量測、看結果都照正式版；不歸檔"
+    }
+  ],
+  "settings": "InSpecTool.Setup"
+}

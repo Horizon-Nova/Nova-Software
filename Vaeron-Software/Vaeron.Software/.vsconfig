@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "components": [
+    "Microsoft.VisualStudio.Workload.CoreEditor",
+    "Microsoft.VisualStudio.Workload.ManagedDesktop",
+    "Microsoft.VisualStudio.Component.ManagedDesktop.Core",
+    "Microsoft.VisualStudio.Component.ManagedDesktop.Prerequisites",
+    "Microsoft.NetCore.Component.SDK",
+    "Microsoft.NetCore.Component.DevelopmentTools",
+    "Microsoft.Component.MSBuild",
+    "Microsoft.VisualStudio.Component.NuGet"
+  ]
+}

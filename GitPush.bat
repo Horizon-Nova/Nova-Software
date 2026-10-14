@@ -87,7 +87,7 @@ exit /b 0
 :: =====================================================
 :gitPull
 echo [Git] 嘗試 git pull...
-git config --global --add safe.directory "%cd%"
+git config --global --fixed-value --replace-all safe.directory "%cd%" "%cd%"
 git pull origin %CUR_BRANCH%
 if %errorlevel% neq 0 (
     echo [錯誤] Pull 失敗，請手動檢查版本衝突或網路錯誤。
@@ -98,12 +98,16 @@ exit /b 0
 :: =====================================================
 :gitPush
 echo [Git] 準備 commit 與 push...
-for /f "usebackq tokens=*" %%i in (`powershell -NoProfile -Command "[DateTime]::Now.ToString('yyyy-MM-dd_HH-mm-ss')"`) do set "commit_msg=%%i"
+for /f "usebackq tokens=*" %%i in (`powershell -NoProfile -Command "[DateTime]::Now.ToString('yyyy-MM-dd_HH-mm-ss')"`) do set "default_msg=%%i"
+
+set "commit_msg="
+set /p "commit_msg=請輸入 commit 訊息（直接按 Enter 使用預設時間戳記 %default_msg%）："
+if "%commit_msg%"=="" set "commit_msg=%default_msg%"
 
 git add .
 git commit -m "%commit_msg%" >nul 2>&1
 if %errorlevel% equ 0 (
-    echo [Git] 有變更已提交
+    echo [Git] 有變更已提交（訊息：%commit_msg%）
 ) else (
     echo [警告] 無變更可提交，略過 commit
 )

@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    準備這個工作區的環境：每一次建置之前由 Directory.Build.targets 叫 Prepare 這個目標。
+    Prepare 先還原、建置 Setup 自己（不連網：Setup 沒有任何 NuGet 套件），再執行它；它印的每一行都進建置輸出。
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>HelixStudio.Setup</RootNamespace>
+    <AssemblyName>Setup</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 開發用簽章金鑰跟正式版、Demo 版的金鑰用同一支程式產生，格式一樣 -->
+    <ProjectReference Include="..\HelixStudio.Pack\HelixStudio.Pack.csproj" />
+  </ItemGroup>
+
+  <Target Name="Prepare">
+    <!-- 建 Setup 時順帶建的專案（HelixStudio.Pack）不再回頭叫 Prepare -->
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Restore" Properties="PrepareEnvironment=false;SetupStage=Restore" />
+    <MSBuild Projects="$(MSBuildProjectFullPath)" Targets="Build" Properties="PrepareEnvironment=false;SetupStage=Build">
+      <Output TaskParameter="TargetOutputs" ItemName="SetupAssembly" />
+    </MSBuild>
+
+    <!-- 錯誤與警告用 MSBuild 認得的格式印：錯誤會讓建置停下來，警告照樣列在警告清單 -->
+    <Exec Command="&quot;@(SetupAssembly->'%(RootDir)%(Directory)Setup.exe')&quot; &quot;$(HelixRoot.TrimEnd('\'))&quot; &quot;$(NETCoreSdkVersion)&quot;"
+          WorkingDirectory="$(HelixRoot)"
+          EchoOff="true"
+          StandardOutputImportance="high"
+          StdOutEncoding="utf-8"
+          StdErrEncoding="utf-8" />
+  </Target>
+
+</Project>

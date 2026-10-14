@@ -1,0 +1,95 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "vaeron-one",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": [
+        "watch",
+        "--project",
+        "Vaeron.Web/VaeronWeb/VaeronOne/VaeronOne.csproj",
+        "--launch-profile",
+        "http",
+        "--non-interactive"
+      ],
+      "env": {
+        "DOTNET_WATCH_SUPPRESS_LAUNCH_BROWSER": "1"
+      },
+      "port": 5470
+    },
+    {
+      "name": "vaeron-landing",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": [
+        "run",
+        "--project",
+        "Vaeron.Web/Vaeron.Landing/Vaeron.Landing.csproj",
+        "--launch-profile",
+        "http"
+      ],
+      "env": {
+        "DOTNET_LAUNCH_PROFILE_SUPPRESS_BROWSER": "1"
+      },
+      "port": 5500
+    },
+    {
+      "name": "vaeron-line",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": [
+        "run",
+        "--project",
+        "Vaeron.Web/Vaeron.Line/Vaeron.Line.csproj",
+        "--no-launch-profile"
+      ],
+      "port": 5480
+    },
+    {
+      "name": "log-snapshot",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5191",
+        "--directory",
+        "C:/Users/user/AppData/Local/Temp/claude/D--Private-project-GitHub-Horizon-Vaeron-web/9f7b58c4-886b-478b-b8cc-f09f50fabd23/scratchpad"
+      ],
+      "port": 5191
+    },
+    {
+      "name": "saas-design-apply",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5193",
+        "--directory",
+        "C:/Users/user/Downloads/SaaS 畫面設計 (1)"
+      ],
+      "port": 5193
+    },
+    {
+      "name": "saas-design",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5192",
+        "--directory",
+        "C:/Users/user/Downloads/SaaS 畫面設計"
+      ],
+      "port": 5192
+    },
+    {
+      "name": "blueprint",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5190",
+        "--directory",
+        "D:/Private_project/.project-backup/ww_backup_20260615050213_2085/Net/.artifacts/wtw_blueprint"
+      ],
+      "port": 5190
+    }
+  ]
+}
