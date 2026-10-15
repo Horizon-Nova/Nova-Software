@@ -235,11 +235,11 @@ public static class SettingsLogic
     /// <summary>倍率是以百分比寫的</summary>
     private const double Percent = 100;
 
-    /// <summary>大按鈕模式開著時控制項多高；設計寫「加高到 44px 以上」</summary>
+    /// <summary>大按鈕模式開著時控制項至少多高；設計寫「加高到 44px 以上」。關著時不墊高，照字的行高推</summary>
     private static IReadOnlyDictionary<string, double> Tall { get; } = new Dictionary<string, double>
     {
         ["true"] = 44,
-        ["false"] = 32,
+        ["false"] = 0,
     };
 
     /// <summary>分類展開與收起各用哪一個箭頭</summary>
@@ -321,8 +321,8 @@ public static class SettingsLogic
         /// <summary>文字放大幾倍</summary>
         public double Scale { get; set; } = 1;
 
-        /// <summary>按鈕與輸入框多高</summary>
-        public double Height { get; set; } = 32;
+        /// <summary>按鈕與輸入框至少多高；0 是不墊高</summary>
+        public double Height { get; set; }
 
         /// <summary>要不要高對比</summary>
         public bool Contrast { get; set; }

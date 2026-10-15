@@ -250,3 +250,5 @@ credentials.json
 service-account*.json
 secrets.json
 local.settings.json
+
+.claude

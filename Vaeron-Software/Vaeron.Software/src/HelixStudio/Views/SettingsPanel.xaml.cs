@@ -156,8 +156,10 @@ public partial class SettingsPanel : UserControl
         if (fault.Length > 0) return;
 
         // 配得上：解開幾分鐘照 vw_settings 的 unlock_minutes
-        until[toolNo] = DateTime.Now.AddMinutes(store.QuerySettingItem(toolNo)?.unlock_minutes ?? 0);
-        store.InsertEventLog("unlock", toolNo, $"{nameof(SettingsPanel)}.{nameof(Unlock)}", null, null);
+        var item = store.QuerySettingItem(toolNo);
+
+        until[toolNo] = DateTime.Now.AddMinutes(item?.unlock_minutes ?? 0);
+        store.InsertEventLog("unlock", toolNo, $"{nameof(SettingsPanel)}.{nameof(Unlock)}", $"用工具金鑰解開 {item?.name} 的設定 {item?.unlock_minutes} 分鐘", null);
 
         Show();
     }

@@ -1,7 +1,7 @@
 <UserControl x:Class="HelixStudio.Views.HostPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             FontFamily="{StaticResource UiFont}" FontSize="{DynamicResource Body}"
+             FontFamily="{StaticResource UiFont}" FontSize="{DynamicResource Text}"
              Foreground="{DynamicResource TextPrimary}">
 
     <Grid>
@@ -16,10 +16,10 @@
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <StackPanel MaxWidth="480" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <TextBlock Text="這支工具載不起來" FontSize="{DynamicResource Heading}" FontWeight="SemiBold"
+                        <TextBlock Text="這支工具載不起來" FontSize="{DynamicResource Title}" FontWeight="SemiBold"
                                    Margin="0,0,0,8" TextAlignment="Center" />
-                        <TextBlock Text="{Binding}" FontSize="{DynamicResource Caption}"
-                                   LineHeight="{DynamicResource CaptionLine}" TextAlignment="Center"
+                        <TextBlock Text="{Binding}" FontSize="{DynamicResource Text}"
+                                   LineHeight="{DynamicResource TextLine}" TextAlignment="Center"
                                    TextWrapping="Wrap" Foreground="{DynamicResource TextMuted}" />
                     </StackPanel>
                 </DataTemplate>

@@ -34,17 +34,15 @@ public class ShellStore
     public vw_shell? QueryShellItem(string toolNo) =>
         Db.vw_shells.AsNoTracking().FirstOrDefault(one => one.type == "tool" && one.tool_no == toolNo);
 
-    /// <summary>工具目錄：總數、分類、最近搜尋，加上名稱、維護團隊或說明含有搜尋字、落在選的分類裡的卡片</summary>
+    /// <summary>工具目錄：總數、最近搜尋，加上名稱、維護團隊或說明含有搜尋字的工具</summary>
     /// <param name="query">搜尋框打的字</param>
-    /// <param name="cat">選的分類；看全部就是 null</param>
-    public List<vw_catalog> QueryCatalogList(string query, string? cat) =>
+    public List<vw_catalog> QueryCatalogList(string query) =>
         [.. Db.vw_catalogs.AsNoTracking()
             .Where(one => one.type != "tool"
-                || ((query == string.Empty
-                        || EF.Functions.ILike(one.name!, $"%{query}%")
-                        || EF.Functions.ILike(one.vendor!, $"%{query}%")
-                        || EF.Functions.ILike(one.description!, $"%{query}%"))
-                    && (cat == null || one.cat == cat)))];
+                || query == string.Empty
+                || EF.Functions.ILike(one.name!, $"%{query}%")
+                || EF.Functions.ILike(one.vendor!, $"%{query}%")
+                || EF.Functions.ILike(one.description!, $"%{query}%"))];
 
     /// <summary>工具目錄的一支工具：右邊那一欄要的 tool 那一列與每一則更新日誌</summary>
     /// <param name="toolNo">這一支工具的代碼</param>

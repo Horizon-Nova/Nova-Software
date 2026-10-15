@@ -1,7 +1,7 @@
 <UserControl x:Class="HelixStudio.Views.DetailPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             FontFamily="{StaticResource UiFont}" FontSize="{DynamicResource Body}"
+             FontFamily="{StaticResource UiFont}" FontSize="{DynamicResource Text}"
              Foreground="{DynamicResource TextPrimary}" PreviewKeyDown="Escape">
 
     <UserControl.Resources>
@@ -12,17 +12,17 @@
             <Setter Property="Visibility" Value="Collapsed" />
         </Style>
 
-        <!-- 灰字一行：總覽左邊的功能、權限，更新日誌的日期；行高 20 -->
+        <!-- 灰字一行：總覽左邊的功能、權限，更新日誌的日期；行高照 CaptionLine -->
         <Style x:Key="Label" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource Caption}" />
+            <Setter Property="FontSize" Value="{DynamicResource Text}" />
             <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
-            <Setter Property="LineHeight" Value="20" />
+            <Setter Property="LineHeight" Value="{DynamicResource TextLine}" />
         </Style>
 
-        <!-- 一段裡的一行：字 12、行高 20 -->
+        <!-- 一段裡的一行：字 Caption、行高 CaptionLine -->
         <Style x:Key="Line" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource Caption}" />
-            <Setter Property="LineHeight" Value="20" />
+            <Setter Property="FontSize" Value="{DynamicResource Text}" />
+            <Setter Property="LineHeight" Value="{DynamicResource TextLine}" />
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
     </UserControl.Resources>
@@ -43,7 +43,7 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <Border Grid.Column="0" Width="40" Height="40" CornerRadius="8" VerticalAlignment="Top"
+                <Border Grid.Column="0" Width="40" Height="40" CornerRadius="{StaticResource RadiusMd}" VerticalAlignment="Top"
                         Background="{DynamicResource WindowBack}" Margin="0,0,12,0">
                     <ContentControl Content="{Binding Paths}" Foreground="{DynamicResource TextSecondary}"
                                     ContentTemplate="{StaticResource LucideIcon20}"
@@ -52,9 +52,9 @@
 
                 <StackPanel Grid.Column="1" Margin="0,0,12,0">
                     <TextBlock Text="{Binding Tool.name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
-                    <TextBlock Text="{Binding Tool.description}" FontSize="{DynamicResource Caption}" LineHeight="{DynamicResource CaptionLine}"
+                    <TextBlock Text="{Binding Tool.description}" FontSize="{DynamicResource Text}" LineHeight="{DynamicResource TextLine}"
                                Margin="0,4,0,0" TextWrapping="Wrap" Foreground="{DynamicResource TextMuted}" />
-                    <Grid Margin="0,8,0,0" TextElement.FontSize="{DynamicResource Caption}">
+                    <Grid Margin="0,8,0,0" TextElement.FontSize="{DynamicResource Text}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="64" />
                             <ColumnDefinition Width="*" />
@@ -65,11 +65,11 @@
                             <RowDefinition Height="20" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" Text="版本" Foreground="{DynamicResource TextMuted}" />
-                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Tool.version_text}" FontFamily="{StaticResource MonoFont}" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Tool.version_text}" Style="{StaticResource Mono}" />
                         <TextBlock Grid.Row="1" Text="匯入日期" Foreground="{DynamicResource TextMuted}" />
-                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Tool.updated_text}" FontFamily="{StaticResource MonoFont}" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Tool.updated_text}" Style="{StaticResource Mono}" />
                         <TextBlock Grid.Row="2" Text="大小" Foreground="{DynamicResource TextMuted}" />
-                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Tool.size}" FontFamily="{StaticResource MonoFont}" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Tool.size}" Style="{StaticResource Mono}" />
                     </Grid>
                 </StackPanel>
 
@@ -86,7 +86,7 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" Padding="8,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
+            <Border Grid.Row="0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
                 <ListBox Style="{StaticResource TabList}" ItemContainerStyle="{StaticResource TabItem}"
                          SelectedIndex="{Binding Selected, Mode=OneWay}" SelectionChanged="PickTab">
                     <ListBoxItem Content="總覽" />
@@ -176,13 +176,13 @@
                                             <RowDefinition Height="Auto" />
                                         </Grid.RowDefinitions>
                                         <Border Width="20" Height="20" CornerRadius="10" Background="{DynamicResource WindowBack}" VerticalAlignment="Top">
-                                            <TextBlock Text="{Binding sort}" FontFamily="{StaticResource MonoFont}" FontSize="11"
+                                            <TextBlock Text="{Binding sort}" Style="{StaticResource Mono}" FontSize="{DynamicResource Text}"
                                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
                                         </Border>
-                                        <TextBlock Grid.Column="1" Text="{Binding note}" Margin="8,0,0,0" FontSize="{DynamicResource Caption}"
-                                                   LineHeight="20" TextWrapping="Wrap" />
+                                        <TextBlock Grid.Column="1" Text="{Binding note}" Margin="8,0,0,0" FontSize="{DynamicResource Text}"
+                                                   LineHeight="{DynamicResource TextLine}" TextWrapping="Wrap" />
                                         <Border Grid.Row="1" Grid.Column="1" Margin="8,8,0,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="1"
-                                                CornerRadius="4" ClipToBounds="True" Cursor="Hand" HorizontalAlignment="Left"
+                                                CornerRadius="{StaticResource RadiusSm}" ClipToBounds="True" Cursor="Hand" HorizontalAlignment="Left"
                                                 Tag="{Binding image}" MouseLeftButtonUp="ZoomIn" ToolTip="點一下放大">
                                             <Border.Style>
                                                 <Style TargetType="Border">
@@ -199,7 +199,7 @@
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
-                        <TextBlock Text="這支工具沒有附操作說明" FontSize="{DynamicResource Caption}" Foreground="{DynamicResource TextMuted}">
+                        <TextBlock Text="這支工具沒有附操作說明" FontSize="{DynamicResource Text}" Foreground="{DynamicResource TextMuted}">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="Collapsed" />
@@ -246,7 +246,7 @@
 
         <!-- 放大看截圖：一張圖卡浮在視窗正中，點它、點外面或按 Esc 收起 -->
         <Popup x:Name="ZoomLayer" Placement="Center" AllowsTransparency="True" StaysOpen="False" Closed="ZoomOut">
-            <Border x:Name="ZoomBack" Margin="16" Background="{DynamicResource Surface}" CornerRadius="8" Padding="8"
+            <Border x:Name="ZoomBack" Margin="16" Background="{DynamicResource Surface}" CornerRadius="{StaticResource RadiusMd}" Padding="8"
                     BorderBrush="{DynamicResource HairLine}" BorderThickness="1" Cursor="Hand" MouseLeftButtonUp="ZoomOut">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="32" ShadowDepth="6" Direction="270" Opacity="0.16" />

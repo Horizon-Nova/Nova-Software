@@ -3,7 +3,7 @@
 2026-10-12
 
 需求：`.claude/tasks/InSpecTool-功能需求.md`（第二版＋審核紀錄）。
-技術依據：`Vaeron-Software\Vaeron.Software\research\InSpec\Sandbox\RunProbe`（2026-10-12 實測）。
+技術依據：`Vaeron-Software\Vaeron.Software\SandBox\InSpec\Sandbox\RunProbe`（2026-10-12 實測）。
 規則：`~/.claude/rules/Rules.md`、`SQL_Design.md`、`UIUX.md`。
 
 ## 1. 組成

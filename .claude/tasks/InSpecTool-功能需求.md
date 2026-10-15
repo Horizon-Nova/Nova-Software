@@ -4,7 +4,7 @@
 
 依據：
 - 舊版：`.project-backup\Nova-Software_backup_20260717230518_2396\Net\ExternalModules\InSpecTool`（7/17，最後一版完整功能）
-- 新技術：`Vaeron-Software\Vaeron.Software\research\InSpec` 的研究（原 NetToolTestArea），以及 2026-10-12 在 `research\InSpec\Sandbox\RunProbe` 的實測（InSpec 2.92.0283，這台電腦，沒接量測機台）
+- 新技術：`Vaeron-Software\Vaeron.Software\SandBox\InSpec` 的研究（原 NetToolTestArea），以及 2026-10-12 在 `SandBox\InSpec\Sandbox\RunProbe` 的實測（InSpec 2.92.0283，這台電腦，沒接量測機台）
 - 使用者審核回覆（2026-10-12），見第 7 節
 
 狀態欄：**舊版**＝照舊版做；**已驗**＝Sandbox 實測過；**推論**＝還沒實測；**已定**＝使用者審核決定；**待決定**＝還要使用者決定。

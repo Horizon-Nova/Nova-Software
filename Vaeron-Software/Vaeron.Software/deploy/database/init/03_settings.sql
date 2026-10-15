@@ -52,7 +52,7 @@ INSERT INTO dbo.setting (area_key, area_label, section_key, section_label, secti
   ('device', '這台裝置', 'general', '一般', '這台裝置的啟動與登入行為，變更在下次開機生效。', '啟動', 'launchOnBoot', 'toggle', '開機時自動啟動', '交接班不必手動開啟', NULL, 'true', 'true', '[]'::jsonb, false, 6),
   ('device', '這台裝置', 'update', '工具套件', NULL, '套件庫', 'source', 'choice', '套件庫資料夾', NULL, '平台從這個資料夾讀可以匯入的工具套件。廠區離線部署，不會連到外網。', NULL, NULL, '[]'::jsonb, false, 10),
   ('device', '這台裝置', 'notify', '通知', NULL, '提醒', 'notifySound', 'toggle', '通知音效', '廠區噪音大時通常關閉', NULL, 'false', 'false', '[]'::jsonb, false, 15),
-  ('work', '工作方式', 'floor', '現場操作與顯示', '針對戴手套、站著操作、廠區光線強的環境調整。', '操作', 'bigTargets', 'toggle', '大按鈕模式', '按鈕與輸入框加高到 44px 以上', NULL, 'true', 'true', '[]'::jsonb, false, 21),
+  ('work', '工作方式', 'floor', '現場操作與顯示', '針對戴手套、站著操作、廠區光線強的環境調整。', '操作', 'bigTargets', 'toggle', '大按鈕模式', '按鈕與輸入框加高到 44px 以上', NULL, 'false', 'false', '[]'::jsonb, false, 21),
   ('work', '工作方式', 'floor', '現場操作與顯示', '針對戴手套、站著操作、廠區光線強的環境調整。', '操作', 'textScale', 'choice', '文字大小', NULL, '站在機台旁看螢幕時可以放大。', '標準 100%', '標準 100%', '["標準 100%","放大 115%","放大 130%"]'::jsonb, false, 22),
   ('work', '工作方式', 'floor', '現場操作與顯示', '針對戴手套、站著操作、廠區光線強的環境調整。', '操作', 'screenAwake', 'toggle', '使用中保持螢幕不休眠', '作業中不會自動鎖定', NULL, 'true', 'true', '[]'::jsonb, false, 23),
   ('work', '工作方式', 'floor', '現場操作與顯示', '針對戴手套、站著操作、廠區光線強的環境調整。', '顯示', 'highContrast', 'toggle', '高對比顯示', '日照強的區域建議開啟', NULL, 'false', 'false', '[]'::jsonb, false, 24),

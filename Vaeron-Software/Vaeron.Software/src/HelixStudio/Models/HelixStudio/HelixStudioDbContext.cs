@@ -33,6 +33,8 @@ public partial class HelixStudioDbContext : DbContext
 
     public virtual DbSet<vw_catalog> vw_catalogs { get; set; }
 
+    public virtual DbSet<vw_event_log> vw_event_logs { get; set; }
+
     public virtual DbSet<vw_palette> vw_palettes { get; set; }
 
     public virtual DbSet<vw_setting> vw_settings { get; set; }
@@ -164,6 +166,11 @@ public partial class HelixStudioDbContext : DbContext
         modelBuilder.Entity<vw_catalog>(entity =>
         {
             entity.ToView("vw_catalog", "dbo");
+        });
+
+        modelBuilder.Entity<vw_event_log>(entity =>
+        {
+            entity.ToView("vw_event_log", "dbo");
         });
 
         modelBuilder.Entity<vw_palette>(entity =>

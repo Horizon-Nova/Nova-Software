@@ -20,6 +20,9 @@ public partial class MainWindow : Window
 
     private readonly PackageStore packages = new();
 
+    /// <summary>正在問要不要移除的那一支工具的名稱</summary>
+    private string removing = string.Empty;
+
     /// <summary>側欄現在畫出來的那幾格；從頭到尾是同一份，只補上或拿掉變動的那幾格</summary>
     private readonly ObservableCollection<ShellLogic.RailItem> rail = [];
 
@@ -72,6 +75,9 @@ public partial class MainWindow : Window
         // 匯入工具套件
         Catalog.Importing += (_, _) => Bring();
 
+        // 右邊那一欄按了移除工具：遮罩蓋住整個視窗問一次
+        Catalog.Info.Asking += (_, name) => AskRemove(name);
+
 
         shell = ShellLogic.Shell(store.QueryShellList(), store.QueryIconList());
         DataContext = shell;
@@ -105,6 +111,7 @@ public partial class MainWindow : Window
 
         Catalog.Visibility = Visibility.Visible;
         Host.Visibility = Visibility.Collapsed;
+        Log.Visibility = Visibility.Collapsed;
         Activation.Visibility = Visibility.Collapsed;
 
         CrumbText.Text = shell.Crumb;
@@ -112,15 +119,15 @@ public partial class MainWindow : Window
         // 側欄落在工具目錄那一格
         steering = true;
         RailList.SelectedIndex = rail
-            .Select((one, index) => new { one.Key, index })
-            .Where(one => one.Key.Length == 0)
+            .Select((one, index) => new { one.Page, index })
+            .Where(one => one.Page == "catalog")
             .Select(one => one.index)
             .DefaultIfEmpty(NoRow)
             .First();
         steering = false;
     }
 
-    /// <summary>點側欄的一格：直接開那一支工具的畫面，第一格沒有工具代碼就是回工具目錄</summary>
+    /// <summary>點側欄的一格：換到那一格的那一頁</summary>
     /// <param name="sender">側欄</param>
     /// <param name="e">這一次換了哪一格</param>
     private void PickRail(object sender, SelectionChangedEventArgs e)
@@ -131,10 +138,23 @@ public partial class MainWindow : Window
         var picked = e.AddedItems.OfType<ShellLogic.RailItem>().ToList();
 
         // 第一格：回工具目錄
-        picked.Where(one => one.Key.Length == 0).ToList().ForEach(one => Look(one.Key));
+        picked.Where(one => one.Page == "catalog").ToList().ForEach(_ => Look(string.Empty));
 
         // 一支工具：直接開它的畫面
-        picked.Where(one => one.Key.Length > 0).ToList().ForEach(one => Run(one.Key));
+        picked.Where(one => one.Page == "tool").ToList().ForEach(one => Run(one.Key));
+
+        // 日誌：照現在的紀錄重讀一次，換過去
+        picked.Where(one => one.Page == "log").ToList().ForEach(one =>
+        {
+            Log.Refresh();
+
+            Log.Visibility = Visibility.Visible;
+            Catalog.Visibility = Visibility.Collapsed;
+            Host.Visibility = Visibility.Collapsed;
+            Activation.Visibility = Visibility.Collapsed;
+
+            CrumbText.Text = $"— {one.Name}";
+        });
     }
 
     /// <summary>跳出一則通知：停到它該停的秒數為止，同時最多三則</summary>
@@ -310,15 +330,18 @@ public partial class MainWindow : Window
             .ToList()
             .ForEach(one =>
             {
-                store.InsertEventLog("open", one, $"{nameof(MainWindow)}.{nameof(Run)}", null, null);
+                var name = rail.Concat(shell.Rail).Where(two => two.Key == one).Select(two => two.Name).DefaultIfEmpty(one).First();
+
+                store.InsertEventLog("open", one, $"{nameof(MainWindow)}.{nameof(Run)}", $"開啟 {name}", null);
                 Activation.Visibility = Visibility.Collapsed;
 
                 Host.Open(one);
 
                 Host.Visibility = Visibility.Visible;
                 Catalog.Visibility = Visibility.Collapsed;
+                Log.Visibility = Visibility.Collapsed;
 
-                CrumbText.Text = $"— {rail.Concat(shell.Rail).Where(two => two.Key == one).Select(two => two.Name).DefaultIfEmpty(one).First()}";
+                CrumbText.Text = $"— {name}";
 
                 // 側欄的落點跟著走
                 steering = true;
@@ -344,9 +367,11 @@ public partial class MainWindow : Window
         ActivationFault.Text = fault;
         if (fault.Length > 0) return;
 
+        var name = store.QueryShellItem(pending)?.name;
+
         store.InsertKey(pending, code);
-        store.InsertEventLog("activate", pending, $"{nameof(MainWindow)}.{nameof(Activate)}", null, null);
-        Note($"已啟用 {store.QueryShellItem(pending)?.name}", "info");
+        store.InsertEventLog("activate", pending, $"{nameof(MainWindow)}.{nameof(Activate)}", $"貼上工具金鑰，啟用 {name}", null);
+        Note($"已啟用 {name}", "info");
 
         Run(pending);
     }
@@ -360,6 +385,42 @@ public partial class MainWindow : Window
         Look(string.Empty);
     }
 
+    /// <summary>移除工具：先問一次，打對名稱才移；遮罩蓋住整個視窗</summary>
+    /// <param name="name">要移除的那一支工具的名稱</param>
+    private void AskRemove(string name)
+    {
+        removing = name;
+        RemoveAsk.DataContext = new { Name = name };
+        ConfirmText.Clear();
+        ConfirmButton.IsEnabled = false;
+        RemoveAsk.Visibility = Visibility.Visible;
+
+        Dispatcher.BeginInvoke(() => ConfirmText.Focus(), System.Windows.Threading.DispatcherPriority.Input);
+    }
+
+    /// <summary>在確認框裡打字：打對名稱才按得下移除</summary>
+    private void TypeName(object sender, TextChangedEventArgs e) =>
+        ConfirmButton.IsEnabled = ConfirmText.Text == removing;
+
+    /// <summary>保留這支工具：收掉問的那一層</summary>
+    private void KeepTool(object sender, RoutedEventArgs e) =>
+        RemoveAsk.Visibility = Visibility.Collapsed;
+
+    /// <summary>在問的那一層按 Esc：保留這支工具</summary>
+    private void RemoveKey(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Escape) return;
+
+        e.Handled = true;
+        KeepTool(sender, e);
+    }
+
+    /// <summary>名稱打對了：交給右邊那一欄移除，收掉問的那一層</summary>
+    private void RemoveTool(object sender, RoutedEventArgs e)
+    {
+        RemoveAsk.Visibility = Visibility.Collapsed;
+        Catalog.Info.Remove();
+    }
     /// <summary>複製申請碼，按鈕換成勾停一下</summary>
     /// <param name="sender">複製鈕</param>
     /// <param name="e">這一次點擊</param>

@@ -5,7 +5,7 @@
         xmlns:views="clr-namespace:HelixStudio.Views"
         Title="HelixStudio Demo" Width="1440" Height="900"
         Background="{DynamicResource WindowBack}" Foreground="{DynamicResource TextPrimary}"
-        FontFamily="{StaticResource UiFont}" FontSize="{DynamicResource Body}" UseLayoutRounding="True" SnapsToDevicePixels="True"
+        FontFamily="{StaticResource UiFont}" FontSize="{DynamicResource Text}" UseLayoutRounding="True" SnapsToDevicePixels="True"
         TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType"
         ToolTipService.InitialShowDelay="300" PreviewKeyDown="Shortcut">
 
@@ -19,6 +19,10 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="28" />
         </Grid.RowDefinitions>
+
+        <!-- 標題列下、狀態列上各一條細線，和中間的內容分開 -->
+        <Border Grid.Row="0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1" IsHitTestVisible="False" />
+        <Border Grid.Row="2" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,1,0,0" IsHitTestVisible="False" />
 
         <!-- 標題列：高 36（按鈕 28 ＋ 上下各 4），和側邊導覽列的寬同一組數字；品牌標誌對齊側欄圖示的中線 -->
         <Grid Grid.Row="0">
@@ -51,22 +55,28 @@
 
             <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="18,0,12,0">
                 <Image Width="16" Height="16" Source="{StaticResource HelixMark}" />
-                <TextBlock Text="{Binding Product}" FontSize="{DynamicResource Caption}" Margin="8,0,0,0" VerticalAlignment="Center" />
-                <TextBlock x:Name="CrumbText" Text="{Binding Crumb}" FontSize="{DynamicResource Caption}" Foreground="{DynamicResource TextMuted}"
+                <TextBlock Text="{Binding Product}" FontSize="{DynamicResource Text}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                <TextBlock x:Name="CrumbText" Text="{Binding Crumb}" FontSize="{DynamicResource Text}" Foreground="{DynamicResource TextMuted}"
                            Margin="8,0,0,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
             </StackPanel>
 
-            <Button Grid.Column="2" Style="{StaticResource FillButton}" Height="28" MaxWidth="360"
-                    Margin="0,4" Padding="8,0" FontWeight="Normal" Click="OpenPalette"
+            <Button Grid.Column="2" Style="{StaticResource FillButton}" Width="360" HorizontalContentAlignment="Stretch"
+                    Padding="8,0" FontWeight="Normal" Click="OpenPalette" VerticalAlignment="Center"
                     ToolTip="{Binding SearchHint}" shell:WindowChrome.IsHitTestVisibleInChrome="True">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <ContentControl Width="12" Height="12" VerticalAlignment="Center"
+                <!-- 圖示、提示字、快捷鍵；提示字吃掉中間的寬，快捷鍵靠右 -->
+                <Grid VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ContentControl Grid.Column="0" Width="12" Height="12" VerticalAlignment="Center"
                                     Content="{Binding Icons[search]}" ContentTemplate="{StaticResource LucideIcon}" />
-                    <TextBlock Text="{Binding SearchLabel}" FontSize="{DynamicResource Caption}" Foreground="{DynamicResource TextMuted}"
-                               Margin="8,0" VerticalAlignment="Center" />
-                    <TextBlock Text="Ctrl K" FontFamily="{StaticResource MonoFont}" FontSize="{DynamicResource Caption}"
+                    <TextBlock Grid.Column="1" Text="{Binding SearchLabel}" FontSize="{DynamicResource Text}" Foreground="{DynamicResource TextMuted}"
+                               Margin="8,0" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="2" Text="Ctrl K" Style="{StaticResource Mono}" FontSize="{DynamicResource Text}"
                                Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center" />
-                </StackPanel>
+                </Grid>
             </Button>
 
             <StackPanel Grid.Column="4" Orientation="Horizontal" shell:WindowChrome.IsHitTestVisibleInChrome="True">
@@ -79,8 +89,8 @@
             </StackPanel>
         </Grid>
 
-        <!-- 主區：側邊導覽列 36、間隔 8、內容區 -->
-        <Grid Grid.Row="1" Margin="8,0,8,8">
+        <!-- 主區：側邊導覽列 36、間隔 8、內容區；四周留 8，離上下的細線一個間距 -->
+        <Grid Grid.Row="1" Margin="8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="36" />
                 <ColumnDefinition Width="8" />
@@ -112,7 +122,7 @@
             </DockPanel>
 
             <Border Grid.Column="2" Background="{DynamicResource ContentBack}" BorderBrush="{DynamicResource HairLine}"
-                    BorderThickness="1" CornerRadius="8">
+                    BorderThickness="1" CornerRadius="{StaticResource RadiusMd}">
                 <Grid x:Name="Body">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -136,10 +146,10 @@
                                                         ContentTemplate="{StaticResource LucideIcon16}"
                                                         VerticalAlignment="Top" Margin="0,4,12,0" />
                                         <StackPanel Grid.Column="1">
-                                            <TextBlock Text="{Binding Text}" FontSize="{DynamicResource Body}" FontWeight="SemiBold"
+                                            <TextBlock Text="{Binding Text}" FontSize="{DynamicResource Text}" FontWeight="SemiBold"
                                                        Foreground="{Binding Ink}" TextWrapping="Wrap" />
                                             <TextBlock Text="{Binding Detail}" Style="{StaticResource MonoText}"
-                                                       Margin="0,4,0,0" LineHeight="{DynamicResource CaptionLine}" TextWrapping="Wrap" />
+                                                       Margin="0,4,0,0" LineHeight="{DynamicResource TextLine}" TextWrapping="Wrap" />
                                         </StackPanel>
                                         <Button Grid.Column="2" Style="{StaticResource FillButton}" Margin="12,0,0,0"
                                                 Content="{Binding RetryLabel}" Click="Retry" VerticalAlignment="Top" />
@@ -163,13 +173,13 @@
                                 <Grid MaxWidth="360" Margin="0,8,0,0" Style="{StaticResource Enter}">
 
                                     <!-- 陰影單獨一層，通知裡的字才留得住 ClearType -->
-                                    <Border CornerRadius="8" Background="{DynamicResource Surface}" IsHitTestVisible="False">
+                                    <Border CornerRadius="{StaticResource RadiusMd}" Background="{DynamicResource Surface}" IsHitTestVisible="False">
                                         <Border.Effect>
                                             <DropShadowEffect BlurRadius="32" ShadowDepth="6" Direction="270" Opacity="0.16" />
                                         </Border.Effect>
                                     </Border>
 
-                                <Border CornerRadius="8" Background="{DynamicResource Surface}"
+                                <Border CornerRadius="{StaticResource RadiusMd}" Background="{DynamicResource Surface}"
                                         BorderBrush="{DynamicResource Divider}" BorderThickness="1"
                                         MouseEnter="HoldNote" MouseLeave="ResumeNote">
                                     <Grid>
@@ -184,7 +194,7 @@
                                         <ContentControl Grid.Column="1" Content="{Binding Paths}" Foreground="{Binding Ink}"
                                                         ContentTemplate="{StaticResource LucideIcon16}"
                                                         Margin="12,0,0,0" VerticalAlignment="Center" />
-                                        <TextBlock Grid.Column="2" Text="{Binding Text}" FontSize="{DynamicResource Caption}" LineHeight="{DynamicResource CaptionLine}"
+                                        <TextBlock Grid.Column="2" Text="{Binding Text}" FontSize="{DynamicResource Text}" LineHeight="{DynamicResource TextLine}"
                                                    TextWrapping="Wrap" Margin="12,12,12,12" VerticalAlignment="Center" />
 
                                         <Button Grid.Column="4" Style="{StaticResource WindowButton}" Width="32" Height="32"

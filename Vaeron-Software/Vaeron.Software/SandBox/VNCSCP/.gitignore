@@ -1,0 +1,10 @@
+# 編出來的東西：照原始碼重編就有
+bin/
+obj/
+.vs/
+
+# 下載的 UltraVNC 安裝檔與測試密碼，只留在本機（網址、版本、sha256 記在 README）
+vendor/
+
+probe/bin/
+probe/obj/

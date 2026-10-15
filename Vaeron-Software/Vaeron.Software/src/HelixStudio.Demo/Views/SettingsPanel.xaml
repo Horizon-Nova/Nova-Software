@@ -1,21 +1,21 @@
 <UserControl x:Class="HelixStudio.Views.SettingsPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             FontFamily="{StaticResource UiFont}" FontSize="{DynamicResource Body}"
+             FontFamily="{StaticResource UiFont}" FontSize="{DynamicResource Text}"
              Foreground="{DynamicResource TextPrimary}" PreviewKeyDown="Escape">
 
     <!-- 遮罩：點旁邊就關掉 -->
     <Border Background="{DynamicResource Scrim}" MouseLeftButtonDown="Dismiss">
-        <Grid MaxWidth="920" MaxHeight="660" Margin="20">
+        <Grid MaxWidth="920" MaxHeight="660" Margin="16">
 
             <!-- 陰影畫在內容底下的另一層；掛在內容上會讓整個對話框的文字失去 ClearType -->
-            <Border CornerRadius="16" Background="{DynamicResource Surface}" IsHitTestVisible="False">
+            <Border CornerRadius="{StaticResource RadiusMd}" Background="{DynamicResource Surface}" IsHitTestVisible="False">
                 <Border.Effect>
                     <DropShadowEffect BlurRadius="64" ShadowDepth="16" Direction="270" Opacity="0.26" />
                 </Border.Effect>
             </Border>
 
-        <Border CornerRadius="16"
+        <Border CornerRadius="{StaticResource RadiusMd}"
                 Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Divider}"
                 BorderThickness="1" ClipToBounds="True"
                 KeyboardNavigation.TabNavigation="Cycle">
@@ -26,7 +26,7 @@
                 </Grid.RowDefinitions>
 
                 <!-- 標頭：標題、搜尋、符合幾項、關閉 -->
-                <Border Grid.Row="0" Padding="20,12,16,12"
+                <Border Grid.Row="0" Padding="16,12,16,12"
                         BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -37,10 +37,10 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="0" Text="{Binding Title}" FontSize="{DynamicResource Body}"
+                        <TextBlock Grid.Column="0" Text="{Binding Title}" FontSize="{DynamicResource Text}"
                                    FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
 
-                        <Border Grid.Column="1" Style="{StaticResource SearchFrame}" Width="320" Height="28" VerticalAlignment="Center">
+                        <Border Grid.Column="1" Style="{StaticResource SearchFrame}" Width="320" VerticalAlignment="Center">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -73,7 +73,7 @@
                                 <ItemsControl Grid.Column="2" ItemsSource="{Binding Clears}" VerticalAlignment="Center">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Button Style="{StaticResource WindowButton}" Width="28" Height="28"
+                                            <Button Style="{StaticResource WindowButton}" Width="24" Height="24"
                                                     ToolTip="清除搜尋" Click="Clear"
                                                     ContentTemplate="{StaticResource LucideIcon12}"
                                                     Content="{Binding DataContext.ClosePaths, RelativeSource={RelativeSource AncestorType=UserControl}}" />
@@ -83,11 +83,11 @@
                             </Grid>
                         </Border>
 
-                        <TextBlock Grid.Column="2" Text="{Binding Count}" FontSize="{DynamicResource Caption}"
+                        <TextBlock Grid.Column="2" Text="{Binding Count}" FontSize="{DynamicResource Text}"
                                    Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center"
                                    Margin="12,0,0,0" />
 
-                        <Button Grid.Column="4" Style="{StaticResource WindowButton}" Width="32" Height="32"
+                        <Button Grid.Column="4" Style="{StaticResource WindowButton}" Width="28" Height="28"
                                 ToolTip="關閉設定（Esc）" Click="Close"
                                 ContentTemplate="{StaticResource LucideIcon12}" Content="{Binding ClosePaths}" />
                     </Grid>
@@ -115,7 +115,7 @@
                                                         <Setter Property="Height" Value="28" />
                                                         <Setter Property="Padding" Value="4,0" />
                                                         <Setter Property="HorizontalContentAlignment" Value="Left" />
-                                                        <Setter Property="FontSize" Value="{DynamicResource Caption}" />
+                                                        <Setter Property="FontSize" Value="{DynamicResource Text}" />
                                                         <Setter Property="FontWeight" Value="SemiBold" />
                                                         <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
                                                         <Style.Triggers>
@@ -136,7 +136,7 @@
                                             </Button>
 
                                             <!-- 節：選中的有底色與左邊那一條 -->
-                                            <Button Click="PickSection" Padding="24,0,8,0" MinHeight="28">
+                                            <Button Click="PickSection" Padding="24,0,8,0" MinHeight="{DynamicResource ControlHeight}">
                                                 <Button.Style>
                                                     <Style TargetType="Button" BasedOn="{StaticResource FillButton}">
                                                         <Setter Property="Visibility" Value="Collapsed" />
@@ -179,10 +179,10 @@
                                     <DataTemplate>
                                         <StackPanel Margin="0,0,0,8">
                                             <!-- 節標題：分類 › 節，下方一條細線 -->
-                                            <Border BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1" Padding="0,16,0,6">
+                                            <Border BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1" Padding="0,16,0,4">
                                                 <TextBlock ToolTip="{Binding Note}">
-                                                    <Run Text="{Binding Area, Mode=OneWay}" FontSize="{DynamicResource Caption}" Foreground="{DynamicResource TextFaint}" />
-                                                    <Run Text="›" FontSize="{DynamicResource Caption}" Foreground="{DynamicResource TextFaint}" />
+                                                    <Run Text="{Binding Area, Mode=OneWay}" FontSize="{DynamicResource Text}" Foreground="{DynamicResource TextFaint}" />
+                                                    <Run Text="›" FontSize="{DynamicResource Text}" Foreground="{DynamicResource TextFaint}" />
                                                     <Run Text="{Binding Title, Mode=OneWay}" FontWeight="SemiBold" />
                                                 </TextBlock>
                                             </Border>
@@ -191,14 +191,14 @@
                                             <ItemsControl ItemsSource="{Binding Rows}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
-                                                        <Border BorderBrush="{DynamicResource Track}" BorderThickness="0,0,0,1" MinHeight="36">
+                                                        <Border BorderBrush="{DynamicResource Track}" BorderThickness="0,0,0,1" MinHeight="30">
                                                             <Grid>
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="200" />
                                                                     <ColumnDefinition Width="*" />
                                                                     <ColumnDefinition Width="72" />
                                                                 </Grid.ColumnDefinitions>
-                                                                <TextBlock Grid.Column="0" Text="{Binding Label}" VerticalAlignment="Center"
+                                                                <TextBlock Grid.Column="0" Text="{Binding Label}" VerticalAlignment="Center" FontSize="{DynamicResource Text}"
                                                                            TextTrimming="CharacterEllipsis" ToolTip="{Binding Tip}" />
 
                                                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,4">
@@ -208,7 +208,7 @@
                                                                                 <CheckBox Style="{StaticResource SettingSwitch}"
                                                                                           IsChecked="{Binding On, Mode=OneWay}"
                                                                                           Checked="Flip" Unchecked="Flip">
-                                                                                    <TextBlock Text="{Binding Inline}" FontSize="{DynamicResource Caption}"
+                                                                                    <TextBlock Text="{Binding Inline}" FontSize="{DynamicResource Text}"
                                                                                                Foreground="{DynamicResource TextSecondary}" TextWrapping="Wrap" />
                                                                                 </CheckBox>
                                                                             </DataTemplate>
@@ -217,8 +217,8 @@
                                                                     <ItemsControl ItemsSource="{Binding Choices}">
                                                                         <ItemsControl.ItemTemplate>
                                                                             <DataTemplate>
-                                                                                <ComboBox Style="{StaticResource SettingChoice}" Height="28" MinWidth="200"
-                                                                                          HorizontalAlignment="Left" FontSize="{DynamicResource Caption}"
+                                                                                <ComboBox Style="{StaticResource SettingChoice}" MinWidth="200" Height="{DynamicResource ControlHeight}"
+                                                                                          HorizontalAlignment="Left" FontSize="{DynamicResource Text}"
                                                                                           ItemsSource="{Binding Options}"
                                                                                           SelectedItem="{Binding Value, Mode=OneWay}"
                                                                                           SelectionChanged="Choose" />
@@ -238,8 +238,8 @@
                                                                 <ItemsControl Grid.Column="2" ItemsSource="{Binding Moveds}" VerticalAlignment="Center">
                                                                     <ItemsControl.ItemTemplate>
                                                                         <DataTemplate>
-                                                                            <Button Style="{StaticResource LinkButton}" Height="24" Padding="0"
-                                                                                    HorizontalAlignment="Right" FontSize="{DynamicResource Caption}" Click="Reset">
+                                                                            <Button Style="{StaticResource LinkButton}" Height="{DynamicResource ControlHeight}" Padding="0"
+                                                                                    HorizontalAlignment="Right" FontSize="{DynamicResource Text}" Click="Reset">
                                                                                 <TextBlock Text="{Binding Label}" TextDecorations="Underline" />
                                                                             </Button>
                                                                         </DataTemplate>
@@ -256,14 +256,14 @@
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
                                                         <StackPanel Margin="0,4,0,0">
-                                                            <TextBlock Text="每支工具的使用紀錄，最近用過的在前" FontSize="{DynamicResource Caption}"
-                                                                       Foreground="{DynamicResource TextMuted}" Margin="0,6" />
+                                                            <TextBlock Text="每支工具的使用紀錄，最近用過的在前" FontSize="{DynamicResource Text}"
+                                                                       Foreground="{DynamicResource TextMuted}" Margin="0,4" />
                                                             <Border BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1" Height="28">
-                                                                <Grid TextElement.FontSize="{DynamicResource Caption}" TextElement.Foreground="{DynamicResource TextMuted}">
+                                                                <Grid TextElement.FontSize="{DynamicResource Text}" TextElement.Foreground="{DynamicResource TextMuted}">
                                                                     <Grid.ColumnDefinitions>
                                                                         <ColumnDefinition Width="*" />
                                                                         <ColumnDefinition Width="56" />
-                                                                        <ColumnDefinition Width="136" />
+                                                                        <ColumnDefinition Width="128" />
                                                                     </Grid.ColumnDefinitions>
                                                                     <TextBlock Grid.Column="0" Text="工具" VerticalAlignment="Center" />
                                                                     <TextBlock Grid.Column="1" Text="開啟次數" TextAlignment="Right" VerticalAlignment="Center" />
@@ -274,15 +274,15 @@
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate>
                                                                         <Border BorderBrush="{DynamicResource Track}" BorderThickness="0,0,0,1" Height="28">
-                                                                            <Grid TextElement.FontSize="{DynamicResource Caption}">
+                                                                            <Grid TextElement.FontSize="{DynamicResource Text}">
                                                                                 <Grid.ColumnDefinitions>
                                                                                     <ColumnDefinition Width="*" />
                                                                                     <ColumnDefinition Width="56" />
-                                                                                    <ColumnDefinition Width="136" />
+                                                                                    <ColumnDefinition Width="128" />
                                                                                 </Grid.ColumnDefinitions>
-                                                                                <TextBlock Grid.Column="0" Text="{Binding name}" FontSize="{DynamicResource Body}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                                                                                <TextBlock Grid.Column="1" Text="{Binding opens}" FontFamily="{StaticResource MonoFont}" TextAlignment="Right" VerticalAlignment="Center" />
-                                                                                <TextBlock Grid.Column="2" Text="{Binding last_open_text, TargetNullValue=—}" Margin="12,0,0,0" FontFamily="{StaticResource MonoFont}" VerticalAlignment="Center" />
+                                                                                <TextBlock Grid.Column="0" Text="{Binding name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                                                                <TextBlock Grid.Column="1" Text="{Binding opens}" Style="{StaticResource Mono}" TextAlignment="Right" VerticalAlignment="Center" />
+                                                                                <TextBlock Grid.Column="2" Text="{Binding last_open_text, TargetNullValue=—}" Margin="12,0,0,0" Style="{StaticResource Mono}" VerticalAlignment="Center" />
                                                                             </Grid>
                                                                         </Border>
                                                                     </DataTemplate>
@@ -297,21 +297,21 @@
                                             <ItemsControl ItemsSource="{Binding Dangers}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
-                                                        <Border Margin="0,12,0,0" Padding="12,8" CornerRadius="8" BorderThickness="1"
+                                                        <Border Margin="0,12,0,0" Padding="12,8" CornerRadius="{StaticResource RadiusMd}" BorderThickness="1"
                                                                 BorderBrush="{DynamicResource DangerLine}">
                                                             <Grid>
                                                                 <Grid.ColumnDefinitions>
                                                                     <ColumnDefinition Width="*" />
                                                                     <ColumnDefinition Width="Auto" />
                                                                 </Grid.ColumnDefinitions>
-                                                                <TextBlock FontSize="{DynamicResource Caption}" Foreground="{DynamicResource TextSecondary}"
+                                                                <TextBlock FontSize="{DynamicResource Text}" Foreground="{DynamicResource TextSecondary}"
                                                                            VerticalAlignment="Center" TextWrapping="Wrap">
                                                                     <Run Text="{Binding Label, Mode=OneWay}" /><Run Text="：" /><Run Text="{Binding Tip, Mode=OneWay}" />
                                                                 </TextBlock>
                                                                 <ItemsControl Grid.Column="1" ItemsSource="{Binding Actions}" Margin="12,0,0,0">
                                                                     <ItemsControl.ItemTemplate>
                                                                         <DataTemplate>
-                                                                            <Button Style="{StaticResource FillButton}" FontWeight="Normal" FontSize="{DynamicResource Caption}"
+                                                                            <Button Style="{StaticResource FillButton}" FontWeight="Normal" FontSize="{DynamicResource Text}"
                                                                                     Content="{Binding Label}" Foreground="{Binding Ink}" BorderBrush="{Binding Line}" Click="Act" />
                                                                         </DataTemplate>
                                                                     </ItemsControl.ItemTemplate>

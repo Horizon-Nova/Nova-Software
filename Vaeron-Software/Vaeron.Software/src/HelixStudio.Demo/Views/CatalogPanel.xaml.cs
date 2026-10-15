@@ -14,8 +14,6 @@ public partial class CatalogPanel : UserControl
 
     private readonly Dictionary<string, List<string>> icons;
 
-    private string cat = CatalogLogic.All;
-
     private string query = string.Empty;
 
     /// <summary>vw_catalog 這一次讀到的每一列</summary>
@@ -51,7 +49,7 @@ public partial class CatalogPanel : UserControl
         Show();
 
         // 在背景另開一份連線讀；讀與等這兩件事誰先到，等到了資料還沒回來，才算讀太久
-        var reading = Task.Run(() => new ShellStore().QueryCatalogList(string.Empty, null));
+        var reading = Task.Run(() => new ShellStore().QueryCatalogList(string.Empty));
 
         await Task.WhenAny(reading, Task.Delay(Patience));
 
@@ -75,14 +73,10 @@ public partial class CatalogPanel : UserControl
         Refresh();
     }
 
-    /// <summary>資料在別處被改過，照現在的搜尋字與分類重讀一次</summary>
+    /// <summary>資料在別處被改過，照現在的搜尋字重讀一次</summary>
     public void Refresh()
     {
-        rows = store.QueryCatalogList(query, cat == CatalogLogic.All ? null : cat);
-
-        // 選的分類這一次已經沒有了，就回到全部再讀一次
-        cat = rows.Any(one => one.type == "cat" && one.cat == cat) ? cat : CatalogLogic.All;
-        rows = cat == CatalogLogic.All ? store.QueryCatalogList(query, null) : rows;
+        rows = store.QueryCatalogList(query);
 
         Show();
     }
@@ -117,34 +111,20 @@ public partial class CatalogPanel : UserControl
         e.Handled = true;
     }
 
-    /// <summary>點最近搜尋的一項：這個字記一次，填回搜尋框，分類回到全部</summary>
+    /// <summary>點最近搜尋的一項：這個字記一次，填回搜尋框</summary>
     private void PickRecent(object sender, RoutedEventArgs e)
     {
         var word = $"{((Button)sender).Content}";
 
         store.InsertSearch(word);
 
-        cat = CatalogLogic.All;
         SearchText.Text = word;
         SearchText.CaretIndex = word.Length;
     }
 
-    /// <summary>點一個分類</summary>
-    private void PickCat(object sender, SelectionChangedEventArgs e)
-    {
-        var chip = ((ListBox)sender).SelectedItems.OfType<CatalogLogic.ChipItem>().Select(one => one.Text).FirstOrDefault();
-
-        if (chip is null || chip == cat) return;
-
-        cat = chip;
-
-        Refresh();
-    }
-
-    /// <summary>清除搜尋字與分類</summary>
+    /// <summary>清除搜尋字，看全部</summary>
     private void Clear(object sender, RoutedEventArgs e)
     {
-        cat = CatalogLogic.All;
         SearchText.Text = string.Empty;
 
         Refresh();
@@ -181,7 +161,7 @@ public partial class CatalogPanel : UserControl
     /// <summary>把這一頁重畫一次：清單落在選中那一支，右邊跟著換；一支都沒有就收起右邊</summary>
     private void Show()
     {
-        var view = CatalogLogic.Catalog(rows, icons, cat, query, loaded, slow, picked);
+        var view = CatalogLogic.Catalog(rows, icons, query, loaded, slow, picked);
 
         picked = view.Picked;
         DataContext = view;

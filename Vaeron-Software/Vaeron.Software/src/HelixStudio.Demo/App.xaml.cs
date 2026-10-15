@@ -110,9 +110,8 @@ public partial class App : Application
 
         Sized.ToList().ForEach(one => Resources[one] = baseline[one] * setup.Scale);
 
-        // 大按鈕模式：按鈕與輸入框的高度
-        Resources["ControlHeight"] = setup.Height;
-        Resources["SmallHeight"] = setup.Height - Small;
+        // 按鈕與輸入框的高度：比框裡那一行字大一階（內文行高 × 1.25），文字放大時跟著放大；大按鈕模式再墊到它的高度
+        Resources["ControlHeight"] = Math.Max(setup.Height, Math.Round((double)Resources["TextLine"] * Step));
 
         // 使用中保持螢幕不休眠；關掉就把那個要求收回來
         SetThreadExecutionState(Continuous | Awake[setup.Awake]);
@@ -166,12 +165,12 @@ public partial class App : Application
     /// <summary>骨架光澤掃過的寬度</summary>
     private const double Sweep = 240;
 
-    /// <summary>小一號的控制項比一般矮多少：原本是 32 與 28</summary>
-    private const double Small = 4;
+    /// <summary>一階：框比裡面那一行字大多少</summary>
+    private const double Step = 1.25;
 
     /// <summary>會跟著文字大小一起放大的每一個代幣</summary>
     private static IReadOnlyCollection<string> Sized { get; } =
-        ["Display", "Heading", "Body", "Caption", "DisplayLine", "HeadingLine", "BodyLine", "CaptionLine"];
+        ["Text", "Title", "Special", "TextLine", "TitleLine", "SpecialLine"];
 
     /// <summary>高對比時換掉的那幾個顏色</summary>
     private static IReadOnlyDictionary<string, string> Contrast { get; } = new Dictionary<string, string>

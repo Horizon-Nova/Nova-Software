@@ -10,6 +10,16 @@
 - 稿上沒有、站台已有的功能（例：轉帳、薪資、移掉）用同樣的骨架補上，回報時先說明
 - 回報完成前拿截圖和畫布並排比對，不只測功能
 
+## 字級、間距、高度都從 token 取，相鄰兩階不跳階
+
+- 字級、圓角、間距、控制項高度只用 token；規則在 `DESIGN.md`（全域），HelixStudio 的值在畫稿的便條紙（Design Tokens）；不在個別畫面挑數字
+- HelixStudio 的對應：`Vaeron-Software/Vaeron.Software/src/HelixStudio/App.xaml` 的 `Text`／`Title`／`Special`（與 `*Line`）、`RadiusSm`／`RadiusMd`、`ControlHeight`（control）；顏色在 `Logic/ShellLogic.cs` 的 `Ink`、`Brand`；樣式 `FillButton`、`LinkButton`、`SearchFrame`＋`SearchBox`／`SearchSecret`、`ListRow`、`SettingChoice`、`FocusRing`；畫稿在「HelixStudio 畫面」畫布的便條紙
+- 站台的對應寫在 `wwwroot/Saas/css/Layout.css`
+- 比的是同一塊裡挨在一起的兩階：標題接內文、內文接說明；中間那一階不能跳過（例：視窗裡全是 caption、標題 heading，跳過了 body，標題就顯得過重）
+- 相鄰兩階的倍數落在字級本身的級距裡；×2（大一倍）等於跳了兩階
+- 同一列、同一個對話框只用一種控制項高度：欄位和旁邊的按鈕同高
+- 看起來比例怪時先量：把每一個字級、間距、高度列出來，找出不在 token 上的、跳階的、同一塊裡高度不一的，不靠改寬度或憑感覺加減
+
 ## 骨架用 Bootstrap，顏色與美觀自己做
 
 - 排列、格線、間距、尺寸、定位用 Bootstrap 的 class：`row`／`col-*`、`d-flex`、`gap-*`、`p-*`／`m-*`、`w-*`、`order-*`、`d-lg-none`、`text-truncate`、`text-nowrap`

@@ -17,8 +17,6 @@ public partial class DetailPanel : UserControl
 
     private string key = string.Empty;
 
-    private bool asking;
-
     /// <summary>看的是第幾個分頁：0 總覽、1 操作說明、2 更新日誌</summary>
     private int selected;
 
@@ -27,6 +25,9 @@ public partial class DetailPanel : UserControl
 
     /// <summary>這一支工具移除了</summary>
     public event EventHandler? Removed;
+
+    /// <summary>有人按了移除工具：主視窗蓋上遮罩問一次，帶的是工具名稱</summary>
+    public event EventHandler<string>? Asking;
 
     /// <summary>有人要開起某一支工具</summary>
     public event EventHandler<string>? Launched;
@@ -46,7 +47,6 @@ public partial class DetailPanel : UserControl
         // 換了一支就從頂端看起
         var other = toolNo != key;
 
-        asking = asking && !other;
         key = toolNo;
 
         Show();
@@ -107,47 +107,21 @@ public partial class DetailPanel : UserControl
     private void Primary(object sender, RoutedEventArgs e) =>
         Launched?.Invoke(this, key);
 
-    /// <summary>移除工具：先問一次，打對名稱才移</summary>
-    private void Secondary(object sender, RoutedEventArgs e)
-    {
-        asking = true;
+    /// <summary>移除工具：先問一次，打對名稱才移；問的那一層蓋住整個視窗，所以交給主視窗</summary>
+    private void Secondary(object sender, RoutedEventArgs e) =>
+        Asking?.Invoke(this, $"{((DetailLogic.DetailView)DataContext).Tool.name}");
 
-        Show();
-
-        ConfirmText.Clear();
-        ConfirmText.Focus();
-    }
-
-    /// <summary>在確認框裡打字：打對名稱才按得下移除</summary>
-    private void TypeName(object sender, TextChangedEventArgs e) =>
-        ConfirmButton.IsEnabled = ConfirmText.Text == $"{((DetailLogic.DetailView)DataContext).Tool.name}";
-
-    /// <summary>按 Esc：收掉正在問的那一次確認</summary>
+    /// <summary>按 Esc：收掉放大的截圖</summary>
     private void Escape(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Escape && zoom.Length > 0)
-        {
-            e.Handled = true;
-            ZoomOut(sender, e);
-            return;
-        }
-
-        if (e.Key != Key.Escape || !asking) return;
+        if (e.Key != Key.Escape || zoom.Length == 0) return;
 
         e.Handled = true;
-        KeepTool(sender, e);
-    }
-
-    /// <summary>保留這支工具</summary>
-    private void KeepTool(object sender, RoutedEventArgs e)
-    {
-        asking = false;
-
-        Show();
+        ZoomOut(sender, e);
     }
 
     /// <summary>名稱打對了：這支工具的資料列拿掉，檔案從這台電腦刪掉</summary>
-    private void RemoveTool(object sender, RoutedEventArgs e)
+    public void Remove()
     {
         var tool = ((DetailLogic.DetailView)DataContext).Tool;
         var window = (MainWindow)Window.GetWindow(this)!;
@@ -165,7 +139,6 @@ public partial class DetailPanel : UserControl
 
         var left = loaded ? home : string.Empty;
 
-        asking = false;
         key = string.Empty;
 
         Removed?.Invoke(this, EventArgs.Empty);
@@ -178,6 +151,6 @@ public partial class DetailPanel : UserControl
     {
         var rows = store.QueryCatalogItem(key);
 
-        DataContext = rows.Any(row => row.type == "tool") ? DetailLogic.Detail(rows, icons, asking, selected, zoom) : null;
+        DataContext = rows.Any(row => row.type == "tool") ? DetailLogic.Detail(rows, icons, selected, zoom) : null;
     }
 }

@@ -4,7 +4,7 @@
         Title="HelixStudio" Width="1440" Height="900" WindowState="Maximized"
         WindowStartupLocation="CenterScreen" Background="White"
         FontFamily="Segoe UI Variable Text, Segoe UI, Microsoft JhengHei UI, Noto Sans TC"
-        FontSize="13" Foreground="#1b1b1b"
+        FontSize="{DynamicResource Text}" Foreground="#1b1b1b"
         TextOptions.TextFormattingMode="Display"
         FocusManager.FocusedElement="{Binding ElementName=Paste}">
 
@@ -15,14 +15,14 @@
         <!-- 按鈕：圓角 4，滑鼠停上去換成 Tag 給的底色 -->
         <Style x:Key="Flat" TargetType="Button">
             <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Height" Value="36" />
-            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Height" Value="{DynamicResource ControlHeight}" />
+            <Setter Property="FontSize" Value="{DynamicResource Text}" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border x:Name="back" Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                CornerRadius="{StaticResource RadiusSm}" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
@@ -38,12 +38,12 @@
 
         <!-- 區塊標題列：左邊標題，右邊小字 -->
         <Style x:Key="Label" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontSize" Value="{DynamicResource Text}" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="#1b1b1b" />
         </Style>
         <Style x:Key="Aside" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontSize" Value="{DynamicResource Text}" />
             <Setter Property="Foreground" Value="#5c5c5c" />
             <Setter Property="HorizontalAlignment" Value="Right" />
             <Setter Property="VerticalAlignment" Value="Bottom" />
@@ -86,25 +86,25 @@
         <DockPanel Grid.Column="0" Background="#1f1f1f" LastChildFill="True">
 
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="28,28,28,32">
+                <StackPanel Margin="24,24,24,32">
 
                     <!-- 產品 -->
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,32">
                         <Image Width="28" Height="28" Source="{StaticResource HelixMark}" />
-                        <TextBlock Text="HelixStudio" Foreground="White" FontSize="13" FontWeight="SemiBold"
-                                   VerticalAlignment="Center" Margin="10,0,0,0" />
+                        <TextBlock Text="HelixStudio" Foreground="White" FontSize="{DynamicResource Text}" FontWeight="SemiBold"
+                                   VerticalAlignment="Center" Margin="8,0,0,0" />
                     </StackPanel>
 
                     <!-- 標頭 -->
-                    <TextBlock Text="啟用這台電腦" FontSize="24" FontWeight="SemiBold" Foreground="White" />
-                    <TextBlock Text="這台電腦還沒有授權。照下面三步做，驗過就能進平台。" FontSize="13" Foreground="#d0d0d0"
-                               LineHeight="20.8" TextWrapping="Wrap" Margin="0,8,0,32" />
+                    <TextBlock Text="啟用這台電腦" FontSize="{DynamicResource Title}" FontWeight="SemiBold" Foreground="White" />
+                    <TextBlock Text="這台電腦還沒有授權。照下面三步做，驗過就能進平台。" FontSize="{DynamicResource Text}" Foreground="#d0d0d0"
+                               LineHeight="{DynamicResource TextLine}" TextWrapping="Wrap" Margin="0,8,0,32" />
 
                     <!-- 三步 -->
                     <ItemsControl ItemsSource="{Binding Steps}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Grid Margin="0,0,0,20">
+                                <Grid Margin="0,0,0,16">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
@@ -112,7 +112,7 @@
                                     <Border Grid.Column="0" Width="28" Height="28" CornerRadius="14" VerticalAlignment="Top"
                                             Background="{Binding Back}" BorderBrush="{Binding Line}" BorderThickness="{Binding Thick}">
                                         <Grid>
-                                            <TextBlock Text="{Binding Dot}" FontFamily="{StaticResource Plex}" FontSize="13"
+                                            <TextBlock Text="{Binding Dot}" FontFamily="{StaticResource Plex}" FontSize="{DynamicResource Text}"
                                                        FontWeight="Medium" Foreground="{Binding Ink}"
                                                        HorizontalAlignment="Center" VerticalAlignment="Center" />
                                             <ContentControl Content="{Binding Paths}" ContentTemplate="{StaticResource LucideIcon14}"
@@ -121,8 +121,8 @@
                                         </Grid>
                                     </Border>
                                     <StackPanel Grid.Column="1" Margin="12,3,0,0">
-                                        <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" Foreground="{Binding TitleInk}" />
-                                        <TextBlock Text="{Binding Text}" FontSize="12" Foreground="#b8b8b8" LineHeight="18"
+                                        <TextBlock Text="{Binding Title}" FontSize="{DynamicResource Text}" FontWeight="SemiBold" Foreground="{Binding TitleInk}" />
+                                        <TextBlock Text="{Binding Text}" FontSize="{DynamicResource Text}" Foreground="#b8b8b8" LineHeight="{DynamicResource TextLine}"
                                                    TextWrapping="Wrap" Margin="0,2,0,0" />
                                     </StackPanel>
                                 </Grid>
@@ -131,16 +131,16 @@
                     </ItemsControl>
 
                     <!-- 三條規則：接在三步後面，視窗矮的時候跟著一起捲，不蓋住第三步 -->
-                    <Border Margin="0,12,0,0" Padding="0,20,0,0"
+                    <Border Margin="0,12,0,0" Padding="0,16,0,0"
                             BorderBrush="#24ffffff" BorderThickness="0,1,0,0">
                         <ItemsControl ItemsSource="{Binding Rules}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                                         <ContentControl Content="{Binding Paths}" ContentTemplate="{StaticResource LucideIcon14}"
                                                         Foreground="#9ccbf5" Focusable="False" VerticalAlignment="Center" />
-                                        <TextBlock Text="{Binding Text}" FontSize="12" Foreground="#d0d0d0"
-                                                   VerticalAlignment="Center" Margin="10,0,0,0" />
+                                        <TextBlock Text="{Binding Text}" FontSize="{DynamicResource Text}" Foreground="#d0d0d0"
+                                                   VerticalAlignment="Center" Margin="8,0,0,0" />
                                     </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
@@ -155,12 +155,12 @@
         <DockPanel Grid.Column="1" LastChildFill="True">
 
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="32,28,32,24">
+                <StackPanel Margin="32,24,32,24">
 
                     <!-- 申請碼 -->
                     <DockPanel Margin="0,0,0,8">
-                        <Button DockPanel.Dock="Right" Style="{StaticResource Flat}" Height="30" Padding="12,0"
-                                FontSize="12" Background="White" Tag="#f3f3f3" Foreground="{Binding CopyInk}"
+                        <Button DockPanel.Dock="Right" Style="{StaticResource Flat}" Height="{DynamicResource ControlHeight}" Padding="12,0"
+                                FontSize="{DynamicResource Text}" Background="White" Tag="#f3f3f3" Foreground="{Binding CopyInk}"
                                 BorderBrush="{Binding CopyLine}" BorderThickness="1" Click="CopyAsk">
                             <StackPanel Orientation="Horizontal">
                                 <ContentControl Content="{Binding CopyPaths}" ContentTemplate="{StaticResource LucideIcon14}"
@@ -171,11 +171,11 @@
                         <TextBlock Text="申請碼" Style="{StaticResource Label}" VerticalAlignment="Bottom" />
                     </DockPanel>
                     <Border MaxHeight="92" Background="#f5f5f5" BorderBrush="#14000000" BorderThickness="1"
-                            CornerRadius="4" Margin="0,0,0,24">
+                            CornerRadius="{StaticResource RadiusSm}" Margin="0,0,0,24">
                         <TextBox Text="{Binding Ask, Mode=OneWay}" IsReadOnly="True" BorderThickness="0"
                                  Background="Transparent" Padding="10,8" TextWrapping="Wrap"
                                  VerticalScrollBarVisibility="Auto" FontFamily="{StaticResource Plex}"
-                                 FontSize="12" Foreground="#1b1b1b" />
+                                 FontSize="{DynamicResource Text}" Foreground="#1b1b1b" />
                     </Border>
 
                     <!-- 機器識別 -->
@@ -183,19 +183,19 @@
                         <TextBlock DockPanel.Dock="Right" Text="{Binding MarksNote}" Style="{StaticResource Aside}" />
                         <TextBlock Text="機器識別" Style="{StaticResource Label}" />
                     </DockPanel>
-                    <Border BorderBrush="#14000000" BorderThickness="1" CornerRadius="4" ClipToBounds="True" Margin="0,0,0,24">
+                    <Border BorderBrush="#14000000" BorderThickness="1" CornerRadius="{StaticResource RadiusSm}" ClipToBounds="True" Margin="0,0,0,24">
                         <ItemsControl ItemsSource="{Binding Marks}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border BorderBrush="{Binding Line}" BorderThickness="0,1,0,0" Padding="12,10">
+                                    <Border BorderBrush="{Binding Line}" BorderThickness="0,1,0,0" Padding="12,8">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="132" />
                                                 <ColumnDefinition Width="*" />
                                             </Grid.ColumnDefinitions>
-                                            <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="12" Foreground="#5c5c5c" />
+                                            <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="{DynamicResource Text}" Foreground="#5c5c5c" />
                                             <TextBlock Grid.Column="1" Text="{Binding Value}" FontFamily="{StaticResource Plex}"
-                                                       FontSize="12" Foreground="#1b1b1b" TextWrapping="Wrap" />
+                                                       FontSize="{DynamicResource Text}" Foreground="#1b1b1b" TextWrapping="Wrap" />
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -209,12 +209,12 @@
                         <TextBlock Text="貼上授權" Style="{StaticResource Label}" />
                     </DockPanel>
                     <Border Style="{StaticResource PasteRing}" BorderThickness="3" CornerRadius="7" Margin="-3">
-                        <Border Style="{StaticResource PasteFrame}" BorderThickness="1" CornerRadius="4" Background="White">
+                        <Border Style="{StaticResource PasteFrame}" BorderThickness="1" CornerRadius="{StaticResource RadiusSm}" Background="White">
                             <Grid>
                                 <TextBlock Text="貼上賣方提供的 KEY…" Style="{StaticResource PasteHint}" Margin="12,10"
-                                           FontFamily="{StaticResource Plex}" FontSize="12" Foreground="#767676" IsHitTestVisible="False" />
+                                           FontFamily="{StaticResource Plex}" FontSize="{DynamicResource Text}" Foreground="#767676" IsHitTestVisible="False" />
                                 <TextBox x:Name="Paste" BorderThickness="0" Background="Transparent" Padding="10,8"
-                                         FontFamily="{StaticResource Plex}" FontSize="12" Foreground="#1b1b1b"
+                                         FontFamily="{StaticResource Plex}" FontSize="{DynamicResource Text}" Foreground="#1b1b1b"
                                          TextWrapping="Wrap" AcceptsReturn="True" MinLines="4"
                                          VerticalScrollBarVisibility="Auto" TextChanged="Typed" />
                             </Grid>
@@ -231,8 +231,8 @@
                                     <ContentControl Grid.Column="0" Margin="0,2,0,0" Focusable="False" VerticalAlignment="Top"
                                                     Content="{Binding DataContext.ErrorPaths, RelativeSource={RelativeSource AncestorType=Window}}"
                                                     ContentTemplate="{StaticResource LucideIcon14}" Foreground="#a4262c" />
-                                    <TextBlock Grid.Column="1" Text="{Binding}" FontSize="12" LineHeight="18" Foreground="#a4262c"
-                                               TextWrapping="Wrap" Margin="6,0,0,0" />
+                                    <TextBlock Grid.Column="1" Text="{Binding}" FontSize="{DynamicResource Text}" LineHeight="{DynamicResource TextLine}" Foreground="#a4262c"
+                                               TextWrapping="Wrap" Margin="4,0,0,0" />
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -242,7 +242,7 @@
                     <DockPanel Margin="0,24,0,0" LastChildFill="False">
                         <Button DockPanel.Dock="Left" Style="{StaticResource Flat}" Padding="16,0" Background="White"
                                 BorderBrush="#24000000" BorderThickness="1" Tag="#f3f3f3" Content="結束" Click="Quit" />
-                        <Button DockPanel.Dock="Right" Style="{StaticResource Flat}" Padding="20,0" Background="#0f6cbd"
+                        <Button DockPanel.Dock="Right" Style="{StaticResource Flat}" Padding="16,0" Background="#0f6cbd"
                                 Foreground="White" BorderBrush="Transparent" BorderThickness="1" Tag="#0c5a9e"
                                 FontWeight="SemiBold" Content="套用授權" Click="Apply" />
                     </DockPanel>

@@ -1,13 +1,13 @@
 <UserControl x:Class="InSpecTool.Measure"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             FontFamily="{DynamicResource UiFont}" FontSize="{DynamicResource Body}" Foreground="{DynamicResource TextPrimary}"
+             FontFamily="{DynamicResource UiFont}" FontSize="{DynamicResource Text}" Foreground="{DynamicResource TextPrimary}"
              Loaded="Ready" Unloaded="Gone" SizeChanged="Fit">
 
     <UserControl.Resources>
         <!-- 標籤在左、同一列：12px 次要字色 -->
         <Style x:Key="Label" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="{DynamicResource Caption}" />
+            <Setter Property="FontSize" Value="{DynamicResource Text}" />
             <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
             <Setter Property="VerticalAlignment" Value="Center" />
         </Style>
@@ -94,14 +94,14 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="條碼" Style="{StaticResource Label}" />
-                            <Border Grid.Column="1" Style="{StaticResource SearchFrame}" Height="28">
+                            <Border Grid.Column="1" Style="{StaticResource SearchFrame}" Height="{DynamicResource ControlHeight}">
                                 <TextBox x:Name="Barcode" Style="{StaticResource SearchBox}" FontFamily="{DynamicResource MonoFont}"
-                                         FontSize="{DynamicResource Caption}" TextChanged="Typed" />
+                                         FontSize="{DynamicResource Text}" TextChanged="Typed" />
                             </Border>
-                            <Button Grid.Column="2" Content="清除" Style="{StaticResource FillButton}" Height="28" FontWeight="Normal"
-                                    FontSize="{DynamicResource Caption}" Padding="10,0" Margin="8,0,0,0" Click="Clear" />
+                            <Button Grid.Column="2" Content="清除" Style="{StaticResource FillButton}" FontWeight="Normal"
+                                    FontSize="{DynamicResource Text}" Padding="8,0" Margin="8,0,0,0" Click="Clear" />
                         </Grid>
-                        <TextBlock x:Name="BarcodeFault" Foreground="{DynamicResource Danger}" FontSize="{DynamicResource Caption}" Margin="64,4,0,0"
+                        <TextBlock x:Name="BarcodeFault" Foreground="{DynamicResource Danger}" FontSize="{DynamicResource Text}" Margin="64,4,0,0"
                                    TextWrapping="Wrap" Visibility="Collapsed" Text="條碼格式不正確，包含不允許的字元。" />
 
                         <Border Height="1" Background="{DynamicResource HairLine}" Margin="0,12,0,4" />
@@ -115,10 +115,10 @@
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="{Binding Name}" Style="{StaticResource Label}" />
-                                        <Border Grid.Column="1" Style="{StaticResource SearchFrame}" Height="28"
+                                        <Border Grid.Column="1" Style="{StaticResource SearchFrame}" Height="{DynamicResource ControlHeight}"
                                                 ToolTip="{Binding Hint}">
                                             <TextBox Text="{Binding Value, UpdateSourceTrigger=LostFocus}" IsReadOnly="{Binding Fixed}"
-                                                     Style="{StaticResource SearchBox}" LostFocus="Edited" />
+                                                     Style="{StaticResource SearchBox}" FontSize="{DynamicResource Text}" LostFocus="Edited" />
                                         </Border>
                                     </Grid>
                                 </DataTemplate>
@@ -126,7 +126,7 @@
                         </ItemsControl>
                     </StackPanel>
                 </ScrollViewer>
-                <CheckBox x:Name="ShowAfter" Grid.Row="1" Content="跑完顯示結果" Margin="16,8,16,12" FontSize="{DynamicResource Caption}"
+                <CheckBox x:Name="ShowAfter" Grid.Row="1" Content="跑完顯示結果" Margin="16,8,16,12" FontSize="{DynamicResource Text}"
                           Style="{StaticResource SettingCheck}" Click="ShowNextChanged" />
             </Grid>
         </Border>
@@ -151,10 +151,10 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <TextBlock Grid.Column="0" Text="量測程式" FontWeight="SemiBold" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="1" x:Name="ProgramCount" FontFamily="{DynamicResource MonoFont}" FontSize="{DynamicResource Caption}"
+                    <TextBlock Grid.Column="1" x:Name="ProgramCount" FontFamily="{DynamicResource MonoFont}" FontSize="{DynamicResource Text}"
                                Foreground="{DynamicResource TextMuted}" Margin="8,0,0,0" VerticalAlignment="Center" />
                     <Button Grid.Column="2" x:Name="AgainButton" Content="重新查找" Style="{StaticResource FillButton}" FontWeight="Normal"
-                            FontSize="{DynamicResource Caption}" Height="28" Click="Again" />
+                            FontSize="{DynamicResource Text}" Click="Again" />
                 </Grid>
             </Border>
 
@@ -175,7 +175,7 @@
                                 <TextBlock Grid.Column="0" Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
                                            ToolTip="{Binding Path}" />
                                 <TextBlock Grid.Column="1" Text="{Binding Changed}" FontFamily="{DynamicResource MonoFont}"
-                                           FontSize="{DynamicResource Caption}" FontWeight="Normal" Margin="12,0,0,0" VerticalAlignment="Center" />
+                                           FontSize="{DynamicResource Text}" FontWeight="Normal" Margin="12,0,0,0" VerticalAlignment="Center" />
                             </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
@@ -189,15 +189,15 @@
             <Border Grid.Row="2" Margin="0,16,0,0" Padding="16,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,1,0,1">
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                     <TextBlock Text="最近執行" FontWeight="SemiBold" VerticalAlignment="Center" />
-                    <TextBlock Text="新的在上" FontSize="{DynamicResource Caption}" Foreground="{DynamicResource TextFaint}" Margin="8,0,0,0"
+                    <TextBlock Text="新的在上" FontSize="{DynamicResource Text}" Foreground="{DynamicResource TextFaint}" Margin="8,0,0,0"
                                VerticalAlignment="Center" />
                 </StackPanel>
             </Border>
 
             <!-- 表頭右邊多留一條捲軸寬（14），跟下面每一列的欄對齊 -->
-            <Grid Grid.Row="3" Margin="16,0,30,0" TextElement.FontSize="{DynamicResource Caption}" TextElement.Foreground="{DynamicResource TextMuted}">
+            <Grid Grid.Row="3" Margin="16,0,30,0" TextElement.FontSize="{DynamicResource Text}" TextElement.Foreground="{DynamicResource TextMuted}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="88" />
+                    <ColumnDefinition Width="92" />
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="5*" />
                     <ColumnDefinition Width="40" />
@@ -240,9 +240,9 @@
                 </ListBox.ItemContainerStyle>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Grid TextElement.FontSize="{DynamicResource Caption}">
+                        <Grid TextElement.FontSize="{DynamicResource Text}">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="88" />
+                                <ColumnDefinition Width="92" />
                                 <ColumnDefinition Width="2*" />
                                 <ColumnDefinition Width="5*" />
                                 <ColumnDefinition Width="40" />
@@ -286,13 +286,13 @@
 
     <!-- 跑完：這次的結果蓋在整頁上，看完按關閉（Esc 也可以） -->
     <Grid x:Name="ResultLayer" Background="#66000000" Visibility="Collapsed" PreviewKeyDown="ResultKeys">
-        <Border x:Name="ResultPanel" Width="560" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20"
+        <Border x:Name="ResultPanel" Width="560" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="16"
                 Background="{DynamicResource Surface}" BorderBrush="#33000000" BorderThickness="1" CornerRadius="4">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="24" ShadowDepth="8" Direction="270" Opacity=".18" />
             </Border.Effect>
             <StackPanel>
-                <Grid MinHeight="36" Margin="20,12">
+                <Grid MinHeight="36" Margin="16,12">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="*" />
@@ -301,30 +301,30 @@
                     <Path x:Name="ResultMark" Grid.Column="0" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0"
                           Data="M20 6 9 17l-5-5" Stroke="#107c10" StrokeThickness="2.5" VerticalAlignment="Center"
                           StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />
-                    <TextBlock Grid.Column="1" x:Name="ResultTitle" FontSize="{DynamicResource Heading}" FontWeight="SemiBold" VerticalAlignment="Center" />
-                    <TextBlock Grid.Column="2" x:Name="ResultElapsed" FontFamily="{DynamicResource MonoFont}" FontSize="{DynamicResource Caption}"
+                    <TextBlock Grid.Column="1" x:Name="ResultTitle" FontSize="{DynamicResource Title}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" x:Name="ResultElapsed" FontFamily="{DynamicResource MonoFont}" FontSize="{DynamicResource Text}"
                                Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center" />
                 </Grid>
                 <ItemsControl x:Name="ResultRows" Focusable="False">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border BorderBrush="{DynamicResource HairLine}" BorderThickness="0,1,0,0" Padding="20,12">
+                            <Border BorderBrush="{DynamicResource HairLine}" BorderThickness="0,1,0,0" Padding="16,12">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="88" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="{DynamicResource Caption}"
+                                    <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="{DynamicResource Text}"
                                                Foreground="{DynamicResource TextMuted}" TextTrimming="CharacterEllipsis"
                                                ToolTip="{Binding Label}" />
                                     <TextBlock Grid.Column="1" Text="{Binding Value}" FontFamily="{DynamicResource MonoFont}"
-                                               FontSize="{DynamicResource Caption}" TextWrapping="Wrap" Margin="12,0,0,0" />
+                                               FontSize="{DynamicResource Text}" TextWrapping="Wrap" Margin="12,0,0,0" />
                                 </Grid>
                             </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-                <Border BorderBrush="{DynamicResource HairLine}" BorderThickness="0,1,0,0" Padding="20,8">
+                <Border BorderBrush="{DynamicResource HairLine}" BorderThickness="0,1,0,0" Padding="16,8">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -332,7 +332,7 @@
                         </Grid.ColumnDefinitions>
                         <CheckBox x:Name="ShowNext" Grid.Column="0" Content="下次跑完也顯示結果"
                                   Style="{StaticResource SettingCheck}" Click="ShowNextChanged" />
-                        <Button Grid.Column="1" x:Name="CloseButton" Content="關閉" Style="{StaticResource FillButton}" Height="32" Padding="16,0"
+                        <Button Grid.Column="1" x:Name="CloseButton" Content="關閉" Style="{StaticResource FillButton}" Height="{DynamicResource ControlHeight}" FontSize="{DynamicResource Text}" Padding="16,0"
                                 Click="CloseResult" />
                     </Grid>
                 </Border>

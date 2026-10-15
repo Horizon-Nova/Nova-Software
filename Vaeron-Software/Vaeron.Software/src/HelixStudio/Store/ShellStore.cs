@@ -1,4 +1,5 @@
 using System.IO;
+using System.Linq.Expressions;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Models.HelixStudio;
@@ -34,17 +35,15 @@ public class ShellStore
     public vw_shell? QueryShellItem(string toolNo) =>
         Db.vw_shells.AsNoTracking().FirstOrDefault(one => one.type == "tool" && one.tool_no == toolNo);
 
-    /// <summary>工具目錄：總數、分類、最近搜尋，加上名稱、維護團隊或說明含有搜尋字、落在選的分類裡的卡片</summary>
+    /// <summary>工具目錄：總數、最近搜尋，加上名稱、維護團隊或說明含有搜尋字的工具</summary>
     /// <param name="query">搜尋框打的字</param>
-    /// <param name="cat">選的分類；看全部就是 null</param>
-    public List<vw_catalog> QueryCatalogList(string query, string? cat) =>
+    public List<vw_catalog> QueryCatalogList(string query) =>
         [.. Db.vw_catalogs.AsNoTracking()
             .Where(one => one.type != "tool"
-                || ((query == string.Empty
-                        || EF.Functions.ILike(one.name!, $"%{query}%")
-                        || EF.Functions.ILike(one.vendor!, $"%{query}%")
-                        || EF.Functions.ILike(one.description!, $"%{query}%"))
-                    && (cat == null || one.cat == cat)))];
+                || query == string.Empty
+                || EF.Functions.ILike(one.name!, $"%{query}%")
+                || EF.Functions.ILike(one.vendor!, $"%{query}%")
+                || EF.Functions.ILike(one.description!, $"%{query}%"))];
 
     /// <summary>工具目錄的一支工具：右邊那一欄要的 tool 那一列與每一則更新日誌</summary>
     /// <param name="toolNo">這一支工具的代碼</param>
@@ -63,6 +62,33 @@ public class ShellStore
     /// <param name="toolNo">這一支工具的代碼</param>
     public vw_setting? QuerySettingItem(string toolNo) =>
         Db.vw_settings.AsNoTracking().FirstOrDefault(one => one.type == "tool" && one.tool_no == toolNo);
+
+    /// <summary>日誌：每一種事件幾筆，加上訊息、工具、方法、帳號、事件名或呼叫堆疊含有搜尋字的每一件，照點的那一欄排，同一個值時新的在前</summary>
+    /// <param name="query">搜尋框打的字</param>
+    /// <param name="sort">照哪一欄排：at、type、tool、who</param>
+    /// <param name="descending">由大到小</param>
+    public List<vw_event_log> QueryEventLogList(string query, string sort, bool descending)
+    {
+        // 每一種事件幾筆：view 已經照筆數排好
+        var counts = Db.vw_event_logs.AsNoTracking().Where(one => one.type == "count").OrderBy(one => one.sort);
+
+        // 含有搜尋字的每一件
+        var found = Db.vw_event_logs.AsNoTracking()
+            .Where(one => one.type == "event"
+                && (query == string.Empty
+                    || EF.Functions.ILike(one.message!, $"%{query}%")
+                    || EF.Functions.ILike(one.tool_name!, $"%{query}%")
+                    || EF.Functions.ILike(one.function_name!, $"%{query}%")
+                    || EF.Functions.ILike(one.account!, $"%{query}%")
+                    || EF.Functions.ILike(one.event_name!, $"%{query}%")
+                    || EF.Functions.ILike(one.stack_trace!, $"%{query}%")));
+
+        // 照點的那一欄排，同一個值時新的在前
+        var ordered = (descending ? found.OrderByDescending(EventLogSort[sort]) : found.OrderBy(EventLogSort[sort]))
+            .ThenBy(one => one.sort);
+
+        return [.. counts, .. ordered];
+    }
 
     /// <summary>圖示名稱對到的每一段路徑</summary>
     public Dictionary<string, List<string>> QueryIconList() =>
@@ -182,6 +208,19 @@ public class ShellStore
             .Where(one => one.type == "tool" && one.tool_no == toolNo)
             .ExecuteDelete();
     }
+
+    #endregion
+
+    #region 對照
+
+    /// <summary>日誌每一個可點的欄名照哪一個欄位排</summary>
+    private static readonly Dictionary<string, Expression<Func<vw_event_log, object?>>> EventLogSort = new()
+    {
+        ["at"] = one => one.created_at,
+        ["type"] = one => one.event_name,
+        ["tool"] = one => one.tool_name,
+        ["who"] = one => one.account,
+    };
 
     #endregion
 }
