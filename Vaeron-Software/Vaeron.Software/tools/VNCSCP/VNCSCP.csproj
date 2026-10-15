@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-windows;net6.0-windows</TargetFrameworks>
+    <!-- 同一套程式編兩份：net10 給 Win10～11，net6 給 Win7（.NET 7 之後不支援 Win7）；net6 已停止支援，關掉那一條提醒 -->
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <!-- 選資料夾用 Windows Forms 的對話框：.NET 6 與 .NET 10 都有（WPF 的 OpenFolderDialog 要 .NET 8 以上） -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>VNCSCP</RootNamespace>
+    <AssemblyName>VNCSCP</AssemblyName>
+  </PropertyGroup>
+
+  <!-- 平台已經載入這些組件；工具執行時用平台那一份，套件裡只放 VNCSCP.dll -->
+  <!-- Windows Forms 只拿來選資料夾；不加入全域 using，免得跟 WPF 的同名型別撞在一起 -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0-windows'">
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.18" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\HelixStudio.Contract\HelixStudio.Contract.csproj" Private="false" />
+  </ItemGroup>
+
+</Project>

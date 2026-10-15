@@ -9,7 +9,7 @@
   "port": 5433,
   "signingKey": "keys/helix-signing-key.pem",
   "obfuscationGate": ["LicenceStore", "Anchors", "PackageStore", "DeviceStore", "SecretStore"],
-  "tools": ["tools/InSpecTool/InSpecTool.csproj", "tools/ChecksumTool/ChecksumTool.csproj"],
+  "tools": ["tools/InSpecTool/InSpecTool.csproj", "tools/ChecksumTool/ChecksumTool.csproj", "tools/VNCSCP/VNCSCP.csproj"],
   "toolsInInstaller": false,
   "afterInstallSql": "",
   "editions": [
