@@ -165,6 +165,7 @@
 
                     <views:CatalogPanel x:Name="Catalog" Grid.Row="1" />
                     <views:HostPanel x:Name="Host" Grid.Row="1" Visibility="Collapsed" />
+                    <views:LogPanel x:Name="Log" Grid.Row="1" Visibility="Collapsed" />
 
                     <!-- 通知：右下角，新的把舊的往上推 -->
                     <ItemsControl x:Name="NoteList" Grid.RowSpan="2" Panel.ZIndex="2" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="16">

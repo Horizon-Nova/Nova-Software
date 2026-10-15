@@ -121,21 +121,22 @@ public partial class MainWindow : Window
 
         Catalog.Visibility = Visibility.Visible;
         Host.Visibility = Visibility.Collapsed;
+        Log.Visibility = Visibility.Collapsed;
 
         CrumbText.Text = shell.Crumb;
 
         // 側欄落在工具目錄那一格
         steering = true;
         RailList.SelectedIndex = rail
-            .Select((one, index) => new { one.Key, index })
-            .Where(one => one.Key.Length == 0)
+            .Select((one, index) => new { one.Page, index })
+            .Where(one => one.Page == "catalog")
             .Select(one => one.index)
             .DefaultIfEmpty(NoRow)
             .First();
         steering = false;
     }
 
-    /// <summary>點側欄的一格：直接開那一支工具的畫面，第一格沒有工具代碼就是回工具目錄</summary>
+    /// <summary>點側欄的一格：換到那一格的那一頁</summary>
     /// <param name="sender">側欄</param>
     /// <param name="e">這一次換了哪一格</param>
     private void PickRail(object sender, SelectionChangedEventArgs e)
@@ -146,10 +147,22 @@ public partial class MainWindow : Window
         var picked = e.AddedItems.OfType<ShellLogic.RailItem>().ToList();
 
         // 第一格：回工具目錄
-        picked.Where(one => one.Key.Length == 0).ToList().ForEach(one => Look(one.Key));
+        picked.Where(one => one.Page == "catalog").ToList().ForEach(_ => Look(string.Empty));
 
         // 一支工具：直接開它的畫面
-        picked.Where(one => one.Key.Length > 0).ToList().ForEach(one => Run(one.Key));
+        picked.Where(one => one.Page == "tool").ToList().ForEach(one => Run(one.Key));
+
+        // 日誌：照現在的紀錄重讀一次，換過去
+        picked.Where(one => one.Page == "log").ToList().ForEach(one =>
+        {
+            Log.Refresh();
+
+            Log.Visibility = Visibility.Visible;
+            Catalog.Visibility = Visibility.Collapsed;
+            Host.Visibility = Visibility.Collapsed;
+
+            CrumbText.Text = $"— {one.Name}";
+        });
     }
 
     /// <summary>跳出一則通知：停到它該停的秒數為止，同時最多三則</summary>
@@ -231,14 +244,16 @@ public partial class MainWindow : Window
     /// <param name="toolNo">這一支工具的代碼</param>
     private void Run(string toolNo)
     {
-        store.InsertEventLog("open", toolNo, $"{nameof(MainWindow)}.{nameof(Run)}", null, null);
+        var name = rail.Concat(shell.Rail).Where(two => two.Key == toolNo).Select(two => two.Name).DefaultIfEmpty(toolNo).First();
+        store.InsertEventLog("open", toolNo, $"{nameof(MainWindow)}.{nameof(Run)}", $"開啟 {name}", null);
 
         Host.Open(toolNo);
 
         Host.Visibility = Visibility.Visible;
         Catalog.Visibility = Visibility.Collapsed;
+        Log.Visibility = Visibility.Collapsed;
 
-        CrumbText.Text = $"— {rail.Concat(shell.Rail).Where(two => two.Key == toolNo).Select(two => two.Name).DefaultIfEmpty(toolNo).First()}";
+        CrumbText.Text = $"— {name}";
 
         // 側欄的落點跟著走
         steering = true;

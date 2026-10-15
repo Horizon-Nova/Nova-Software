@@ -9,7 +9,7 @@
   "port": 5434,
   "signingKey": "keys/demo/helix-signing-key.pem",
   "obfuscationGate": ["Anchors", "PackageStore", "SecretStore"],
-  "tools": ["tools/InSpecTool.Demo/InSpecTool.Demo.csproj"],
+  "tools": ["tools/InSpecTool.Demo/InSpecTool.Demo.csproj", "tools/ChecksumTool/ChecksumTool.csproj", "tools/VNCSCP/VNCSCP.csproj"],
   "toolsInInstaller": true,
   "afterInstallSql": "delete from dbo.setting where setting_key in ('source', 'toolKeyMinutes')",
   "editions": [

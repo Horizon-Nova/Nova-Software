@@ -21,9 +21,10 @@ public static class ShellLogic
             SearchLabel = "搜尋工具、維護團隊或動作",
             Icons = icons,
 
-            // 側邊導覽列：第一列固定是工具目錄，接著是裝好的每一支工具
-            Rail = Enumerable.Repeat(new RailItem { Key = string.Empty, Name = "工具目錄", Paths = icons["layout-grid"] }, 1)
-                .Concat(rows.Where(row => row.type == "tool").Select(row => new RailItem { Key = $"{row.tool_no}", Name = $"{row.name}", Paths = icons[$"{row.icon}"] }))
+            // 側邊導覽列：第一列固定是工具目錄，接著是裝好的每一支工具，最後是日誌
+            Rail = Enumerable.Repeat(new RailItem { Key = string.Empty, Name = "工具目錄", Paths = icons["layout-grid"], Page = "catalog" }, 1)
+                .Concat(rows.Where(row => row.type == "tool").Select(row => new RailItem { Key = $"{row.tool_no}", Name = $"{row.name}", Paths = icons[$"{row.icon}"], Page = "tool" }))
+                .Append(new RailItem { Key = "log", Name = "日誌", Paths = icons["history"], Page = "log" })
                 .ToList(),
 
             Summary = rows.FirstOrDefault(row => row.type == "shell") ?? new(),
@@ -232,11 +233,14 @@ public static class ShellLogic
     /// <summary>側邊導覽列上的一顆按鈕</summary>
     public class RailItem
     {
-        /// <summary>工具代碼</summary>
+        /// <summary>工具代碼；工具目錄是空字串，日誌是 log</summary>
         public string Key { get; set; } = string.Empty;
 
         /// <summary>工具名稱</summary>
         public string Name { get; set; } = string.Empty;
+
+        /// <summary>點了換到哪一頁：catalog 工具目錄、tool 那一支工具、log 日誌</summary>
+        public string Page { get; set; } = string.Empty;
 
         /// <summary>圖示的每一段路徑</summary>
         public List<string> Paths { get; set; } = [];
