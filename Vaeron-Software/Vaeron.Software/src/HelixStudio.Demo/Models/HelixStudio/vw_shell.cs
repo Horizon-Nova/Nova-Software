@@ -21,26 +21,54 @@ namespace Models.HelixStudio;
 [Keyless]
 public partial class vw_shell
 {
+    /// <summary>shell＝外殼那一列；tool＝一支工具</summary>
+    [Column(TypeName = "character varying")]
     public string? type { get; set; }
 
+    /// <summary>[tool] 裝著的那一次匯入的流水號</summary>
+    public int? id { get; set; }
+
+    /// <summary>[tool] 工具代碼</summary>
+    [StringLength(255)]
     public string? tool_no { get; set; }
 
+    /// <summary>[tool] 工具名稱</summary>
+    [StringLength(50)]
     public string? name { get; set; }
 
+    /// <summary>[tool] lucide 的圖示名稱</summary>
+    [StringLength(50)]
     public string? icon { get; set; }
 
+    /// <summary>[tool] 要載入的組件檔名</summary>
+    [StringLength(255)]
     public string? entry { get; set; }
 
+    /// <summary>[tool] 畫面的型別全名</summary>
     [Column("class")]
+    [StringLength(1023)]
     public string? _class { get; set; }
 
+    /// <summary>[tool] 工具的檔案裝在哪一個資料夾</summary>
+    [StringLength(32767)]
     public string? home { get; set; }
 
+    /// <summary>[tool] 最新那一把工具金鑰；沒啟用過是空的</summary>
     public string? code { get; set; }
 
+    /// <summary>[tool] 那一把金鑰到哪一刻為止；沒有到期日是空的</summary>
+    public DateTime? expires_at { get; set; }
+
+    /// <summary>[tool] 自動啟動：最新那一次切的值；沒切過是 false</summary>
+    public bool? autostart { get; set; }
+
+    /// <summary>[shell] 還裝著的工具支數</summary>
     public int? tool_count { get; set; }
 
+    /// <summary>[shell] 裝著的工具裡最後一次匯入的時刻 YYYY-MM-DD HH24:MI；沒有工具是破折號</summary>
+    [Column(TypeName = "character varying")]
     public string? sync_text { get; set; }
 
-    public int? sort { get; set; }
+    /// <summary>[tool] 側欄的先後，照第一次匯入的先後</summary>
+    public long? sort { get; set; }
 }

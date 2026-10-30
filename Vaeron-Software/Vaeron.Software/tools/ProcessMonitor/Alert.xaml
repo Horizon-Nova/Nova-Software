@@ -1,0 +1,48 @@
+<Window x:Class="ProcessMonitor.Alert"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:ProcessMonitor"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent" ShowInTaskbar="False" ResizeMode="NoResize"
+        Topmost="True" ShowActivated="False" Width="416" SizeToContent="Height"
+        FontFamily="{StaticResource UiFont}" FontSize="{DynamicResource Text}" Foreground="{DynamicResource TextPrimary}">
+
+    <Window.Resources>
+        <ResourceDictionary Source="/ProcessMonitor;component/Styles.xaml" />
+    </Window.Resources>
+
+    <!-- HelixStudio 不在前面時，螢幕右下角跳出的小視窗：卡最久的那一支 -->
+    <Border Style="{StaticResource Float}" Margin="8" Padding="16,12">
+        <StackPanel>
+            <Grid>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Image Width="16" Height="16" Source="{StaticResource HelixMark}" />
+                    <TextBlock Margin="8,0,0,0" Text="HelixStudio · 程式監控" Foreground="{DynamicResource TextMuted}" />
+                </StackPanel>
+                <Button Style="{StaticResource Glyph}" Width="24" Height="24" HorizontalAlignment="Right" Click="Dismiss">
+                    <ContentControl Content="{StaticResource IconX}" ContentTemplate="{StaticResource LucideIcon}" Foreground="{DynamicResource TextMuted}" />
+                </Button>
+            </Grid>
+
+            <TextBlock Margin="0,8,0,0" FontSize="{DynamicResource Title}" Foreground="{DynamicResource Danger}">
+                <Run Text="{Binding Name, Mode=OneWay}" /><Run Text=" 沒有回應" />
+            </TextBlock>
+            <TextBlock Margin="0,4,0,0" Text="{Binding Now}" TextWrapping="Wrap" />
+            <TextBlock Foreground="{DynamicResource TextMuted}" TextWrapping="Wrap">
+                <Run Text="同一時間吃最多：" /><Run Text="{Binding Tops, Mode=OneWay}" />
+            </TextBlock>
+
+            <Grid Margin="0,16,0,0">
+                <Button Style="{StaticResource Plain}" HorizontalAlignment="Left" Content="打開監控台" Click="OpenBoard" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <local:HoldButton Style="{StaticResource Hold}" Content="緊急關閉" Held="EndHung" />
+                    <Button x:Name="EaseButton" Style="{StaticResource Primary}" Margin="8,0,0,0" Click="Ease">
+                        <Grid>
+                            <TextBlock x:Name="EaseWord" Text="緩和" />
+                            <TextBlock x:Name="UneaseWord" Text="取消緩和" Visibility="Collapsed" />
+                        </Grid>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </Border>
+</Window>

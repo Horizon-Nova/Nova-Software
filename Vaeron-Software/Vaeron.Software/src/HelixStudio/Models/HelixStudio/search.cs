@@ -18,7 +18,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Models.HelixStudio;
 
-/// <summary>搜尋過的字：一次搜尋一列</summary>
+/// <summary>搜尋過的字：一次搜尋一列，全部留著</summary>
 [Table("search", Schema = "dbo")]
 public partial class search
 {
@@ -26,15 +26,17 @@ public partial class search
     [Key]
     public int id { get; set; }
 
-    /// <summary>recent</summary>
+    /// <summary>recent＝一次搜尋</summary>
+    [StringLength(6)]
     public string type { get; set; } = null!;
 
-    /// <summary>搜尋的字</summary>
+    /// <summary>搜尋的字；搜尋框的 MaxLength 也是 100</summary>
+    [StringLength(100)]
     public string term { get; set; } = null!;
 
-    /// <summary>這一次搜尋的時刻</summary>
+    /// <summary>搜尋的時刻</summary>
     public DateTime created_at { get; set; }
 
-    /// <summary>最後修改時刻</summary>
+    /// <summary>這一列最後修改的時刻</summary>
     public DateTime updated_at { get; set; }
 }

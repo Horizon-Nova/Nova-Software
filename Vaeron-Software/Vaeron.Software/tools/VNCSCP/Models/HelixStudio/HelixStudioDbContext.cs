@@ -33,38 +33,75 @@ public partial class HelixStudioDbContext : DbContext
         {
             entity.HasKey(e => e.id).HasName("vncscp_pkey");
 
-            entity.ToTable("vncscp", "dbo", tb => tb.HasComment("VNCSCP：設定、機台、每一次送出與測試，一列是什麼由 type 決定；VNC 密碼不在這裡，鎖在平台保險箱"));
+            entity.ToTable("vncscp", "dbo", tb => tb.HasComment("VNCSCP：setting 一項設定、machine 一台機台（移除寫 removed_at）、send 送一台的一次、test 測一台的一次；VNC 密碼不在這裡，鎖在平台保險箱"));
+
+            entity.HasIndex(e => new { e.ip, e.port }, "vncscp_machine")
+                .IsUnique()
+                .HasFilter("(((type)::text = 'machine'::text) AND (removed_at IS NULL))");
+
+            entity.HasIndex(e => e.setting_key, "vncscp_setting")
+                .IsUnique()
+                .HasFilter("((type)::text = 'setting'::text)");
 
             entity.Property(e => e.id).HasComment("流水號");
             entity.Property(e => e.batch).HasComment("[send][test] 同一次按「送到勾選的」或「測試連線」的那一批");
             entity.Property(e => e.cancelled_at).HasComment("[send][test] 使用者按取消的時刻");
-            entity.Property(e => e.connected_ms).HasComment("[send][test] 從開始到登入成功花了幾毫秒；沒登入成功是 null");
+            entity.Property(e => e.connected_ms).HasComment("[send][test] 從開始到登入成功花了幾毫秒；沒登入成功是空的");
             entity.Property(e => e.created_at)
                 .HasDefaultValueSql("now()")
                 .HasComment("這一列建立的時刻");
             entity.Property(e => e.file_count).HasComment("[send] 這一次送幾個檔");
             entity.Property(e => e.finished_at).HasComment("[send][test] 結束的時刻：送完、測完、失敗、取消都是");
-            entity.Property(e => e.ip).HasComment("[machine] IP");
+            entity.Property(e => e.ip).HasComment("[machine] IP；IPv6 文字最長 45");
             entity.Property(e => e.local_mtime).HasComment("[send] 這一次送的檔裡最新的修改時間，也就是機台收到的那一份");
             entity.Property(e => e.machine_id).HasComment("[send][test] 哪一台（machine 那一列的 id）");
-            entity.Property(e => e.name).HasComment("[machine] 機台名稱，可以空著");
-            entity.Property(e => e.note).HasComment("[send][test] 沒成功的原因，照實寫；成功是 null");
+            entity.Property(e => e.name).HasComment("[machine] 機台名稱，可以空著；新增機台的輸入框 MaxLength 也是 50");
+            entity.Property(e => e.note).HasComment("[send][test] 沒成功的原因，照實寫；成功是空的");
+            entity.Property(e => e.path).HasComment("[setting] 路徑類的值；還沒選是空的");
             entity.Property(e => e.port).HasComment("[machine] UltraVNC 的 Port");
             entity.Property(e => e.remote_path).HasComment("[machine] 送到機台上的哪個資料夾；[send] 這一次送到哪裡");
+            entity.Property(e => e.removed_at).HasComment("[machine] 移除的時刻；移除是狀態，列不真的刪");
             entity.Property(e => e.sent_bytes).HasComment("[send] 實際送到的位元組");
-            entity.Property(e => e.setting_key).HasComment("[setting] 哪一項：source（上次選的來源資料夾）");
+            entity.Property(e => e.setting_key).HasComment("[setting] source（上次選的來源資料夾）");
             entity.Property(e => e.started_at).HasComment("[send][test] 開始連線的時刻");
             entity.Property(e => e.total_bytes).HasComment("[send] 這一次要送的總位元組");
-            entity.Property(e => e.type).HasComment("setting 一項設定／machine 一台機台／send 送一台的一次／test 測一台的一次");
+            entity.Property(e => e.type).HasComment("setting＝一項設定；machine＝一台機台；send＝送一台的一次；test＝測一台的一次");
             entity.Property(e => e.updated_at)
                 .HasDefaultValueSql("now()")
                 .HasComment("這一列最後修改的時刻");
-            entity.Property(e => e.value).HasComment("[setting] 設定值");
         });
 
         modelBuilder.Entity<vw_vncscp>(entity =>
         {
             entity.ToView("vw_vncscp", "dbo");
+
+            entity.Property(e => e.address).HasComment("[machine][event] IP:Port");
+            entity.Property(e => e.at_text).HasComment("[event] 開始的時刻 MM-DD HH24:MI:SS");
+            entity.Property(e => e.cancelled).HasComment("[event] 這一次是使用者按了取消");
+            entity.Property(e => e.event_type).HasComment("[event] send＝送出；test＝測試連線");
+            entity.Property(e => e.fail_at).HasComment("[machine] 那一次結束的時刻");
+            entity.Property(e => e.fail_cancelled).HasComment("[machine] 那一次是使用者按了取消");
+            entity.Property(e => e.fail_text).HasComment("[machine] 最後一次送或測沒成功的原因；之後成功過就是空的");
+            entity.Property(e => e.file_count).HasComment("[event] 送幾個檔（測試是空的）");
+            entity.Property(e => e.id).HasComment("[setting] 那一項設定的流水號；[machine] 機台的流水號；[event] send／test 那一列的流水號（寫回去照它換整列）");
+            entity.Property(e => e.in_last).HasComment("[machine] 最後一批送出裡有沒有這一台");
+            entity.Property(e => e.ip).HasComment("[machine] IP");
+            entity.Property(e => e.kb_text).HasComment("[event] 要送的總大小 KB，一位小數、千分位");
+            entity.Property(e => e.name).HasComment("[machine] 名稱，空的是空值；[event] 機台名稱，空的寫 IP:Port");
+            entity.Property(e => e.note).HasComment("[event] 沒成功的原因；成功是空的");
+            entity.Property(e => e.ping_at).HasComment("[machine] 那一次開始的時刻");
+            entity.Property(e => e.ping_ms).HasComment("[machine] 最後一次登入成功（送或測）花了幾毫秒");
+            entity.Property(e => e.port).HasComment("[machine] UltraVNC 的 Port");
+            entity.Property(e => e.recv_mtime).HasComment("[machine] 送到現在這個遠端路徑的最後一次成功，送的檔裡最新的修改時間；換過路徑就是空的");
+            entity.Property(e => e.recv_text).HasComment("[machine] recv_mtime：今年寫 MM-DD HH24:MI、不是今年寫 YYYY-MM-DD；空的是破折號");
+            entity.Property(e => e.remote_path).HasComment("[machine] 現在的遠端路徑；[event] 這一次送到的路徑");
+            entity.Property(e => e.sent_at).HasComment("[machine] 那一次成功送完的時刻");
+            entity.Property(e => e.sent_text).HasComment("[machine] sent_at，寫法同 recv_text");
+            entity.Property(e => e.sort).HasComment("[machine] 照名稱排；[event] 新的在前");
+            entity.Property(e => e.source).HasComment("[setting] 上次選的來源資料夾（setting_key 是 source 的那一列）；還沒選是空的");
+            entity.Property(e => e.took_ms).HasComment("[event] 從開始到結束幾毫秒");
+            entity.Property(e => e.took_text).HasComment("[event] took_ms：1 秒內寫 N ms，其餘 N.N 秒；空的是破折號");
+            entity.Property(e => e.type).HasComment("setting＝設定；machine＝一台機台；event＝一次送出或測試");
         });
 
         OnModelCreatingPartial(modelBuilder);

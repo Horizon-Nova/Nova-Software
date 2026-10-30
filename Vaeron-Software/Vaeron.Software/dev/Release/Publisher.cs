@@ -323,7 +323,7 @@ public class Publisher
                 $"/DAppId={p.AppId}", $"/DAppName={p.AppName}", $"/DInstallFolder={p.InstallFolder}", $"/DDataFolder={p.DataFolder}",
                 $"/DService={p.Service}", $"/DPort={p.Port}", $"/DIcon={Path.Combine(Path.GetDirectoryName(project)!, "Assets", "HelixStudio_icon.ico")}",
                 $"/DLegal={Path.Combine(here, "legal")}", $"/DArch={e.Arch}", $"/DMinOs={e.MinOs}", $"/DDist={dist}", $"/DPg={Path.Combine(shared, "pg", e.Pg, "pgsql")}",
-                $"/DRedists={redists}", $"/DNeedKb={e.NeedKb}", $"/DTools={tools}", $"/DAfterSql={p.AfterInstallSql}", $"/DDatabase={Path.Combine(root, "deploy", "database")}",
+                $"/DRedists={redists}", $"/DNeedKb={e.NeedKb}", $"/DTools={tools}", $"/DAfterSql={p.AfterInstallSql}", $"/DDatabaseVersion={p.DatabaseVersion}", $"/DDatabase={Path.Combine(root, "deploy", "database")}",
                 Path.Combine(here, "installer", "HelixStudio.iss"));
 
             // 不跟著安裝檔走的工具套件放在安裝檔旁邊
@@ -422,8 +422,11 @@ public class Publisher
         /// <summary>工具套件是不是跟著安裝檔一起裝</summary>
         public bool ToolsInInstaller { get; set; }
 
-        /// <summary>資料表建好或更新後再執行的 SQL</summary>
+        /// <summary>資料表建好後再執行的 SQL</summary>
         public string AfterInstallSql { get; set; } = string.Empty;
+
+        /// <summary>資料庫結構是哪一版定的：哪一版改了 deploydatabaseinit 的結構就寫那一版；安裝時跟這台電腦記下的不一樣，就刪掉舊的資料庫照 init 重建</summary>
+        public string DatabaseVersion { get; set; } = string.Empty;
 
         /// <summary>每一版</summary>
         public List<EditionItem> Editions { get; set; } = [];

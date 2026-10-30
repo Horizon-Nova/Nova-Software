@@ -50,142 +50,216 @@ public partial class HelixStudioDbContext : DbContext
             entity.ToTable("event_log", "dbo", tb => tb.HasComment("發生過的事：每一次啟用、開啟、解鎖設定工具，每一個沒被接住的錯誤，一件一列，只新增不改寫，全部留著"));
 
             entity.Property(e => e.id).HasComment("流水號");
-            entity.Property(e => e.account).HasComment("誰：當時登入 Windows 的帳號；這張表建立前搬進來的紀錄沒有記到，是空的");
+            entity.Property(e => e.account).HasComment("誰：當時登入 Windows 的帳號；Windows 帳號上限 20");
             entity.Property(e => e.created_at)
                 .HasDefaultValueSql("now()")
                 .HasComment("發生的時刻");
-            entity.Property(e => e.function_name).HasComment("系統由哪一支方法處理，例如 MainWindow.Run；這張表建立前搬進來的紀錄沒有記到，是空的");
+            entity.Property(e => e.function_name).HasComment("系統由哪一支方法處理：型別.方法；錯誤時是例外的 TargetSite。.NET 型別全名 1023 ＋ 方法名 1023");
             entity.Property(e => e.message).HasComment("處理的結果；[error] 錯誤訊息");
             entity.Property(e => e.stack_trace).HasComment("[error] 呼叫堆疊");
-            entity.Property(e => e.tool_no).HasComment("哪一支工具，對到 tool.tool_no；不是對著工具發生的是空的");
-            entity.Property(e => e.type).HasComment("activate 啟用工具／open 開啟工具／unlock 解鎖工具設定／error 沒被接住的錯誤");
+            entity.Property(e => e.tool_no).HasComment("哪一支工具；不是對著工具發生的是空的");
+            entity.Property(e => e.type).HasComment("activate＝啟用工具；open＝開啟工具；unlock＝解鎖工具設定；error＝沒被接住的錯誤");
             entity.Property(e => e.updated_at)
                 .HasDefaultValueSql("now()")
-                .HasComment("最後一次改動的時刻；紀錄不改寫，與發生的時刻相同");
+                .HasComment("這一列最後修改的時刻");
         });
 
         modelBuilder.Entity<search>(entity =>
         {
             entity.HasKey(e => e.id).HasName("search_pkey");
 
-            entity.ToTable("search", "dbo", tb => tb.HasComment("搜尋過的字：一次搜尋一列"));
+            entity.ToTable("search", "dbo", tb => tb.HasComment("搜尋過的字：一次搜尋一列，全部留著"));
 
             entity.Property(e => e.id).HasComment("流水號");
             entity.Property(e => e.created_at)
                 .HasDefaultValueSql("now()")
-                .HasComment("這一次搜尋的時刻");
-            entity.Property(e => e.term).HasComment("搜尋的字");
+                .HasComment("搜尋的時刻");
+            entity.Property(e => e.term).HasComment("搜尋的字；搜尋框的 MaxLength 也是 100");
             entity.Property(e => e.type)
-                .HasDefaultValueSql("'recent'::text")
-                .HasComment("recent");
+                .HasDefaultValueSql("'recent'::character varying")
+                .HasComment("recent＝一次搜尋");
             entity.Property(e => e.updated_at)
                 .HasDefaultValueSql("now()")
-                .HasComment("最後修改時刻");
+                .HasComment("這一列最後修改的時刻");
         });
 
         modelBuilder.Entity<setting>(entity =>
         {
             entity.HasKey(e => e.id).HasName("setting_pkey");
 
-            entity.ToTable("setting", "dbo", tb => tb.HasComment("平台設定：一列一項，種類寫在 kind，選項放 jsonb"));
+            entity.ToTable("setting", "dbo", tb => tb.HasComment("平台設定的值：value 現在的值、fallback 資訊部建議的值；每一項是開關、數字或路徑其中一種，只填那一欄"));
 
             entity.Property(e => e.id).HasComment("流水號");
-            entity.Property(e => e.area_key).HasComment("左邊樹的分類代碼");
-            entity.Property(e => e.area_label).HasComment("左邊樹的分類名稱");
-            entity.Property(e => e.button).HasComment("按鈕上的字");
             entity.Property(e => e.created_at)
                 .HasDefaultValueSql("now()")
-                .HasComment("建立時刻");
-            entity.Property(e => e.danger).HasComment("按鈕是不是破壞性的（紅色）");
-            entity.Property(e => e.fallback).HasComment("回復預設時寫回的值");
-            entity.Property(e => e.group_label).HasComment("節裡的小標");
-            entity.Property(e => e.inline).HasComment("開關右邊那一句");
-            entity.Property(e => e.kind).HasComment("toggle（開關）／choice（下拉）／info（資訊）／action（按鈕）");
-            entity.Property(e => e.label).HasComment("這一項的名稱");
-            entity.Property(e => e.note).HasComment("名稱下面的說明");
-            entity.Property(e => e.options)
-                .HasDefaultValueSql("'[]'::jsonb")
-                .HasComment("下拉的每一個選項，字串陣列");
-            entity.Property(e => e.section_key).HasComment("分類底下那一節的代碼");
-            entity.Property(e => e.section_label).HasComment("那一節的名稱");
-            entity.Property(e => e.section_note).HasComment("那一節標題下的說明；沒有就是 NULL");
-            entity.Property(e => e.setting_key).HasComment("這一項的代碼，程式照它讀值；按鈕與資訊列沒有");
-            entity.Property(e => e.sort).HasComment("排列順序");
-            entity.Property(e => e.type)
-                .HasDefaultValueSql("'setting'::text")
-                .HasComment("setting");
+                .HasComment("這一列建立的時刻");
+            entity.Property(e => e.enabled).HasComment("開關類（launchOnBoot、notifySound、bigTargets、screenAwake、highContrast）：開或關");
+            entity.Property(e => e.number).HasComment("數字類：textScale 是百分比（100、115、130），toolKeyMinutes 是分鐘");
+            entity.Property(e => e.path).HasComment("路徑類（source）；還沒有值時平台啟動時照這台電腦這個帳號的位置填上");
+            entity.Property(e => e.setting_key).HasComment("launchOnBoot 開機時自動啟動、source 套件庫資料夾、notifySound 通知音效、bigTargets 大按鈕模式、textScale 文字大小、screenAwake 使用中保持螢幕不休眠、highContrast 高對比顯示、toolKeyMinutes 工具設定解鎖多久；最長的 toolKeyMinutes 是 14 個字");
+            entity.Property(e => e.type).HasComment("value＝現在的值；fallback＝資訊部建議的值");
             entity.Property(e => e.updated_at)
                 .HasDefaultValueSql("now()")
-                .HasComment("最後修改時刻");
-            entity.Property(e => e.value).HasComment("現在的值");
+                .HasComment("最後一次改這個值的時刻");
         });
 
         modelBuilder.Entity<tool>(entity =>
         {
             entity.HasKey(e => e.id).HasName("tool_pkey");
 
-            entity.ToTable("tool", "dbo", tb => tb.HasComment("工具：一列是什麼由 type 決定。tool 是匯入的一支工具（匯入就是裝好，移除就是整列拿掉）；key 是啟用時存下的工具金鑰，最新的那一把就是現在用的；啟用、開啟、解鎖記在 event_log"));
+            entity.ToTable("tool", "dbo", tb => tb.HasComment("工具，只新增不改寫：tool 一次匯入（同一個代碼最新的那一次是裝著的版本）；key 一次啟用時驗過的工具金鑰，最新的那一把是現在用的；start 一次切自動啟動，最新的那一列是現在的狀態；remove 一次移除，最新一次匯入之後有移除就是沒裝著。開啟、解鎖記在 event_log"));
 
-            entity.Property(e => e.id).HasComment("流水號，也是側欄與工具目錄的先後");
-            entity.Property(e => e._class).HasComment("[tool] 組件裡那個畫面的型別全名，例如 InSpecTool.Measure");
+            entity.Property(e => e.id).HasComment("流水號；同一個代碼第一次匯入的那一列是側欄的先後");
+            entity.Property(e => e._class).HasComment("[tool] 組件裡那個畫面的型別全名；.NET 型別全名上限 1023");
+            entity.Property(e => e.autostart).HasComment("[start] 這一次切成自動啟動（true）或取消（false）");
+            entity.Property(e => e.bytes).HasComment("[tool] 套件檔的位元組數");
             entity.Property(e => e.capabilities)
-                .HasDefaultValueSql("'[]'::jsonb")
-                .HasComment("[tool] 這支工具會做的事，字串陣列");
-            entity.Property(e => e.cat).HasComment("[tool] 分類");
+                .HasDefaultValueSql("'{}'::character varying[]")
+                .HasComment("[tool] 這支工具會做的事，一條一個元素；manifest 的 capabilities");
+            entity.Property(e => e.cat).HasComment("[tool] 分類；manifest 的 cat");
             entity.Property(e => e.changelog)
                 .HasDefaultValueSql("'[]'::jsonb")
                 .HasComment("[tool] 版本與更新說明，一則一個元素（ver、date、note），新到舊");
-            entity.Property(e => e.code).HasComment("[key] 操作員貼進來的那一串工具金鑰；每次開工具都重驗一次");
+            entity.Property(e => e.code).HasComment("[key] 操作員貼進來、驗過的那一串工具金鑰；每次開工具都重驗一次");
             entity.Property(e => e.created_at)
                 .HasDefaultValueSql("now()")
-                .HasComment("寫入時刻：tool 是第一次匯入、key 是貼進來的時刻");
-            entity.Property(e => e.description).HasComment("[tool] 說明");
-            entity.Property(e => e.entry).HasComment("[tool] 開起來要載入的組件檔名，例如 InSpecTool.dll");
+                .HasComment("這一列建立的時刻：[tool] 匯入、[key] 啟用、[start] 切換、[remove] 移除的時刻");
+            entity.Property(e => e.description).HasComment("[tool] 說明；manifest 的 description");
+            entity.Property(e => e.entry).HasComment("[tool] 開起來要載入的組件檔名");
+            entity.Property(e => e.expires_at).HasComment("[key] 這把金鑰到哪一刻為止；啟用時驗過簽章後從金鑰讀出寫進來，沒有到期日是空的");
             entity.Property(e => e.guide)
                 .HasDefaultValueSql("'[]'::jsonb")
                 .HasComment("[tool] 操作說明，一步一個元素（text 這一步做什麼、image 截圖在套件裡的相對路徑，沒有圖就不寫），照步驟順序");
-            entity.Property(e => e.home).HasComment("[tool] 這支工具的檔案裝在哪一個資料夾");
-            entity.Property(e => e.icon).HasComment("[tool] lucide 的圖示名稱");
-            entity.Property(e => e.name).HasComment("[tool] 工具名稱");
+            entity.Property(e => e.home).HasComment("[tool] 這支工具的檔案裝在哪一個資料夾；Windows 長路徑上限 32767");
+            entity.Property(e => e.icon).HasComment("[tool] lucide 的圖示名稱；manifest 的 icon");
+            entity.Property(e => e.name).HasComment("[tool] 工具名稱；manifest 的 name，helixpack 打包時檢查長度");
             entity.Property(e => e.permissions)
-                .HasDefaultValueSql("'[]'::jsonb")
-                .HasComment("[tool] 會用到的權限，字串陣列");
-            entity.Property(e => e.settings).HasComment("[tool] 組件裡設定畫面的型別全名，例如 InSpecTool.Setup；沒有就是這支工具沒有設定");
-            entity.Property(e => e.size).HasComment("[tool] 套件大小，例如 42.8 KB");
-            entity.Property(e => e.source).HasComment("[tool] 從哪裡來，例如 本機套件檔");
-            entity.Property(e => e.tool_no).HasComment("工具代碼，套件 manifest 的 tool_no；key 用它對到那一支工具");
-            entity.Property(e => e.type).HasComment("tool 一支工具／key 一把工具金鑰");
-            entity.Property(e => e.updated).HasComment("[tool] 匯入這一版的日期");
+                .HasDefaultValueSql("'{}'::character varying[]")
+                .HasComment("[tool] 會用到的權限，一條一個元素；manifest 的 permissions");
+            entity.Property(e => e.settings).HasComment("[tool] 組件裡設定畫面的型別全名；沒有就是這支工具沒有設定");
+            entity.Property(e => e.source).HasComment("[tool] 套件檔從哪裡來");
+            entity.Property(e => e.tool_no).HasComment("工具代碼，套件 manifest 的 tool_no；也是工具資料夾的名稱（tools\\{tool_no}\\{版本}），所以照 Windows 檔名上限 255");
+            entity.Property(e => e.type).HasComment("tool＝一次匯入；key＝一次啟用；start＝一次切自動啟動；remove＝一次移除");
             entity.Property(e => e.updated_at)
                 .HasDefaultValueSql("now()")
-                .HasComment("最後修改時刻：tool 是最後一次匯入");
-            entity.Property(e => e.vendor).HasComment("[tool] 維護團隊");
-            entity.Property(e => e.version).HasComment("[tool] 裝著的版本");
+                .HasComment("這一列最後修改的時刻（只新增不改寫，等於建立的時刻）");
+            entity.Property(e => e.vendor).HasComment("[tool] 維護團隊；manifest 的 vendor");
+            entity.Property(e => e.version).HasComment("[tool] 裝著的版本；Windows 檔案版本 a.b.c.d 每段最大 65535，最長 23 個字");
         });
 
         modelBuilder.Entity<vw_catalog>(entity =>
         {
             entity.ToView("vw_catalog", "dbo");
+
+            entity.Property(e => e.autostart).HasComment("[tool] 自動啟動：最新那一次切的值；沒切過是 false");
+            entity.Property(e => e.capabilities).HasComment("[tool] 這支工具會做的事");
+            entity.Property(e => e.date).HasComment("[change] 日期");
+            entity.Property(e => e.description).HasComment("[tool] 說明");
+            entity.Property(e => e.expires_text).HasComment("[tool] 工具金鑰到期日 YYYY-MM-DD；沒有到期日或沒啟用過是空的");
+            entity.Property(e => e.home).HasComment("[tool] 工具的檔案裝在哪一個資料夾");
+            entity.Property(e => e.icon).HasComment("[tool] lucide 的圖示名稱");
+            entity.Property(e => e.id).HasComment("[tool] 裝著的那一次匯入的流水號");
+            entity.Property(e => e.image).HasComment("[step] 截圖的完整路徑；沒有圖是空的");
+            entity.Property(e => e.imported_text).HasComment("[tool] 匯入這一版的日期 YYYY/MM/DD");
+            entity.Property(e => e.last_open_text).HasComment("[tool] 最後一次開啟 YYYY-MM-DD HH24:MI；沒開過是空的");
+            entity.Property(e => e.name).HasComment("[tool] 工具名稱");
+            entity.Property(e => e.note).HasComment("[change] 更新說明；[step] 這一步做什麼");
+            entity.Property(e => e.opens).HasComment("[tool] 開過幾次");
+            entity.Property(e => e.permissions).HasComment("[tool] 會用到的權限");
+            entity.Property(e => e.remaining_days).HasComment("[tool] 離金鑰到期還有幾天；過了是負的，照樣列出；沒有到期日是空的");
+            entity.Property(e => e.size_text).HasComment("[tool] 套件大小：B、KB、MB，一位小數");
+            entity.Property(e => e.sort).HasComment("[tool] 最近開過的在前；[change] 新到舊；[step] 步驟順序；[search] 最近用到的在前");
+            entity.Property(e => e.term).HasComment("[search] 搜尋過的字");
+            entity.Property(e => e.tool_count).HasComment("[total] 還裝著的工具支數");
+            entity.Property(e => e.tool_no).HasComment("[tool][change][step] 工具代碼");
+            entity.Property(e => e.type).HasComment("total＝總數；tool＝一支工具；change＝一則更新日誌；step＝操作說明的一步；search＝一個搜尋過的字");
+            entity.Property(e => e.vendor).HasComment("[tool] 維護團隊");
+            entity.Property(e => e.ver).HasComment("[change] 版本");
+            entity.Property(e => e.version_text).HasComment("[tool] 版本，前面加 v");
         });
 
         modelBuilder.Entity<vw_event_log>(entity =>
         {
             entity.ToView("vw_event_log", "dbo");
+
+            entity.Property(e => e.account).HasComment("[event] 當時登入 Windows 的帳號");
+            entity.Property(e => e.created_at).HasComment("[event] 發生的時刻（照時間排序用）");
+            entity.Property(e => e.created_text).HasComment("[event] 發生的時刻 YYYY-MM-DD HH24:MI:SS");
+            entity.Property(e => e.event_count).HasComment("[count] 這種事件幾筆");
+            entity.Property(e => e.event_type).HasComment("activate、open、unlock、error（見 event_log.type）");
+            entity.Property(e => e.function_name).HasComment("[event] 系統由哪一支方法處理");
+            entity.Property(e => e.id).HasComment("[event] event_log 的流水號");
+            entity.Property(e => e.message).HasComment("[event] 處理的結果；錯誤時是錯誤訊息");
+            entity.Property(e => e.sort).HasComment("[count] 多的在前；[event] 新的在前");
+            entity.Property(e => e.stack_trace).HasComment("[event] 錯誤時的呼叫堆疊");
+            entity.Property(e => e.tool_name).HasComment("[event] 工具最後一次匯入時的名稱；沒匯入過是代碼");
+            entity.Property(e => e.tool_no).HasComment("[event] 哪一支工具");
+            entity.Property(e => e.type).HasComment("count＝一種事件的筆數；event＝一件事");
         });
 
         modelBuilder.Entity<vw_palette>(entity =>
         {
             entity.ToView("vw_palette", "dbo");
+
+            entity.Property(e => e.icon).HasComment("[tool] lucide 的圖示名稱");
+            entity.Property(e => e.name).HasComment("[tool] 工具名稱");
+            entity.Property(e => e.sort).HasComment("[tool] 第一次匯入的先後；[search] 最近用到的在前");
+            entity.Property(e => e.term).HasComment("[search] 搜尋過的字");
+            entity.Property(e => e.tool_count).HasComment("還裝著的工具支數（每一列都帶）");
+            entity.Property(e => e.tool_no).HasComment("[tool] 工具代碼");
+            entity.Property(e => e.type).HasComment("tool＝一支工具；search＝一個搜尋過的字");
+            entity.Property(e => e.vendor).HasComment("[tool] 維護團隊");
         });
 
         modelBuilder.Entity<vw_setting>(entity =>
         {
             entity.ToView("vw_settings", "dbo");
+
+            entity.Property(e => e.activated_text).HasComment("[tool] 第一次啟用的時刻 YYYY-MM-DD HH24:MI");
+            entity.Property(e => e.enabled).HasComment("[setting] 開關類現在的值");
+            entity.Property(e => e.entry).HasComment("[tool] 要載入的組件檔名");
+            entity.Property(e => e.expires_text).HasComment("[tool] 工具金鑰到期日 YYYY-MM-DD；沒有到期日或沒啟用過是空的");
+            entity.Property(e => e.fallback_enabled).HasComment("[setting] 開關類資訊部建議的值");
+            entity.Property(e => e.fallback_id).HasComment("[setting] 建議的值那一列的流水號");
+            entity.Property(e => e.fallback_number).HasComment("[setting] 數字類資訊部建議的值");
+            entity.Property(e => e.fallback_path).HasComment("[setting] 路徑類資訊部建議的值");
+            entity.Property(e => e.home).HasComment("[tool] 工具的檔案裝在哪一個資料夾");
+            entity.Property(e => e.id).HasComment("[setting] 現在的值那一列的流水號；[tool] 裝著的那一次匯入的流水號");
+            entity.Property(e => e.last_open_text).HasComment("[tool] 最後一次開啟 YYYY-MM-DD HH24:MI");
+            entity.Property(e => e.last_unlock_text).HasComment("[tool] 最後一次解鎖 YYYY-MM-DD HH24:MI");
+            entity.Property(e => e.moved).HasComment("[setting] 現在的值跟資訊部建議的不一樣");
+            entity.Property(e => e.name).HasComment("[tool] 工具名稱");
+            entity.Property(e => e.number).HasComment("[setting] 數字類現在的值");
+            entity.Property(e => e.opens).HasComment("[tool] 開過幾次");
+            entity.Property(e => e.path).HasComment("[setting] 路徑類現在的值");
+            entity.Property(e => e.remaining_days).HasComment("[tool] 離金鑰到期還有幾天；過了是負的；沒有到期日是空的");
+            entity.Property(e => e.setting_key).HasComment("[setting] 哪一項（見 setting.setting_key）");
+            entity.Property(e => e.settings).HasComment("[tool] 設定畫面的型別全名；沒有就是這支工具沒有設定");
+            entity.Property(e => e.sort).HasComment("[setting] 建立的先後；[tool] 最近用過的在前");
+            entity.Property(e => e.tool_no).HasComment("[tool] 工具代碼");
+            entity.Property(e => e.type).HasComment("setting＝一項設定；tool＝一支工具");
+            entity.Property(e => e.unlock_minutes).HasComment("[tool] 工具設定解鎖幾分鐘（setting 的 toolKeyMinutes）");
+            entity.Property(e => e.unlocks).HasComment("[tool] 解鎖過幾次");
         });
 
         modelBuilder.Entity<vw_shell>(entity =>
         {
             entity.ToView("vw_shell", "dbo");
+
+            entity.Property(e => e._class).HasComment("[tool] 畫面的型別全名");
+            entity.Property(e => e.autostart).HasComment("[tool] 自動啟動：最新那一次切的值；沒切過是 false");
+            entity.Property(e => e.code).HasComment("[tool] 最新那一把工具金鑰；沒啟用過是空的");
+            entity.Property(e => e.entry).HasComment("[tool] 要載入的組件檔名");
+            entity.Property(e => e.expires_at).HasComment("[tool] 那一把金鑰到哪一刻為止；沒有到期日是空的");
+            entity.Property(e => e.home).HasComment("[tool] 工具的檔案裝在哪一個資料夾");
+            entity.Property(e => e.icon).HasComment("[tool] lucide 的圖示名稱");
+            entity.Property(e => e.id).HasComment("[tool] 裝著的那一次匯入的流水號");
+            entity.Property(e => e.name).HasComment("[tool] 工具名稱");
+            entity.Property(e => e.sort).HasComment("[tool] 側欄的先後，照第一次匯入的先後");
+            entity.Property(e => e.sync_text).HasComment("[shell] 裝著的工具裡最後一次匯入的時刻 YYYY-MM-DD HH24:MI；沒有工具是破折號");
+            entity.Property(e => e.tool_count).HasComment("[shell] 還裝著的工具支數");
+            entity.Property(e => e.tool_no).HasComment("[tool] 工具代碼");
+            entity.Property(e => e.type).HasComment("shell＝外殼那一列；tool＝一支工具");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -21,66 +21,91 @@ namespace Models.HelixStudio;
 [Keyless]
 public partial class vw_setting
 {
+    /// <summary>setting＝一項設定；tool＝一支工具</summary>
+    [Column(TypeName = "character varying")]
     public string? type { get; set; }
 
+    /// <summary>[setting] 現在的值那一列的流水號；[tool] 裝著的那一次匯入的流水號</summary>
     public int? id { get; set; }
 
-    public string? area_key { get; set; }
+    /// <summary>[setting] 建議的值那一列的流水號</summary>
+    public int? fallback_id { get; set; }
 
-    public string? area_label { get; set; }
-
-    public string? section_key { get; set; }
-
-    public string? section_label { get; set; }
-
-    public string? section_note { get; set; }
-
-    public string? group_label { get; set; }
-
+    /// <summary>[setting] 哪一項（見 setting.setting_key）</summary>
+    [Column(TypeName = "character varying")]
     public string? setting_key { get; set; }
 
-    public string? kind { get; set; }
+    /// <summary>[setting] 開關類現在的值</summary>
+    public bool? enabled { get; set; }
 
-    public string? label { get; set; }
+    /// <summary>[setting] 數字類現在的值</summary>
+    public int? number { get; set; }
 
-    public string? inline { get; set; }
+    /// <summary>[setting] 路徑類現在的值</summary>
+    [Column(TypeName = "character varying")]
+    public string? path { get; set; }
 
-    public string? note { get; set; }
+    /// <summary>[setting] 開關類資訊部建議的值</summary>
+    public bool? fallback_enabled { get; set; }
 
-    public string? value { get; set; }
+    /// <summary>[setting] 數字類資訊部建議的值</summary>
+    public int? fallback_number { get; set; }
 
-    public string? fallback { get; set; }
+    /// <summary>[setting] 路徑類資訊部建議的值</summary>
+    [Column(TypeName = "character varying")]
+    public string? fallback_path { get; set; }
 
-    [Column(TypeName = "jsonb")]
-    public string? options { get; set; }
+    /// <summary>[setting] 現在的值跟資訊部建議的不一樣</summary>
+    public bool? moved { get; set; }
 
-    public bool? danger { get; set; }
-
-    public string? button { get; set; }
-
+    /// <summary>[tool] 工具代碼</summary>
+    [StringLength(255)]
     public string? tool_no { get; set; }
 
+    /// <summary>[tool] 工具名稱</summary>
+    [StringLength(50)]
     public string? name { get; set; }
 
+    /// <summary>[tool] 要載入的組件檔名</summary>
+    [StringLength(255)]
     public string? entry { get; set; }
 
+    /// <summary>[tool] 工具的檔案裝在哪一個資料夾</summary>
+    [StringLength(32767)]
     public string? home { get; set; }
 
+    /// <summary>[tool] 設定畫面的型別全名；沒有就是這支工具沒有設定</summary>
+    [StringLength(1023)]
     public string? settings { get; set; }
 
+    /// <summary>[tool] 工具設定解鎖幾分鐘（setting 的 toolKeyMinutes）</summary>
     public int? unlock_minutes { get; set; }
 
+    /// <summary>[tool] 工具金鑰到期日 YYYY-MM-DD；沒有到期日或沒啟用過是空的</summary>
+    [StringLength(10)]
     public string? expires_text { get; set; }
 
+    /// <summary>[tool] 離金鑰到期還有幾天；過了是負的；沒有到期日是空的</summary>
+    public int? remaining_days { get; set; }
+
+    /// <summary>[tool] 第一次啟用的時刻 YYYY-MM-DD HH24:MI</summary>
+    [StringLength(16)]
     public string? activated_text { get; set; }
 
+    /// <summary>[tool] 開過幾次</summary>
     public int? opens { get; set; }
 
+    /// <summary>[tool] 最後一次開啟 YYYY-MM-DD HH24:MI</summary>
+    [StringLength(16)]
     public string? last_open_text { get; set; }
 
+    /// <summary>[tool] 解鎖過幾次</summary>
     public int? unlocks { get; set; }
 
+    /// <summary>[tool] 最後一次解鎖 YYYY-MM-DD HH24:MI</summary>
+    [StringLength(16)]
     public string? last_unlock_text { get; set; }
 
+    /// <summary>[setting] 建立的先後；[tool] 最近用過的在前</summary>
     public long? sort { get; set; }
 }

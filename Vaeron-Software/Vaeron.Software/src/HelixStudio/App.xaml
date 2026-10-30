@@ -129,11 +129,6 @@
                         <Border x:Name="back" Background="{TemplateBinding Background}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="back" Property="Background" Value="{DynamicResource HoverBack}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -146,12 +141,6 @@
                         <Border x:Name="back" Background="{TemplateBinding Background}">
                             <ContentPresenter x:Name="mark" HorizontalAlignment="Center" VerticalAlignment="Center" TextBlock.Foreground="{DynamicResource TextPrimary}" />
                         </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="back" Property="Background" Value="{DynamicResource CloseHover}" />
-                                <Setter TargetName="mark" Property="TextBlock.Foreground" Value="White" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -211,37 +200,6 @@
                         </Grid>
                         <ControlTemplate.Triggers>
 
-                            <!-- 沒選中的滑鼠移過去才變暗；選中的那一顆不跟著變 -->
-                            <MultiTrigger>
-                                <MultiTrigger.Conditions>
-                                    <Condition Property="IsMouseOver" Value="True" />
-                                    <Condition Property="IsSelected" Value="False" />
-                                </MultiTrigger.Conditions>
-                                <MultiTrigger.EnterActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation Storyboard.TargetName="fill" Storyboard.TargetProperty="Color"
-                                                            To="#0f000000" Duration="0:0:0.08">
-                                                <ColorAnimation.EasingFunction>
-                                                    <QuadraticEase EasingMode="EaseOut" />
-                                                </ColorAnimation.EasingFunction>
-                                            </ColorAnimation>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </MultiTrigger.EnterActions>
-                                <MultiTrigger.ExitActions>
-                                    <BeginStoryboard>
-                                        <Storyboard>
-                                            <ColorAnimation Storyboard.TargetName="fill" Storyboard.TargetProperty="Color"
-                                                            To="Transparent" Duration="0:0:0.08">
-                                                <ColorAnimation.EasingFunction>
-                                                    <QuadraticEase EasingMode="EaseOut" />
-                                                </ColorAnimation.EasingFunction>
-                                            </ColorAnimation>
-                                        </Storyboard>
-                                    </BeginStoryboard>
-                                </MultiTrigger.ExitActions>
-                            </MultiTrigger>
 
                             <!-- 選中：底色 80ms 淡進白色，左邊藍條出現，圖示轉成主色 -->
                             <Trigger Property="IsSelected" Value="True">
@@ -304,9 +262,6 @@
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Grid>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="veil" Property="Background" Value="{DynamicResource HoverBack}" />
-                            </Trigger>
                             <Trigger Property="IsChecked" Value="True">
                                 <Trigger.EnterActions>
                                     <BeginStoryboard>
@@ -355,11 +310,6 @@
                         <Border x:Name="back" CornerRadius="{StaticResource RadiusSm}" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
                             <ContentPresenter VerticalAlignment="Center" />
                         </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="back" Property="Background" Value="{DynamicResource HoverBack}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -497,9 +447,6 @@
                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                         </Grid>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="veil" Property="Background" Value="{DynamicResource HoverBack}" />
-                            </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="veil" Property="Background" Value="{DynamicResource PressBack}" />
                             </Trigger>
@@ -545,9 +492,6 @@
                             <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
                         </Grid>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="back" Property="Background" Value="{DynamicResource HoverBack}" />
-                            </Trigger>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="line" Property="Background" Value="{DynamicResource TextPrimary}" />
                                 <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
@@ -592,9 +536,6 @@
                             <Border x:Name="bar" Width="2" HorizontalAlignment="Left" Background="{DynamicResource Accent}" Visibility="Collapsed" />
                         </Grid>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="back" Property="Background" Value="{DynamicResource HoverBack}" />
-                            </Trigger>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="back" Property="Background" Value="{DynamicResource Brand100}" />
                                 <Setter TargetName="bar" Property="Visibility" Value="Visible" />
@@ -638,9 +579,6 @@
                             <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
                         </Grid>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="veil" Property="Background" Value="{DynamicResource HoverBack}" />
-                            </Trigger>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="back" Property="Background" Value="{DynamicResource Track}" />
                                 <Setter TargetName="back" Property="BorderBrush" Value="Transparent" />
@@ -730,10 +668,6 @@
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="back" Property="Background" Value="{DynamicResource ContentBack}" />
-                                <Setter TargetName="back" Property="BorderBrush" Value="{DynamicResource Divider}" />
-                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -826,9 +760,6 @@
                                         <ContentPresenter />
                                     </Border>
                                     <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter TargetName="back" Property="Background" Value="{DynamicResource HoverBack}" />
-                                        </Trigger>
                                         <Trigger Property="IsSelected" Value="True">
                                             <Setter TargetName="back" Property="Background" Value="{DynamicResource HoverBack}" />
                                         </Trigger>
@@ -852,11 +783,6 @@
                                                     BorderThickness="1" BorderBrush="{DynamicResource HairLine}" />
                                             <Border x:Name="veil" CornerRadius="{StaticResource RadiusSm}" Background="Transparent" />
                                         </Grid>
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="veil" Property="Background" Value="{DynamicResource HoverBack}" />
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
                                     </ControlTemplate>
                                 </ToggleButton.Template>
                             </ToggleButton>
@@ -902,11 +828,6 @@
                                 Padding="{TemplateBinding Padding}">
                             <ContentPresenter />
                         </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="back" Property="Background" Value="{DynamicResource HoverBack}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -938,9 +859,6 @@
                     <ControlTemplate TargetType="Thumb">
                         <Border x:Name="bar" CornerRadius="{StaticResource RadiusSm}" Margin="3" Background="{DynamicResource Scrim}" />
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bar" Property="Background" Value="#66000000" />
-                            </Trigger>
                             <Trigger Property="IsDragging" Value="True">
                                 <Setter TargetName="bar" Property="Background" Value="#8c000000" />
                             </Trigger>

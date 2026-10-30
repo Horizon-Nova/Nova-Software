@@ -1,8 +1,130 @@
 <UserControl x:Class="HelixStudio.Views.SettingsPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              FontFamily="{StaticResource UiFont}" FontSize="{DynamicResource Text}"
              Foreground="{DynamicResource TextPrimary}" PreviewKeyDown="Escape">
+
+    <!-- 區段、標籤、說明、選項的字是設計圖上固定的字，寫在這裡；值從 vw_settings 來（Values[設定代碼]） -->
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="Shown" />
+
+        <!-- 左邊的分類：一顆展開收起的按鈕，Tag 是 shut 時箭頭轉向右 -->
+        <Style x:Key="AreaButton" TargetType="Button">
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="Transparent" Padding="4,0">
+                            <StackPanel Orientation="Horizontal">
+                                <ContentControl x:Name="chevron" Content="{Binding DataContext.OpenPaths, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                ContentTemplate="{StaticResource LucideIcon14}" VerticalAlignment="Center"
+                                                RenderTransformOrigin="0.5,0.5">
+                                    <ContentControl.RenderTransform>
+                                        <RotateTransform x:Name="turn" Angle="0" />
+                                    </ContentControl.RenderTransform>
+                                </ContentControl>
+                                <ContentPresenter Margin="4,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Tag" Value="shut">
+                                <Setter TargetName="chevron" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <RotateTransform Angle="-90" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 左邊的一節：選中的（Uid 是 on）有淺底、主色字、左邊一條 -->
+        <Style x:Key="SectionButton" TargetType="Button">
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Margin" Value="0,0,0,2" />
+            <Setter Property="Padding" Value="24,0,8,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid>
+                            <Border x:Name="back" CornerRadius="{StaticResource RadiusSm}" Background="Transparent" />
+                            <Border x:Name="veil" CornerRadius="{StaticResource RadiusSm}" Background="Transparent" />
+                            <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                            <Border x:Name="bar" Width="2" Height="16" HorizontalAlignment="Left" VerticalAlignment="Center"
+                                    Background="{DynamicResource Accent}" Visibility="Collapsed" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Uid" Value="on">
+                                <Setter TargetName="back" Property="Background" Value="{DynamicResource Brand100}" />
+                                <Setter TargetName="bar" Property="Visibility" Value="Visible" />
+                                <Setter Property="Foreground" Value="{DynamicResource Brand700}" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                            </Trigger>
+                            <!-- 「工具」底下那一支（Chosen 是選中的那一支） -->
+                            <DataTrigger Binding="{Binding Chosen}" Value="True">
+                                <Setter TargetName="back" Property="Background" Value="{DynamicResource Brand100}" />
+                                <Setter TargetName="bar" Property="Visibility" Value="Visible" />
+                                <Setter Property="Foreground" Value="{DynamicResource Brand700}" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 右邊一節的標題：分類 › 節，下方一條細線 -->
+        <Style x:Key="SectionHead" TargetType="Border">
+            <Setter Property="BorderBrush" Value="{DynamicResource HairLine}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="Padding" Value="0,16,0,4" />
+        </Style>
+
+        <!-- 一項一列：名稱、控制項與旁邊那一句、回復預設 -->
+        <Style x:Key="SettingRow" TargetType="Border">
+            <Setter Property="BorderBrush" Value="{DynamicResource Track}" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="MinHeight" Value="30" />
+        </Style>
+
+        <!-- 列名：200 寬，太長截斷，說明放提示框 -->
+        <Style x:Key="RowLabel" TargetType="TextBlock">
+            <Setter Property="Width" Value="200" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+        </Style>
+
+        <!-- 開關旁邊那一句 -->
+        <Style x:Key="Inline" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+
+        <!-- 回復預設：改過才出現 -->
+        <Style x:Key="ResetButton" TargetType="Button" BasedOn="{StaticResource LinkButton}">
+            <Setter Property="Height" Value="{DynamicResource ControlHeight}" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Content">
+                <Setter.Value>
+                    <TextBlock Text="回復預設" TextDecorations="Underline" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
 
     <!-- 遮罩：點旁邊就關掉 -->
     <Border Background="{DynamicResource Scrim}" MouseLeftButtonDown="Dismiss">
@@ -37,7 +159,7 @@
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="0" Text="{Binding Title}" FontSize="{DynamicResource Text}"
+                        <TextBlock Grid.Column="0" Text="設定" FontSize="{DynamicResource Text}"
                                    FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,12,0" />
 
                         <Border Grid.Column="1" Style="{StaticResource SearchFrame}" Width="320" VerticalAlignment="Center">
@@ -54,8 +176,8 @@
                                                 VerticalAlignment="Center" IsHitTestVisible="False" />
 
                                 <Grid Grid.Column="1" Margin="8,0">
-                                    <TextBox x:Name="Search" Style="{StaticResource SearchBox}" TextChanged="Find" />
-                                    <TextBlock Text="{Binding Hint}" Foreground="{DynamicResource TextFaint}"
+                                    <TextBox x:Name="Search" Style="{StaticResource SearchBox}" TextChanged="Find" MaxLength="100" />
+                                    <TextBlock Text="搜尋設定" Foreground="{DynamicResource TextFaint}"
                                                VerticalAlignment="Center" IsHitTestVisible="False">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
@@ -70,20 +192,13 @@
                                     </TextBlock>
                                 </Grid>
 
-                                <ItemsControl Grid.Column="2" ItemsSource="{Binding Clears}" VerticalAlignment="Center">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Button Style="{StaticResource WindowButton}" Width="24" Height="24"
-                                                    ToolTip="清除搜尋" Click="Clear"
-                                                    ContentTemplate="{StaticResource LucideIcon12}"
-                                                    Content="{Binding DataContext.ClosePaths, RelativeSource={RelativeSource AncestorType=UserControl}}" />
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                                <Button x:Name="ClearButton" Grid.Column="2" Style="{StaticResource WindowButton}" Width="24" Height="24"
+                                        ToolTip="清除搜尋" Click="Clear" Visibility="Collapsed"
+                                        ContentTemplate="{StaticResource LucideIcon12}" Content="{Binding ClosePaths}" VerticalAlignment="Center" />
                             </Grid>
                         </Border>
 
-                        <TextBlock Grid.Column="2" Text="{Binding Count}" FontSize="{DynamicResource Text}"
+                        <TextBlock x:Name="Count" Grid.Column="2" FontSize="{DynamicResource Text}"
                                    Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center"
                                    Margin="12,0,0,0" />
 
@@ -99,105 +214,57 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- 左邊：分類與節 -->
+                    <!-- 左邊：分類與節（Tag 是那一節的代碼）；「工具」底下是有設定畫面的每一支 -->
                     <Border Grid.Column="0" Background="{DynamicResource ContentBack}"
                             BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,1,0">
                         <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="8,12">
-                            <ItemsControl ItemsSource="{Binding Nav}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid>
-                                            <!-- 分類：一顆展開收起的按鈕 -->
-                                            <Button Click="Twist">
-                                                <Button.Style>
-                                                    <Style TargetType="Button" BasedOn="{StaticResource LinkButton}">
-                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                        <Setter Property="Height" Value="28" />
-                                                        <Setter Property="Padding" Value="4,0" />
-                                                        <Setter Property="HorizontalContentAlignment" Value="Left" />
-                                                        <Setter Property="FontSize" Value="{DynamicResource Text}" />
-                                                        <Setter Property="FontWeight" Value="SemiBold" />
-                                                        <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Parent}" Value="True">
-                                                                <Setter Property="Visibility" Value="Visible" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Button.Style>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <ContentControl Content="{Binding Paths}"
-                                                                    Foreground="{DynamicResource TextFaint}"
-                                                                    ContentTemplate="{StaticResource LucideIcon14}"
-                                                                    VerticalAlignment="Center" />
-                                                    <TextBlock Text="{Binding Text}" Margin="4,0,0,0"
-                                                               VerticalAlignment="Center" />
-                                                </StackPanel>
-                                            </Button>
+                            <StackPanel x:Name="Nav">
+                                <Button Style="{StaticResource AreaButton}" Tag="open" Uid="device" Click="Twist" Content="這台裝置" />
+                                <StackPanel Uid="device">
+                                    <Button Style="{StaticResource SectionButton}" Tag="general" Click="PickSection" Content="一般" />
+                                    <Button Style="{StaticResource SectionButton}" Tag="update" Click="PickSection" Content="工具套件" />
+                                    <Button Style="{StaticResource SectionButton}" Tag="notify" Click="PickSection" Content="通知" />
+                                </StackPanel>
 
-                                            <!-- 節：選中的有底色與左邊那一條 -->
-                                            <Button Click="PickSection" Padding="24,0,8,0" MinHeight="{DynamicResource ControlHeight}">
-                                                <Button.Style>
-                                                    <Style TargetType="Button" BasedOn="{StaticResource FillButton}">
-                                                        <Setter Property="Visibility" Value="Collapsed" />
-                                                        <Setter Property="HorizontalContentAlignment" Value="Left" />
-                                                        <Setter Property="Margin" Value="0,0,0,2" />
-                                                        <Setter Property="Height" Value="28" />
-                                                        <Setter Property="FontWeight" Value="Normal" />
-                                                        <Setter Property="BorderBrush" Value="Transparent" />
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding Parent}" Value="False">
-                                                                <Setter Property="Visibility" Value="Visible" />
-                                                            </DataTrigger>
-                                                            <DataTrigger Binding="{Binding Chosen}" Value="True">
-                                                                <Setter Property="FontWeight" Value="SemiBold" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Button.Style>
-                                                <Button.Background><Binding Path="Back" /></Button.Background>
-                                                <Button.Foreground><Binding Path="Ink" /></Button.Foreground>
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Text}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                                                    <ItemsControl Grid.Column="1" ItemsSource="{Binding LockPaths}" VerticalAlignment="Center" Margin="8,0,0,0">
-                                                        <ItemsControl.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <ContentControl Content="{Binding}" ContentTemplate="{StaticResource LucideIcon14}" />
-                                                            </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
-                                                    </ItemsControl>
-                                                    <TextBlock Grid.Column="2" Text="{Binding Left}" Margin="4,0,0,0" VerticalAlignment="Center"
-                                                               FontSize="{DynamicResource Text}" FontWeight="Normal">
-                                                        <TextBlock.Style>
-                                                            <Style TargetType="TextBlock" BasedOn="{StaticResource Mono}">
-                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding Open}" Value="True">
-                                                                        <Setter Property="Visibility" Value="Visible" />
-                                                                    </DataTrigger>
-                                                                </Style.Triggers>
-                                                            </Style>
-                                                        </TextBlock.Style>
-                                                    </TextBlock>
-                                                </Grid>
-                                            </Button>
+                                <Button Style="{StaticResource AreaButton}" Tag="open" Uid="work" Click="Twist" Content="工作方式" />
+                                <StackPanel Uid="work">
+                                    <Button Style="{StaticResource SectionButton}" Tag="floor" Click="PickSection" Content="現場操作與顯示" />
+                                </StackPanel>
 
-                                            <Border Width="2" Height="16" HorizontalAlignment="Left"
-                                                    VerticalAlignment="Center" Background="{Binding Bar}"
-                                                    IsHitTestVisible="False" />
-                                        </Grid>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                                <Button Style="{StaticResource AreaButton}" Tag="open" Uid="support" Click="Twist" Content="支援" />
+                                <StackPanel Uid="support">
+                                    <Button Style="{StaticResource SectionButton}" Tag="about" Click="PickSection" Content="關於本軟體" />
+                                </StackPanel>
+
+                                <Button x:Name="ToolsArea" Style="{StaticResource AreaButton}" Tag="open" Uid="tools" Click="Twist" Content="工具" />
+                                <StackPanel Uid="tools">
+                                    <ItemsControl x:Name="ToolNav" ItemsSource="{Binding Tools}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button Style="{StaticResource SectionButton}" Tag="{Binding Key}" Click="PickSection">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <TextBlock Text="{Binding Text}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                                        <ContentControl Grid.Column="1" Content="{Binding LockPaths}" ContentTemplate="{StaticResource LucideIcon14}"
+                                                                        VerticalAlignment="Center" Margin="8,0,0,0" />
+                                                        <TextBlock Grid.Column="2" Text="{Binding Left}" Margin="4,0,0,0" VerticalAlignment="Center"
+                                                                   FontSize="{DynamicResource Text}" FontWeight="Normal"
+                                                                   Visibility="{Binding Open, Converter={StaticResource Shown}}" Style="{StaticResource Mono}" />
+                                                    </Grid>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </StackPanel>
                         </ScrollViewer>
                     </Border>
 
-                    <!-- 右邊：這一節的每一群 -->
+                    <!-- 右邊：每一節一段（Tag 是那一節的代碼）；一項一列（Uid 是 row，Tag 是搜尋比對的字） -->
                     <ScrollViewer x:Name="Page" Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="24,4,24,16">
                         <Grid>
                             <StackPanel>
@@ -231,174 +298,210 @@
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
 
-                                <!-- 每一節一段：標題、一項一列、使用紀錄表、危險區 -->
-                                <ItemsControl x:Name="SectionList" ItemsSource="{Binding Sections}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <StackPanel Margin="0,0,0,8">
-                                                <!-- 節標題：分類 › 節，下方一條細線 -->
-                                                <Border BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1" Padding="0,16,0,4">
-                                                    <TextBlock ToolTip="{Binding Note}">
-                                                        <Run Text="{Binding Area, Mode=OneWay}" FontSize="{DynamicResource Text}" Foreground="{DynamicResource TextFaint}" />
-                                                        <Run Text="›" FontSize="{DynamicResource Text}" Foreground="{DynamicResource TextFaint}" />
-                                                        <Run Text="{Binding Title, Mode=OneWay}" FontWeight="SemiBold" />
-                                                    </TextBlock>
-                                                </Border>
+                                <StackPanel x:Name="Sections">
+                                    <!-- 這台裝置 › 一般 -->
+                                    <StackPanel Tag="general" Margin="0,0,0,8">
+                                        <Border Style="{StaticResource SectionHead}">
+                                            <TextBlock ToolTip="這台裝置的啟動與登入行為，變更在下次開機生效。">
+                                                <Run Text="這台裝置" Foreground="{DynamicResource TextFaint}" /> <Run Text="›" Foreground="{DynamicResource TextFaint}" /> <Run Text="一般" FontWeight="SemiBold" />
+                                            </TextBlock>
+                                        </Border>
+                                        <Border Style="{StaticResource SettingRow}" Uid="row" Tag="開機時自動啟動 交接班不必手動開啟 一般">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Width="72" Style="{StaticResource ResetButton}" Tag="launchOnBoot" Click="Reset"
+                                                        Visibility="{Binding Values[launchOnBoot].Moved, Converter={StaticResource Shown}}" />
+                                                <TextBlock Style="{StaticResource RowLabel}" Text="開機時自動啟動" />
+                                                <CheckBox Style="{StaticResource SettingSwitch}" Tag="launchOnBoot" Margin="0,4"
+                                                          IsChecked="{Binding Values[launchOnBoot].On, Mode=OneWay}" Click="Flip">
+                                                    <TextBlock Style="{StaticResource Inline}" Text="交接班不必手動開啟" />
+                                                </CheckBox>
+                                            </DockPanel>
+                                        </Border>
+                                    </StackPanel>
 
-                                                <!-- 一項一列：名稱、控制項與旁邊那一句、回復預設 -->
-                                                <ItemsControl ItemsSource="{Binding Rows}">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <Border BorderBrush="{DynamicResource Track}" BorderThickness="0,0,0,1" MinHeight="30">
-                                                                <Grid>
-                                                                    <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="200" />
-                                                                        <ColumnDefinition Width="*" />
-                                                                        <ColumnDefinition Width="72" />
-                                                                    </Grid.ColumnDefinitions>
-                                                                    <TextBlock Grid.Column="0" Text="{Binding Label}" VerticalAlignment="Center" FontSize="{DynamicResource Text}"
-                                                                               TextTrimming="CharacterEllipsis" ToolTip="{Binding Tip}" />
+                                    <!-- 這台裝置 › 工具套件 -->
+                                    <StackPanel Tag="update" Margin="0,0,0,8">
+                                        <Border Style="{StaticResource SectionHead}">
+                                            <TextBlock>
+                                                <Run Text="這台裝置" Foreground="{DynamicResource TextFaint}" /> <Run Text="›" Foreground="{DynamicResource TextFaint}" /> <Run Text="工具套件" FontWeight="SemiBold" />
+                                            </TextBlock>
+                                        </Border>
+                                        <Border Style="{StaticResource SettingRow}" Uid="row" Tag="套件庫資料夾 平台從這個資料夾讀可以匯入的工具套件。廠區離線部署，不會連到外網。 工具套件">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Width="72" Style="{StaticResource ResetButton}" Tag="source" Click="Reset"
+                                                        Visibility="{Binding Values[source].Moved, Converter={StaticResource Shown}}" />
+                                                <TextBlock Style="{StaticResource RowLabel}" Text="套件庫資料夾"
+                                                           ToolTip="平台從這個資料夾讀可以匯入的工具套件。廠區離線部署，不會連到外網。" />
+                                                <ComboBox Style="{StaticResource SettingChoice}" MinWidth="200" HorizontalAlignment="Left" Margin="0,4"
+                                                          ItemsSource="{Binding Values[source].Paths}" SelectedItem="{Binding Values[source].Path, Mode=OneWay}" />
+                                            </DockPanel>
+                                        </Border>
+                                    </StackPanel>
 
-                                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,4">
-                                                                        <ItemsControl ItemsSource="{Binding Toggles}">
-                                                                            <ItemsControl.ItemTemplate>
-                                                                                <DataTemplate>
-                                                                                    <CheckBox Style="{StaticResource SettingSwitch}"
-                                                                                              IsChecked="{Binding On, Mode=OneWay}"
-                                                                                              Checked="Flip" Unchecked="Flip">
-                                                                                        <TextBlock Text="{Binding Inline}" FontSize="{DynamicResource Text}"
-                                                                                                   Foreground="{DynamicResource TextSecondary}" TextWrapping="Wrap" />
-                                                                                    </CheckBox>
-                                                                                </DataTemplate>
-                                                                            </ItemsControl.ItemTemplate>
-                                                                        </ItemsControl>
-                                                                        <ItemsControl ItemsSource="{Binding Choices}">
-                                                                            <ItemsControl.ItemTemplate>
-                                                                                <DataTemplate>
-                                                                                    <ComboBox Style="{StaticResource SettingChoice}" MinWidth="200" Height="{DynamicResource ControlHeight}"
-                                                                                              HorizontalAlignment="Left" FontSize="{DynamicResource Text}"
-                                                                                              ItemsSource="{Binding Options}"
-                                                                                              SelectedItem="{Binding Value, Mode=OneWay}"
-                                                                                              SelectionChanged="Choose" />
-                                                                                </DataTemplate>
-                                                                            </ItemsControl.ItemTemplate>
-                                                                        </ItemsControl>
-                                                                        <ItemsControl ItemsSource="{Binding Infos}">
-                                                                            <ItemsControl.ItemTemplate>
-                                                                                <DataTemplate>
-                                                                                    <TextBlock Text="{Binding}" Style="{StaticResource MonoText}"
-                                                                                               Foreground="{DynamicResource TextPrimary}" TextWrapping="Wrap" />
-                                                                                </DataTemplate>
-                                                                            </ItemsControl.ItemTemplate>
-                                                                        </ItemsControl>
-                                                                    </StackPanel>
+                                    <!-- 這台裝置 › 通知 -->
+                                    <StackPanel Tag="notify" Margin="0,0,0,8">
+                                        <Border Style="{StaticResource SectionHead}">
+                                            <TextBlock>
+                                                <Run Text="這台裝置" Foreground="{DynamicResource TextFaint}" /> <Run Text="›" Foreground="{DynamicResource TextFaint}" /> <Run Text="通知" FontWeight="SemiBold" />
+                                            </TextBlock>
+                                        </Border>
+                                        <Border Style="{StaticResource SettingRow}" Uid="row" Tag="通知音效 廠區噪音大時通常關閉 通知">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Width="72" Style="{StaticResource ResetButton}" Tag="notifySound" Click="Reset"
+                                                        Visibility="{Binding Values[notifySound].Moved, Converter={StaticResource Shown}}" />
+                                                <TextBlock Style="{StaticResource RowLabel}" Text="通知音效" />
+                                                <CheckBox Style="{StaticResource SettingSwitch}" Tag="notifySound" Margin="0,4"
+                                                          IsChecked="{Binding Values[notifySound].On, Mode=OneWay}" Click="Flip">
+                                                    <TextBlock Style="{StaticResource Inline}" Text="廠區噪音大時通常關閉" />
+                                                </CheckBox>
+                                            </DockPanel>
+                                        </Border>
+                                    </StackPanel>
 
-                                                                    <ItemsControl Grid.Column="2" ItemsSource="{Binding Moveds}" VerticalAlignment="Center">
-                                                                        <ItemsControl.ItemTemplate>
-                                                                            <DataTemplate>
-                                                                                <Button Style="{StaticResource LinkButton}" Height="{DynamicResource ControlHeight}" Padding="0"
-                                                                                        HorizontalAlignment="Right" FontSize="{DynamicResource Text}" Click="Reset">
-                                                                                    <TextBlock Text="{Binding Label}" TextDecorations="Underline" />
-                                                                                </Button>
-                                                                            </DataTemplate>
-                                                                        </ItemsControl.ItemTemplate>
-                                                                    </ItemsControl>
-                                                                </Grid>
-                                                            </Border>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
+                                    <!-- 工作方式 › 現場操作與顯示 -->
+                                    <StackPanel Tag="floor" Margin="0,0,0,8">
+                                        <Border Style="{StaticResource SectionHead}">
+                                            <TextBlock ToolTip="針對戴手套、站著操作、廠區光線強的環境調整。">
+                                                <Run Text="工作方式" Foreground="{DynamicResource TextFaint}" /> <Run Text="›" Foreground="{DynamicResource TextFaint}" /> <Run Text="現場操作與顯示" FontWeight="SemiBold" />
+                                            </TextBlock>
+                                        </Border>
+                                        <Border Style="{StaticResource SettingRow}" Uid="row" Tag="大按鈕模式 按鈕與輸入框加高到 44px 以上 現場操作與顯示">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Width="72" Style="{StaticResource ResetButton}" Tag="bigTargets" Click="Reset"
+                                                        Visibility="{Binding Values[bigTargets].Moved, Converter={StaticResource Shown}}" />
+                                                <TextBlock Style="{StaticResource RowLabel}" Text="大按鈕模式" />
+                                                <CheckBox Style="{StaticResource SettingSwitch}" Tag="bigTargets" Margin="0,4"
+                                                          IsChecked="{Binding Values[bigTargets].On, Mode=OneWay}" Click="Flip">
+                                                    <TextBlock Style="{StaticResource Inline}" Text="按鈕與輸入框加高到 44px 以上" />
+                                                </CheckBox>
+                                            </DockPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource SettingRow}" Uid="row" Tag="文字大小 站在機台旁看螢幕時可以放大。 現場操作與顯示">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Width="72" Style="{StaticResource ResetButton}" Tag="textScale" Click="Reset"
+                                                        Visibility="{Binding Values[textScale].Moved, Converter={StaticResource Shown}}" />
+                                                <TextBlock Style="{StaticResource RowLabel}" Text="文字大小" ToolTip="站在機台旁看螢幕時可以放大。" />
+                                                <ComboBox Style="{StaticResource SettingChoice}" MinWidth="200" HorizontalAlignment="Left" Margin="0,4" Tag="textScale"
+                                                          SelectedValuePath="Tag" SelectedValue="{Binding Values[textScale].Number, Mode=OneWay}" SelectionChanged="Choose">
+                                                    <ComboBoxItem Content="標準 100%"><ComboBoxItem.Tag><sys:Int32>100</sys:Int32></ComboBoxItem.Tag></ComboBoxItem>
+                                                    <ComboBoxItem Content="放大 115%"><ComboBoxItem.Tag><sys:Int32>115</sys:Int32></ComboBoxItem.Tag></ComboBoxItem>
+                                                    <ComboBoxItem Content="放大 130%"><ComboBoxItem.Tag><sys:Int32>130</sys:Int32></ComboBoxItem.Tag></ComboBoxItem>
+                                                </ComboBox>
+                                            </DockPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource SettingRow}" Uid="row" Tag="使用中保持螢幕不休眠 作業中不會自動鎖定 現場操作與顯示">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Width="72" Style="{StaticResource ResetButton}" Tag="screenAwake" Click="Reset"
+                                                        Visibility="{Binding Values[screenAwake].Moved, Converter={StaticResource Shown}}" />
+                                                <TextBlock Style="{StaticResource RowLabel}" Text="使用中保持螢幕不休眠" />
+                                                <CheckBox Style="{StaticResource SettingSwitch}" Tag="screenAwake" Margin="0,4"
+                                                          IsChecked="{Binding Values[screenAwake].On, Mode=OneWay}" Click="Flip">
+                                                    <TextBlock Style="{StaticResource Inline}" Text="作業中不會自動鎖定" />
+                                                </CheckBox>
+                                            </DockPanel>
+                                        </Border>
+                                        <Border Style="{StaticResource SettingRow}" Uid="row" Tag="高對比顯示 日照強的區域建議開啟 現場操作與顯示">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Width="72" Style="{StaticResource ResetButton}" Tag="highContrast" Click="Reset"
+                                                        Visibility="{Binding Values[highContrast].Moved, Converter={StaticResource Shown}}" />
+                                                <TextBlock Style="{StaticResource RowLabel}" Text="高對比顯示" />
+                                                <CheckBox Style="{StaticResource SettingSwitch}" Tag="highContrast" Margin="0,4"
+                                                          IsChecked="{Binding Values[highContrast].On, Mode=OneWay}" Click="Flip">
+                                                    <TextBlock Style="{StaticResource Inline}" Text="日照強的區域建議開啟" />
+                                                </CheckBox>
+                                            </DockPanel>
+                                        </Border>
+                                    </StackPanel>
 
-                                                <!-- 關於本軟體：每支工具的使用紀錄，一格一個值 -->
-                                                <ItemsControl ItemsSource="{Binding Ledgers}">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <StackPanel Margin="0,4,0,0">
-                                                                <TextBlock Text="每支工具的使用紀錄，最近用過的在前" FontSize="{DynamicResource Text}"
-                                                                           Foreground="{DynamicResource TextMuted}" Margin="0,4" />
-                                                                <Border BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1" Height="28">
-                                                                    <Grid TextElement.FontSize="{DynamicResource Text}" TextElement.Foreground="{DynamicResource TextMuted}">
-                                                                        <Grid.ColumnDefinitions>
-                                                                            <ColumnDefinition Width="*" />
-                                                                            <ColumnDefinition Width="128" />
-                                                                            <ColumnDefinition Width="56" />
-                                                                            <ColumnDefinition Width="128" />
-                                                                            <ColumnDefinition Width="56" />
-                                                                            <ColumnDefinition Width="128" />
-                                                                            <ColumnDefinition Width="72" />
-                                                                        </Grid.ColumnDefinitions>
-                                                                        <TextBlock Grid.Column="0" Text="工具" VerticalAlignment="Center" />
-                                                                        <TextBlock Grid.Column="1" Text="啟用" Margin="12,0,0,0" VerticalAlignment="Center" />
-                                                                        <TextBlock Grid.Column="2" Text="開啟次數" TextAlignment="Right" VerticalAlignment="Center" />
-                                                                        <TextBlock Grid.Column="3" Text="最後開啟" Margin="12,0,0,0" VerticalAlignment="Center" />
-                                                                        <TextBlock Grid.Column="4" Text="解鎖次數" TextAlignment="Right" VerticalAlignment="Center" />
-                                                                        <TextBlock Grid.Column="5" Text="最後解鎖" Margin="12,0,0,0" VerticalAlignment="Center" />
-                                                                        <TextBlock Grid.Column="6" Text="金鑰到期" Margin="12,0,0,0" VerticalAlignment="Center" />
-                                                                    </Grid>
-                                                                </Border>
-                                                                <ItemsControl ItemsSource="{Binding}">
-                                                                    <ItemsControl.ItemTemplate>
-                                                                        <DataTemplate>
-                                                                            <Border BorderBrush="{DynamicResource Track}" BorderThickness="0,0,0,1" Height="28">
-                                                                                <Grid TextElement.FontSize="{DynamicResource Text}">
-                                                                                    <Grid.ColumnDefinitions>
-                                                                                        <ColumnDefinition Width="*" />
-                                                                                        <ColumnDefinition Width="128" />
-                                                                                        <ColumnDefinition Width="56" />
-                                                                                        <ColumnDefinition Width="128" />
-                                                                                        <ColumnDefinition Width="56" />
-                                                                                        <ColumnDefinition Width="128" />
-                                                                                        <ColumnDefinition Width="72" />
-                                                                                    </Grid.ColumnDefinitions>
-                                                                                    <TextBlock Grid.Column="0" Text="{Binding name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                                                                                    <TextBlock Grid.Column="1" Text="{Binding activated_text, TargetNullValue=—}" Margin="12,0,0,0" Style="{StaticResource Mono}" VerticalAlignment="Center" />
-                                                                                    <TextBlock Grid.Column="2" Text="{Binding opens}" Style="{StaticResource Mono}" TextAlignment="Right" VerticalAlignment="Center" />
-                                                                                    <TextBlock Grid.Column="3" Text="{Binding last_open_text, TargetNullValue=—}" Margin="12,0,0,0" Style="{StaticResource Mono}" VerticalAlignment="Center" />
-                                                                                    <TextBlock Grid.Column="4" Text="{Binding unlocks}" Style="{StaticResource Mono}" TextAlignment="Right" VerticalAlignment="Center" />
-                                                                                    <TextBlock Grid.Column="5" Text="{Binding last_unlock_text, TargetNullValue=—}" Margin="12,0,0,0" Style="{StaticResource Mono}" VerticalAlignment="Center" />
-                                                                                    <TextBlock Grid.Column="6" Text="{Binding expires_text, TargetNullValue=—}" Margin="12,0,0,0" VerticalAlignment="Center" />
-                                                                                </Grid>
-                                                                            </Border>
-                                                                        </DataTemplate>
-                                                                    </ItemsControl.ItemTemplate>
-                                                                </ItemsControl>
-                                                            </StackPanel>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
+                                    <!-- 支援 › 關於本軟體 -->
+                                    <StackPanel Tag="about" Margin="0,0,0,8">
+                                        <Border Style="{StaticResource SectionHead}">
+                                            <TextBlock>
+                                                <Run Text="支援" Foreground="{DynamicResource TextFaint}" /> <Run Text="›" Foreground="{DynamicResource TextFaint}" /> <Run Text="關於本軟體" FontWeight="SemiBold" />
+                                            </TextBlock>
+                                        </Border>
+                                        <Border Style="{StaticResource SettingRow}" Uid="row" Tag="工具設定解鎖多久 輸入工具金鑰後，工具設定開放修改的時間；時間到自動鎖回，金鑰不留在這台電腦。 關於本軟體">
+                                            <DockPanel>
+                                                <Button DockPanel.Dock="Right" Width="72" Style="{StaticResource ResetButton}" Tag="toolKeyMinutes" Click="Reset"
+                                                        Visibility="{Binding Values[toolKeyMinutes].Moved, Converter={StaticResource Shown}}" />
+                                                <TextBlock Style="{StaticResource RowLabel}" Text="工具設定解鎖多久"
+                                                           ToolTip="輸入工具金鑰後，工具設定開放修改的時間；時間到自動鎖回，金鑰不留在這台電腦。" />
+                                                <ComboBox Style="{StaticResource SettingChoice}" MinWidth="200" HorizontalAlignment="Left" Margin="0,4" Tag="toolKeyMinutes"
+                                                          SelectedValuePath="Tag" SelectedValue="{Binding Values[toolKeyMinutes].Number, Mode=OneWay}" SelectionChanged="Choose">
+                                                    <ComboBoxItem Content="5 分鐘"><ComboBoxItem.Tag><sys:Int32>5</sys:Int32></ComboBoxItem.Tag></ComboBoxItem>
+                                                </ComboBox>
+                                            </DockPanel>
+                                        </Border>
 
-                                                <!-- 危險區：有框、放在這一節最後 -->
-                                                <ItemsControl ItemsSource="{Binding Dangers}">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <Border Margin="0,12,0,0" Padding="12,8" CornerRadius="{StaticResource RadiusMd}" BorderThickness="1"
-                                                                    BorderBrush="{DynamicResource DangerLine}">
-                                                                <Grid>
-                                                                    <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="*" />
-                                                                        <ColumnDefinition Width="Auto" />
-                                                                    </Grid.ColumnDefinitions>
-                                                                    <TextBlock FontSize="{DynamicResource Text}" Foreground="{DynamicResource TextSecondary}"
-                                                                               VerticalAlignment="Center" TextWrapping="Wrap">
-                                                                        <Run Text="{Binding Label, Mode=OneWay}" /><Run Text="：" /><Run Text="{Binding Tip, Mode=OneWay}" />
-                                                                    </TextBlock>
-                                                                    <ItemsControl Grid.Column="1" ItemsSource="{Binding Actions}" Margin="12,0,0,0">
-                                                                        <ItemsControl.ItemTemplate>
-                                                                            <DataTemplate>
-                                                                                <Button Style="{StaticResource FillButton}" FontWeight="Normal" FontSize="{DynamicResource Text}"
-                                                                                        Content="{Binding Label}" Foreground="{Binding Ink}" BorderBrush="{Binding Line}" Click="Act" />
-                                                                            </DataTemplate>
-                                                                        </ItemsControl.ItemTemplate>
-                                                                    </ItemsControl>
-                                                                </Grid>
-                                                            </Border>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </StackPanel>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                                        <!-- 每支工具的使用紀錄，一格一個值 -->
+                                        <StackPanel Margin="0,4,0,0">
+                                            <TextBlock Text="每支工具的使用紀錄，最近用過的在前" FontSize="{DynamicResource Text}"
+                                                       Foreground="{DynamicResource TextMuted}" Margin="0,4" />
+                                            <Border BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1" Height="28">
+                                                <Grid TextElement.FontSize="{DynamicResource Text}" TextElement.Foreground="{DynamicResource TextMuted}">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="128" />
+                                                        <ColumnDefinition Width="56" />
+                                                        <ColumnDefinition Width="128" />
+                                                        <ColumnDefinition Width="56" />
+                                                        <ColumnDefinition Width="128" />
+                                                        <ColumnDefinition Width="72" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="工具" VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="1" Text="啟用" Margin="12,0,0,0" VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="2" Text="開啟次數" TextAlignment="Right" VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="3" Text="最後開啟" Margin="12,0,0,0" VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="4" Text="解鎖次數" TextAlignment="Right" VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="5" Text="最後解鎖" Margin="12,0,0,0" VerticalAlignment="Center" />
+                                                    <TextBlock Grid.Column="6" Text="金鑰到期" Margin="12,0,0,0" VerticalAlignment="Center" />
+                                                </Grid>
+                                            </Border>
+                                            <ItemsControl ItemsSource="{Binding Ledgers}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border BorderBrush="{DynamicResource Track}" BorderThickness="0,0,0,1" Height="28">
+                                                            <Grid TextElement.FontSize="{DynamicResource Text}">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="128" />
+                                                                    <ColumnDefinition Width="56" />
+                                                                    <ColumnDefinition Width="128" />
+                                                                    <ColumnDefinition Width="56" />
+                                                                    <ColumnDefinition Width="128" />
+                                                                    <ColumnDefinition Width="72" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock Grid.Column="0" Text="{Binding name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                                                <TextBlock Grid.Column="1" Text="{Binding activated_text, TargetNullValue=—}" Margin="12,0,0,0" Style="{StaticResource Mono}" VerticalAlignment="Center" />
+                                                                <TextBlock Grid.Column="2" Text="{Binding opens}" Style="{StaticResource Mono}" TextAlignment="Right" VerticalAlignment="Center" />
+                                                                <TextBlock Grid.Column="3" Text="{Binding last_open_text, TargetNullValue=—}" Margin="12,0,0,0" Style="{StaticResource Mono}" VerticalAlignment="Center" />
+                                                                <TextBlock Grid.Column="4" Text="{Binding unlocks}" Style="{StaticResource Mono}" TextAlignment="Right" VerticalAlignment="Center" />
+                                                                <TextBlock Grid.Column="5" Text="{Binding last_unlock_text, TargetNullValue=—}" Margin="12,0,0,0" Style="{StaticResource Mono}" VerticalAlignment="Center" />
+                                                                <TextBlock Grid.Column="6" Text="{Binding expires_text, TargetNullValue=—}" Margin="12,0,0,0" VerticalAlignment="Center" />
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+
+                                        <!-- 危險區：有框、放在這一節最後 -->
+                                        <Border Margin="0,12,0,0" Padding="12,8" CornerRadius="{StaticResource RadiusMd}" BorderThickness="1"
+                                                BorderBrush="{DynamicResource DangerLine}" Uid="row" Tag="回復成資訊部建議設定 只重設這台裝置上的偏好，不影響已安裝的工具。 關於本軟體">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock FontSize="{DynamicResource Text}" Foreground="{DynamicResource TextSecondary}"
+                                                           VerticalAlignment="Center" TextWrapping="Wrap"
+                                                           Text="回復成資訊部建議設定：只重設這台裝置上的偏好，不影響已安裝的工具。" />
+                                                <Button Grid.Column="1" Margin="12,0,0,0" Style="{StaticResource FillButton}" FontWeight="Normal" FontSize="{DynamicResource Text}"
+                                                        Content="回復預設" Foreground="{DynamicResource Danger}" BorderBrush="{DynamicResource DangerLine}" Click="Revert" />
+                                            </Grid>
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
 
                                 <!-- 工具的那一節：那支工具自己的設定畫面掛在這裡 -->
                                 <ContentControl x:Name="ToolPane" Focusable="False" />

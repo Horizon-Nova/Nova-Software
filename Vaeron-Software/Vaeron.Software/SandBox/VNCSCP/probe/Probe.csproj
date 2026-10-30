@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <!-- 用反射驅動 VNCSCP 既有的 RfbFileTransferClient，對真的 UltraVNC 伺服器實測傳檔與傳資料夾；只在 SandBox，非產品 -->
+  <!-- 用反射驅動 VNCSCP 既有的 RfbFileTransferClient，對真的 UltraVNC 伺服器實測傳檔與傳資料夾；只在 SandBox，非產品；舊版 VNCSCP 已刪（git 的 b76deee 還有），這支已不能跑 -->
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>

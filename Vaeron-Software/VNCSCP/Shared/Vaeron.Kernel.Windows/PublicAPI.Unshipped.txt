@@ -1,4 +1,0 @@
-﻿#nullable enable
-Vaeron.Kernel.Windows.DpapiProtector
-static Vaeron.Kernel.Windows.DpapiProtector.Protect(byte[]! plain) -> Vaeron.Kernel.Result<byte[]!>
-static Vaeron.Kernel.Windows.DpapiProtector.Unprotect(byte[]! cipher) -> Vaeron.Kernel.Result<byte[]!>

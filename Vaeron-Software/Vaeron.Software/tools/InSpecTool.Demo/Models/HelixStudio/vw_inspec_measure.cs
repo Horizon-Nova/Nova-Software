@@ -21,49 +21,91 @@ namespace Models.HelixStudio;
 [Keyless]
 public partial class vw_inspec_measure
 {
+    /// <summary>setting＝一項設定；field＝一個欄位；run＝一次執行</summary>
+    [Column(TypeName = "character varying")]
     public string? type { get; set; }
 
+    /// <summary>inspec 那一列的流水號（寫回去照它換整列）</summary>
     public int? id { get; set; }
 
-    public string? search_folder { get; set; }
+    /// <summary>[setting] 哪一項（見 inspec.setting_key）</summary>
+    [Column(TypeName = "character varying")]
+    public string? setting_key { get; set; }
 
-    public string? log_folder { get; set; }
+    /// <summary>[setting] 開關類的值（showResult）</summary>
+    public bool? enabled { get; set; }
 
-    public string? backup_folder { get; set; }
+    /// <summary>[setting] 數字類的值：scanInterval 毫秒、leftWidth px（沒拖過是空的）</summary>
+    public decimal? number { get; set; }
 
-    public int? scan_interval { get; set; }
+    /// <summary>[setting] 路徑類的值；還沒選是空的</summary>
+    [Column(TypeName = "character varying")]
+    public string? path { get; set; }
 
-    public bool? show_result { get; set; }
-
-    public double? left_width { get; set; }
-
+    /// <summary>[field] 欄位名稱</summary>
+    [Column(TypeName = "character varying")]
     public string? name { get; set; }
 
+    /// <summary>[field] 對應的 InSpec 提示文字</summary>
+    [Column(TypeName = "character varying")]
     public string? prompt { get; set; }
 
+    /// <summary>[field] fill＝直接填；confirm＝先確認再填</summary>
+    [Column(TypeName = "character varying")]
     public string? mode { get; set; }
 
-    public bool? confirm { get; set; }
-
+    /// <summary>[field] 主頁上可否改</summary>
     public bool? editable { get; set; }
 
-    public bool? archived { get; set; }
-
+    /// <summary>[run] 按下執行的時刻 YYYY-MM-DD HH24:MI:SS</summary>
+    [Column(TypeName = "character varying")]
     public string? started_text { get; set; }
 
-    public string? elapsed_text { get; set; }
+    /// <summary>[run] 從按下執行到 InSpec 跑完幾秒，一位小數；還沒跑完是空的</summary>
+    public decimal? seconds { get; set; }
 
+    /// <summary>[run] 歸檔檔路徑；沒歸檔是空的</summary>
+    [Column(TypeName = "character varying")]
     public string? archive { get; set; }
 
+    /// <summary>[run] 沒歸檔或出錯時的原因</summary>
     public string? note { get; set; }
 
+    /// <summary>[run] 程式的檔名（路徑最後一段）</summary>
+    [Column(TypeName = "character varying")]
     public string? program_name { get; set; }
 
+    /// <summary>[run] 這次的欄位值，照現在的欄位順序</summary>
     public List<string>? field_values { get; set; }
 
-    public string? seconds_text { get; set; }
-
+    /// <summary>[run] 按下執行的時刻 MM-DD HH24:MI</summary>
+    [Column(TypeName = "character varying")]
     public string? run_text { get; set; }
 
+    /// <summary>[run] 執行的 .iwp 原檔完整路徑（寫回去整列帶過來）</summary>
+    [Column(TypeName = "character varying")]
+    public string? program { get; set; }
+
+    /// <summary>[run] 這次執行的欄位值：欄位名稱 → 值（寫回去整列帶過來）</summary>
+    [Column(TypeName = "jsonb")]
+    public string? fields { get; set; }
+
+    /// <summary>[run] 每個提示怎麼處理：prompt、value、at（寫回去整列帶過來）</summary>
+    [Column(TypeName = "jsonb")]
+    public string? prompts { get; set; }
+
+    /// <summary>[run] 按下執行的時刻（寫回去整列帶過來）</summary>
+    public DateTime? started_at { get; set; }
+
+    /// <summary>[run] iscmd 回來的時刻（InSpec 跑完）；還沒跑完是空的</summary>
+    public DateTime? finished_at { get; set; }
+
+    /// <summary>[run] iscmd 回傳代碼</summary>
+    public int? exit_code { get; set; }
+
+    /// <summary>[run] 這次匯出檔的內容</summary>
+    public string? export { get; set; }
+
+    /// <summary>[field] 欄位順序；[run] 新的在前</summary>
     public long? sort { get; set; }
 }

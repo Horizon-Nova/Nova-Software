@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
 using HelixStudio.Logic;
+using HelixStudio.Service;
 using HelixStudio.Store;
 using HelixStudio.Views;
 using Microsoft.Win32;
@@ -27,8 +28,34 @@ public partial class App : Application
     /// <param name="e">啟動參數</param>
     protected override void OnStartup(StartupEventArgs e)
     {
+        // 換一個權限重開（例如程式監控的「以系統管理員重新開啟」）：命令列帶著舊的那一份的 PID，等它關掉、接手同一把鎖
+        var after = e.Args.SkipWhile(one => one != "--after").Skip(1).Select(one => int.TryParse(one, out var pid) ? pid : 0).FirstOrDefault();
+        var first = First;
+
+        // 等舊的那一份關掉（最多 15 秒），接手「只開一個」的那把鎖；舊的沒放開就結束，鎖一樣交到這一份手上
+        if (!first && after > 0)
+        {
+            try
+            {
+                Process.GetProcessById(after).WaitForExit(15000);
+            }
+            catch (ArgumentException)
+            {
+                // 已經關掉了
+            }
+
+            try
+            {
+                first = Only.WaitOne(5000);
+            }
+            catch (AbandonedMutexException)
+            {
+                first = true;
+            }
+        }
+
         // 已經開著一個：把那一個叫到前面，這一個不開
-        if (!First)
+        if (!first)
         {
             Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName)
                 .Where(one => one.Id != Environment.ProcessId && one.MainWindowHandle != IntPtr.Zero)
@@ -77,7 +104,7 @@ public partial class App : Application
         var ink = new BrushConverter();
 
         // 這一次的設定：改過之後再叫一次就會拿到新的值
-        var setup = SettingsLogic.Applied(store.QuerySettingList());
+        var setup = new SettingsService().LoadApplied();
 
         ShellLogic.Adopt(setup);
 
@@ -137,15 +164,28 @@ public partial class App : Application
         Logged(e.Exception);
 
         e.Handled = true;
+
+        // 一個視窗都還沒開起來（開到一半就出錯）：沒有地方掛，照實說出來、關掉，不留一個看不到的程式在背景
+        if (Windows.Count == 0)
+        {
+            MessageBox.Show($"HelixStudio Demo 開到一半出錯，沒有開起來：\n\n{e.Exception.Message}", "HelixStudio Demo", MessageBoxButton.OK, MessageBoxImage.Warning);
+            Shutdown();
+        }
     }
 
     /// <summary>把一次錯誤記進 event_log：哪一支方法出錯、錯誤訊息、呼叫堆疊、誰</summary>
     /// <param name="error">這一次錯誤</param>
     private void Logged(Exception error)
     {
-        var site = error.TargetSite;
-
-        store.InsertEventLog("error", null, $"{site?.DeclaringType?.FullName}.{site?.Name}", error.Message, error.StackTrace);
+        // 資料庫連不上時記不進去：畫面上已經掛了那一條，不再讓記錄本身把 HelixStudio 關掉
+        try
+        {
+            new LogService().LoadFailed(error);
+        }
+        catch (Exception unsaved) when (unsaved is System.Data.Common.DbException or InvalidOperationException)
+        {
+            Dispatcher.BeginInvoke(() => Windows.OfType<MainWindow>().ToList().ForEach(one => one.Fail(unsaved.Message)));
+        }
     }
 
     [DllImport("kernel32.dll")]

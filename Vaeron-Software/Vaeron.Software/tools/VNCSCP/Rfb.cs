@@ -7,7 +7,7 @@ using System.Text;
 namespace VNCSCP;
 
 /// <summary>跟機台上的 UltraVNC 講話：登入、建資料夾、一個一個送檔；不開檢視器、沒有視窗</summary>
-/// <remarks>協定依據：SandBox\VNCSCP 的實測與舊版 VNCSCP 的 RfbHandshake、RfbFileTransferClient。出錯就擲出 IOException，訊息照實寫給人看。</remarks>
+/// <remarks>協定依據：SandBox\VNCSCP 的實測與舊版 VNCSCP 的 RfbHandshake、RfbFileTransferClient（舊版已刪，git 的 b76deee 還有）。出錯就擲出 IOException，訊息照實寫給人看。</remarks>
 public static class Rfb
 {
     /// <summary>連上機台並用 VNC 密碼登入，回傳登入好的連線與花了幾毫秒；沒登入成功就擲出原因</summary>

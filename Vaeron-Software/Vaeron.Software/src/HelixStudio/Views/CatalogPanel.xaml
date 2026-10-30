@@ -73,11 +73,14 @@
                                 <ColumnDefinition Width="128" />
                                 <ColumnDefinition Width="68" />
                                 <ColumnDefinition Width="84" />
+                                <ColumnDefinition Width="72" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="工具" VerticalAlignment="Center" />
                             <TextBlock Grid.Column="1" Text="最後開啟 ↓" Margin="12,0,0,0" VerticalAlignment="Center" />
                             <TextBlock Grid.Column="2" Text="開啟" TextAlignment="Right" VerticalAlignment="Center" />
                             <TextBlock Grid.Column="3" Text="金鑰到期" Margin="12,0,0,0" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="4" Text="自動啟動" Margin="12,0,0,0" VerticalAlignment="Center"
+                                       ToolTip="HelixStudio 啟動時一併啟動，在背景執行" />
                         </Grid>
                     </Border>
 
@@ -93,6 +96,7 @@
                                         <ColumnDefinition Width="128" />
                                         <ColumnDefinition Width="68" />
                                         <ColumnDefinition Width="84" />
+                                        <ColumnDefinition Width="72" />
                                     </Grid.ColumnDefinitions>
                                     <StackPanel Grid.Column="0" Orientation="Horizontal">
                                         <ContentControl Content="{Binding Paths}" ContentTemplate="{StaticResource LucideIcon16}"
@@ -106,6 +110,18 @@
                                                FontSize="{DynamicResource Text}" VerticalAlignment="Center" />
                                     <TextBlock Grid.Column="3" Text="{Binding Expires, TargetNullValue=—}" Margin="12,0,0,0"
                                                FontSize="{DynamicResource Text}" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="4" Margin="12,0,0,0" FontSize="{DynamicResource Text}" VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="—" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Autostart}" Value="True">
+                                                        <Setter Property="Text" Value="開" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>

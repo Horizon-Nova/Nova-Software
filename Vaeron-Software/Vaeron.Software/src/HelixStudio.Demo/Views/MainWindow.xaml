@@ -181,8 +181,7 @@
                                     </Border>
 
                                 <Border CornerRadius="{StaticResource RadiusMd}" Background="{DynamicResource Surface}"
-                                        BorderBrush="{DynamicResource Divider}" BorderThickness="1"
-                                        MouseEnter="HoldNote" MouseLeave="ResumeNote">
+                                        BorderBrush="{DynamicResource Divider}" BorderThickness="1">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="Auto" />

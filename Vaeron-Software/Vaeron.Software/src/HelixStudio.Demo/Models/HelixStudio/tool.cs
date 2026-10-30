@@ -18,82 +18,98 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Models.HelixStudio;
 
-/// <summary>工具：一列是什麼由 type 決定。tool 是匯入的一支工具（匯入就是裝好，移除就是整列拿掉）；key 是啟用時存下的工具金鑰，最新的那一把就是現在用的；啟用、開啟、解鎖記在 event_log</summary>
+/// <summary>工具，只新增不改寫：tool 一次匯入（同一個代碼最新的那一次是裝著的版本）；key 一次啟用時驗過的工具金鑰，最新的那一把是現在用的；start 一次切自動啟動，最新的那一列是現在的狀態；remove 一次移除，最新一次匯入之後有移除就是沒裝著。開啟、解鎖記在 event_log</summary>
 [Table("tool", Schema = "dbo")]
 public partial class tool
 {
-    /// <summary>流水號，也是側欄與工具目錄的先後</summary>
+    /// <summary>流水號；同一個代碼第一次匯入的那一列是側欄的先後</summary>
     [Key]
     public int id { get; set; }
 
-    /// <summary>tool 一支工具／key 一把工具金鑰</summary>
+    /// <summary>tool＝一次匯入；key＝一次啟用；start＝一次切自動啟動；remove＝一次移除</summary>
+    [StringLength(6)]
     public string type { get; set; } = null!;
 
-    /// <summary>工具代碼，套件 manifest 的 tool_no；key 用它對到那一支工具</summary>
+    /// <summary>工具代碼，套件 manifest 的 tool_no；也是工具資料夾的名稱（tools\{tool_no}\{版本}），所以照 Windows 檔名上限 255</summary>
+    [StringLength(255)]
     public string tool_no { get; set; } = null!;
 
-    /// <summary>[tool] 工具名稱</summary>
+    /// <summary>[tool] 工具名稱；manifest 的 name，helixpack 打包時檢查長度</summary>
+    [StringLength(50)]
     public string? name { get; set; }
 
-    /// <summary>[tool] lucide 的圖示名稱</summary>
+    /// <summary>[tool] lucide 的圖示名稱；manifest 的 icon</summary>
+    [StringLength(50)]
     public string? icon { get; set; }
 
-    /// <summary>[tool] 分類</summary>
+    /// <summary>[tool] 分類；manifest 的 cat</summary>
+    [StringLength(20)]
     public string? cat { get; set; }
 
-    /// <summary>[tool] 維護團隊</summary>
+    /// <summary>[tool] 維護團隊；manifest 的 vendor</summary>
+    [StringLength(50)]
     public string? vendor { get; set; }
 
-    /// <summary>[tool] 裝著的版本</summary>
+    /// <summary>[tool] 裝著的版本；Windows 檔案版本 a.b.c.d 每段最大 65535，最長 23 個字</summary>
+    [StringLength(23)]
     public string? version { get; set; }
 
-    /// <summary>[tool] 套件大小，例如 42.8 KB</summary>
-    public string? size { get; set; }
+    /// <summary>[tool] 套件檔的位元組數</summary>
+    public long? bytes { get; set; }
 
-    /// <summary>[tool] 匯入這一版的日期</summary>
-    public DateOnly? updated { get; set; }
-
-    /// <summary>[tool] 說明</summary>
+    /// <summary>[tool] 說明；manifest 的 description</summary>
+    [StringLength(500)]
     public string? description { get; set; }
 
-    /// <summary>[tool] 這支工具會做的事，字串陣列</summary>
-    [Column(TypeName = "jsonb")]
-    public string capabilities { get; set; } = null!;
+    /// <summary>[tool] 這支工具會做的事，一條一個元素；manifest 的 capabilities</summary>
+    [Column(TypeName = "character varying(200)[]")]
+    public List<string> capabilities { get; set; } = null!;
 
-    /// <summary>[tool] 會用到的權限，字串陣列</summary>
-    [Column(TypeName = "jsonb")]
-    public string permissions { get; set; } = null!;
+    /// <summary>[tool] 會用到的權限，一條一個元素；manifest 的 permissions</summary>
+    [Column(TypeName = "character varying(200)[]")]
+    public List<string> permissions { get; set; } = null!;
 
     /// <summary>[tool] 版本與更新說明，一則一個元素（ver、date、note），新到舊</summary>
     [Column(TypeName = "jsonb")]
     public string changelog { get; set; } = null!;
 
-    /// <summary>[tool] 開起來要載入的組件檔名，例如 InSpecTool.dll</summary>
-    public string? entry { get; set; }
-
-    /// <summary>[tool] 組件裡那個畫面的型別全名，例如 InSpecTool.Measure</summary>
-    [Column("class")]
-    public string? _class { get; set; }
-
-    /// <summary>[tool] 這支工具的檔案裝在哪一個資料夾</summary>
-    public string? home { get; set; }
-
-    /// <summary>[tool] 從哪裡來，例如 本機套件檔</summary>
-    public string? source { get; set; }
-
-    /// <summary>[tool] 組件裡設定畫面的型別全名，例如 InSpecTool.Setup；沒有就是這支工具沒有設定</summary>
-    public string? settings { get; set; }
-
     /// <summary>[tool] 操作說明，一步一個元素（text 這一步做什麼、image 截圖在套件裡的相對路徑，沒有圖就不寫），照步驟順序</summary>
     [Column(TypeName = "jsonb")]
     public string guide { get; set; } = null!;
 
-    /// <summary>[key] 操作員貼進來的那一串工具金鑰；每次開工具都重驗一次</summary>
+    /// <summary>[tool] 開起來要載入的組件檔名</summary>
+    [StringLength(255)]
+    public string? entry { get; set; }
+
+    /// <summary>[tool] 組件裡那個畫面的型別全名；.NET 型別全名上限 1023</summary>
+    [Column("class")]
+    [StringLength(1023)]
+    public string? _class { get; set; }
+
+    /// <summary>[tool] 組件裡設定畫面的型別全名；沒有就是這支工具沒有設定</summary>
+    [StringLength(1023)]
+    public string? settings { get; set; }
+
+    /// <summary>[tool] 這支工具的檔案裝在哪一個資料夾；Windows 長路徑上限 32767</summary>
+    [StringLength(32767)]
+    public string? home { get; set; }
+
+    /// <summary>[tool] 套件檔從哪裡來</summary>
+    [StringLength(32767)]
+    public string? source { get; set; }
+
+    /// <summary>[key] 操作員貼進來、驗過的那一串工具金鑰；每次開工具都重驗一次</summary>
     public string? code { get; set; }
 
-    /// <summary>寫入時刻：tool 是第一次匯入、key 是貼進來的時刻</summary>
+    /// <summary>[key] 這把金鑰到哪一刻為止；啟用時驗過簽章後從金鑰讀出寫進來，沒有到期日是空的</summary>
+    public DateTime? expires_at { get; set; }
+
+    /// <summary>[start] 這一次切成自動啟動（true）或取消（false）</summary>
+    public bool? autostart { get; set; }
+
+    /// <summary>這一列建立的時刻：[tool] 匯入、[key] 啟用、[start] 切換、[remove] 移除的時刻</summary>
     public DateTime created_at { get; set; }
 
-    /// <summary>最後修改時刻：tool 是最後一次匯入</summary>
+    /// <summary>這一列最後修改的時刻（只新增不改寫，等於建立的時刻）</summary>
     public DateTime updated_at { get; set; }
 }

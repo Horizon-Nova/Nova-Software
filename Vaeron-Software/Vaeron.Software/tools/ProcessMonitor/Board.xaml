@@ -1,0 +1,656 @@
+<UserControl x:Class="ProcessMonitor.Board"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+             xmlns:local="clr-namespace:ProcessMonitor"
+             FontFamily="{StaticResource UiFont}" FontSize="{DynamicResource Text}" Foreground="{DynamicResource TextPrimary}">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/ProcessMonitor;component/Styles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+        <!-- 畫面上夾著值的字：事件名、優先順序名、句型（{0} 是值），Service 照它填 -->
+        <ResourceDictionary x:Key="Words">
+            <sys:String x:Key="metric.name">程式</sys:String>
+            <sys:String x:Key="metric.cpu">CPU</sys:String>
+            <sys:String x:Key="metric.mem">記憶體</sys:String>
+            <sys:String x:Key="metric.down">下載</sys:String>
+            <sys:String x:Key="metric.up">上傳</sys:String>
+            <sys:String x:Key="metric.disk">磁碟讀寫</sys:String>
+            <sys:String x:Key="metric.run">執行時間</sys:String>
+            <sys:String x:Key="metric.crash">閃退</sys:String>
+            <sys:String x:Key="metric.signer">簽章</sys:String>
+            <sys:String x:Key="metric.rule">限制</sys:String>
+            <sys:String x:Key="metric.gpu">GPU</sys:String>
+            <sys:String x:Key="metric.threads">執行緒</sys:String>
+            <sys:String x:Key="metric.handles">控制代碼</sys:String>
+
+            <sys:String x:Key="event.crash">閃退</sys:String>
+            <sys:String x:Key="event.hang">無回應</sys:String>
+            <sys:String x:Key="event.end">已結束</sys:String>
+            <sys:String x:Key="event.priority">改優先順序</sys:String>
+            <sys:String x:Key="event.suspend">已暫停</sys:String>
+            <sys:String x:Key="event.resume">已繼續</sys:String>
+            <sys:String x:Key="event.ease">已緩和</sys:String>
+            <sys:String x:Key="event.unease">取消緩和</sys:String>
+            <sys:String x:Key="event.limit">已設限制</sys:String>
+            <sys:String x:Key="event.first">第一次出現</sys:String>
+            <sys:String x:Key="event.autorun">新增開機自動執行</sys:String>
+            <sys:String x:Key="event.listen">開始聽埠</sys:String>
+
+            <sys:String x:Key="priority.256">即時</sys:String>
+            <sys:String x:Key="priority.128">高</sys:String>
+            <sys:String x:Key="priority.32768">高於一般</sys:String>
+            <sys:String x:Key="priority.32">一般</sys:String>
+            <sys:String x:Key="priority.16384">低於一般</sys:String>
+            <sys:String x:Key="priority.64">低</sys:String>
+
+            <sys:String x:Key="source.run">登錄檔</sys:String>
+            <sys:String x:Key="source.runonce">登錄檔（只跑一次）</sys:String>
+            <sys:String x:Key="source.folder">啟動資料夾</sys:String>
+            <sys:String x:Key="source.task">排程工作</sys:String>
+            <sys:String x:Key="source.service">服務</sys:String>
+
+            <sys:String x:Key="detail.hang">卡了 {0}</sys:String>
+            <sys:String x:Key="detail.hangEnded">在 Windows 的對話框被結束</sys:String>
+            <sys:String x:Key="detail.end">在這台按住 1 秒結束</sys:String>
+            <sys:String x:Key="detail.suspend">暫停它的每一條執行緒</sys:String>
+            <sys:String x:Key="detail.resume">讓它繼續跑</sys:String>
+            <sys:String x:Key="detail.ease">優先順序調成「{0}」、暫停 {1}</sys:String>
+            <sys:String x:Key="detail.unease">優先順序回到「{0}」、{1} 繼續</sys:String>
+            <sys:String x:Key="detail.unlimit">解除限制</sys:String>
+
+            <sys:String x:Key="rule.paused">暫停中</sys:String>
+            <sys:String x:Key="rule.priority">優先順序 {0}</sys:String>
+            <sys:String x:Key="rule.up">上傳 {0} MB/s</sys:String>
+            <sys:String x:Key="rule.block">擋網路</sys:String>
+            <sys:String x:Key="rule.cpu">CPU {0}%</sys:String>
+            <sys:String x:Key="rule.mem">記憶體 {0} MB</sys:String>
+
+            <sys:String x:Key="span.h">{0} 時 {1} 分</sys:String>
+            <sys:String x:Key="span.m">{0} 分 {1} 秒</sys:String>
+            <sys:String x:Key="span.s">{0} 秒</sys:String>
+
+            <sys:String x:Key="hang.now">已經 {0} · CPU {1}、磁碟 {2}</sys:String>
+            <sys:String x:Key="top.one">{0}：{1}</sys:String>
+            <sys:String x:Key="top.cpu">CPU</sys:String>
+            <sys:String x:Key="top.up">上傳</sys:String>
+            <sys:String x:Key="top.disk">磁碟</sys:String>
+            <sys:String x:Key="top.mem">記憶體</sys:String>
+
+            <sys:String x:Key="port.before">開始監控之前就在聽</sys:String>
+            <sys:String x:Key="port.since">{0} 開始聽</sys:String>
+            <sys:String x:Key="signer.none">沒有數位簽章</sys:String>
+
+            <sys:String x:Key="fault.up">上傳要填大於 0 的數字</sys:String>
+            <sys:String x:Key="fault.cpu">CPU 要填 1 到 100 的整數</sys:String>
+            <sys:String x:Key="fault.mem">記憶體要填大於 0 的整數</sys:String>
+            <sys:String x:Key="fault.part">{0}：{1}</sys:String>
+            <sys:String x:Key="fault.admin">（要系統管理員權限：按上方的「以系統管理員重新開啟」）</sys:String>
+            <sys:String x:Key="limit.up">上傳上限</sys:String>
+            <sys:String x:Key="limit.block">不准連網路</sys:String>
+            <sys:String x:Key="limit.job">CPU、記憶體上限</sys:String>
+        </ResourceDictionary>
+
+        <!-- 優先順序的六個值（工具列的下拉與右鍵選單各一份） -->
+        <ContextMenu x:Key="PriorityMenu" Style="{StaticResource Menu}">
+            <MenuItem Header="即時" Tag="256" Click="PickPriority" />
+            <MenuItem Header="高" Tag="128" Click="PickPriority" />
+            <MenuItem Header="高於一般" Tag="32768" Click="PickPriority" />
+            <MenuItem Header="一般" Tag="32" Click="PickPriority" />
+            <MenuItem Header="低於一般" Tag="16384" Click="PickPriority" />
+            <MenuItem Header="低" Tag="64" Click="PickPriority" />
+        </ContextMenu>
+
+        <ContextMenu x:Key="RowMenu" Style="{StaticResource Menu}">
+            <MenuItem Header="優先順序">
+                <MenuItem Header="即時" Tag="256" Click="PickPriority" />
+                <MenuItem Header="高" Tag="128" Click="PickPriority" />
+                <MenuItem Header="高於一般" Tag="32768" Click="PickPriority" />
+                <MenuItem Header="一般" Tag="32" Click="PickPriority" />
+                <MenuItem Header="低於一般" Tag="16384" Click="PickPriority" />
+                <MenuItem Header="低" Tag="64" Click="PickPriority" />
+            </MenuItem>
+            <MenuItem Header="暫停" Tag="suspend" Click="Pause" />
+            <MenuItem Header="繼續" Tag="resume" Click="Pause" />
+            <MenuItem Header="限制…" Click="OpenLimit" />
+            <Separator />
+            <MenuItem StaysOpenOnClick="True" Padding="0">
+                <MenuItem.Header>
+                    <local:HoldButton Style="{StaticResource HoldRow}" Held="End" Content="結束（按住 1 秒）" />
+                </MenuItem.Header>
+            </MenuItem>
+        </ContextMenu>
+
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Background="{DynamicResource Surface}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- 上方：沒有系統管理員權限、網路量不到、沒有回應的程式、剛才做不到的事 -->
+        <StackPanel Grid.Row="0">
+            <Border BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1" Padding="16,8"
+                    Visibility="Collapsed" x:Name="AdminBar">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock VerticalAlignment="Center" TextWrapping="Wrap"
+                               Text="沒有系統管理員權限：每支程式的下載、上傳量不到；不准連網路、上傳上限，以及系統與別的帳號的程式做不了" />
+                    <Button Grid.Column="1" Style="{StaticResource Primary}" Margin="16,0,0,0" Content="以系統管理員重新開啟" Click="Elevate" />
+                </Grid>
+            </Border>
+
+            <Border x:Name="NetBar" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1" Padding="16,8" Visibility="Collapsed">
+                <TextBlock TextWrapping="Wrap">
+                    <Run Text="網路量不到：" /><Run Text="{Binding NetFault, Mode=OneWay}" />
+                </TextBlock>
+            </Border>
+
+            <ItemsControl ItemsSource="{Binding Hangs}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="{DynamicResource DangerBack}" BorderBrush="{DynamicResource DangerLine}" BorderThickness="0,0,0,1" Padding="16,8">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <TextBlock Foreground="{DynamicResource Danger}" Margin="0,0,12,0">
+                                    <Run Text="{Binding Name, Mode=OneWay}" /><Run Text=" 沒有回應" />
+                                </TextBlock>
+                                <TextBlock Grid.Row="1" Text="同一時間吃最多" Foreground="{DynamicResource TextMuted}" Margin="0,0,12,0" />
+                                <TextBlock Grid.Column="1" Text="{Binding Now}" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding Tops}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Tops}" />
+                                <TextBlock Grid.Column="2" Grid.RowSpan="2" Width="216" Margin="16,0" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}"
+                                           Text="CPU、磁碟都不動時，它多半在等別的東西，緩和幫不上" />
+                                <StackPanel Grid.Column="3" Grid.RowSpan="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Button x:Name="easeButton" Style="{StaticResource Primary}" Tag="{Binding Key}" Click="Ease">
+                                        <Grid>
+                                            <TextBlock x:Name="easeText">
+                                                <Run Text="緩和：" /><Run Text="{Binding Name, Mode=OneWay}" /><Run Text=" 優先、暫停 " /><Run Text="{Binding HogName, Mode=OneWay}" />
+                                            </TextBlock>
+                                            <TextBlock x:Name="uneaseText" Visibility="Collapsed">
+                                                <Run Text="取消緩和：" /><Run Text="{Binding HogName, Mode=OneWay}" /><Run Text=" 繼續" />
+                                            </TextBlock>
+                                        </Grid>
+                                    </Button>
+                                    <local:HoldButton Style="{StaticResource Hold}" Margin="8,0,0,0" Tag="{Binding Key}" Held="EndHung">
+                                        <TextBlock>
+                                            <Run Text="緊急關閉 " /><Run Text="{Binding Name, Mode=OneWay}" />
+                                        </TextBlock>
+                                    </local:HoldButton>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding HogKey}" Value="">
+                                <Setter TargetName="easeButton" Property="IsEnabled" Value="False" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding Eased}" Value="True">
+                                <Setter TargetName="easeText" Property="Visibility" Value="Collapsed" />
+                                <Setter TargetName="uneaseText" Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Border x:Name="FaultBar" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1" Padding="16,8" Visibility="Collapsed">
+                <TextBlock Foreground="{DynamicResource Danger}" TextWrapping="Wrap">
+                    <Run Text="做不到：" /><Run Text="{Binding Fault, Mode=OneWay}" />
+                </TextBlock>
+            </Border>
+        </StackPanel>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="618*" />
+                <ColumnDefinition Width="382*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 左：工具列、程式清單、事件 -->
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="12,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="280" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Style="{StaticResource SearchFrame}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <ContentControl Content="{StaticResource IconSearch}" ContentTemplate="{StaticResource LucideIcon}" Foreground="{DynamicResource TextFaint}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                            <TextBox x:Name="Search" Grid.Column="1" Style="{StaticResource SearchBox}" TextChanged="Searched" />
+                            <TextBlock Grid.Column="1" Text="以程式名稱、路徑或簽章者搜尋" Foreground="{DynamicResource TextFaint}" IsHitTestVisible="False" VerticalAlignment="Center"
+                                       Visibility="{Binding Text.IsEmpty, ElementName=Search, Converter={StaticResource Shown}}" />
+                        </Grid>
+                    </Border>
+
+                    <Button x:Name="ColumnsButton" AutomationProperties.Name="欄位" Grid.Column="1" Style="{StaticResource Plain}" Margin="8,0,0,0" Click="OpenColumns">
+                        <StackPanel Orientation="Horizontal">
+                            <ContentControl Content="{StaticResource IconColumns}" ContentTemplate="{StaticResource LucideIcon}" Foreground="{DynamicResource TextPrimary}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                            <TextBlock>
+                                <Run Text="欄位 " /><Run Text="{Binding ShownCount, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" /><Run Text=" / " /><Run Text="{Binding MetricCount, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" />
+                            </TextBlock>
+                        </StackPanel>
+                    </Button>
+                    <Popup x:Name="ColumnsPopup" PlacementTarget="{Binding ElementName=ColumnsButton}" Placement="Bottom" VerticalOffset="4" StaysOpen="False" AllowsTransparency="True">
+                        <Border Style="{StaticResource Float}" MinWidth="160">
+                            <ItemsControl ItemsSource="{Binding Columns}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <CheckBox Style="{StaticResource Box}" AutomationProperties.Name="{Binding Label}" Content="{Binding Label}" IsChecked="{Binding Shown, Mode=OneWay}" Tag="{Binding Key}" Click="FlipColumn" />
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Border>
+                    </Popup>
+
+                    <StackPanel x:Name="Actions" Grid.Column="3" Orientation="Horizontal">
+                        <Button x:Name="PriorityButton" AutomationProperties.Name="優先順序" Style="{StaticResource Plain}" Click="OpenPriority">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock>
+                                    <Run Text="優先順序：" /><Run Text="{Binding Detail.PriorityName, Mode=OneWay}" />
+                                </TextBlock>
+                                <ContentControl Content="{StaticResource IconDown}" ContentTemplate="{StaticResource LucideIcon}" Foreground="{DynamicResource TextMuted}" Margin="8,0,0,0" VerticalAlignment="Center" />
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="PauseButton" Style="{StaticResource Plain}" Margin="8,0,0,0" Click="Pause">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock x:Name="SuspendWord" Text="暫停" />
+                                <TextBlock x:Name="ResumeWord" Text="繼續" Visibility="Collapsed" />
+                                <TextBlock x:Name="PauseName" />
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource Plain}" Margin="8,0,0,0" Content="限制…" Click="OpenLimit" />
+                        <local:HoldButton x:Name="EndButton" AutomationProperties.Name="結束" Style="{StaticResource Hold}" Margin="8,0,0,0" Held="End">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="結束" />
+                                <TextBlock x:Name="EndName" />
+                            </StackPanel>
+                        </local:HoldButton>
+                    </StackPanel>
+                </Grid>
+
+                <!-- 欄名 -->
+                <Border Grid.Row="1" Height="32" Padding="16,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,1">
+                    <DockPanel LastChildFill="True">
+                        <ItemsControl DockPanel.Dock="Right" ItemsSource="{Binding Heads}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button x:Name="head" Style="{StaticResource Head}" AutomationProperties.Name="{Binding Text}" Width="{Binding Width}" Padding="8,0,0,0" Content="{Binding Text}" Tag="" CommandParameter="{Binding Key}" Click="SortBy"
+                                            HorizontalContentAlignment="Left" />
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Right}" Value="True">
+                                            <Setter TargetName="head" Property="HorizontalContentAlignment" Value="Right" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding On}" Value="True">
+                                            <Setter TargetName="head" Property="Tag" Value="on" />
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Button x:Name="NameHead" Style="{StaticResource Head}" HorizontalContentAlignment="Left" Content="{Binding NameHead}" CommandParameter="name" Click="SortBy" />
+                    </DockPanel>
+                </Border>
+
+                <!-- 程式清單：一支一列 -->
+                <ListBox x:Name="Programs" Grid.Row="2" ItemsSource="{Binding Rows}" BorderThickness="0" Background="Transparent"
+                         ItemContainerStyle="{StaticResource ListRow}" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling"
+                         SelectionChanged="Picked" PreviewMouseRightButtonDown="RightPicked">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <DockPanel LastChildFill="True" ToolTip="{Binding Path}">
+                                <ItemsControl DockPanel.Dock="Right" ItemsSource="{Binding Cells}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock x:Name="cell" Width="{Binding Width}" Padding="8,0,0,0" Text="{Binding Text}" TextTrimming="CharacterEllipsis" TextAlignment="Left" />
+                                            <DataTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding Right}" Value="True">
+                                                    <Setter TargetName="cell" Property="TextAlignment" Value="Right" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Mono}" Value="True">
+                                                    <Setter TargetName="cell" Property="Style" Value="{StaticResource Mono}" />
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                            </DockPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <!-- 事件 -->
+                <Border Grid.Row="3" Height="40" Padding="16,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,1,0,1">
+                    <TextBlock VerticalAlignment="Center">
+                        <Run Text="事件" FontWeight="SemiBold" /><Run Text="   新的在上 · 從 " Foreground="{DynamicResource TextMuted}" /><Run Text="{Binding Since, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" Foreground="{DynamicResource TextMuted}" /><Run Text=" 開始記錄" Foreground="{DynamicResource TextMuted}" />
+                    </TextBlock>
+                </Border>
+                <Border Grid.Row="4" Height="32" Padding="16,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
+                    <Grid TextElement.Foreground="{DynamicResource TextMuted}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="112" />
+                            <ColumnDefinition Width="128" />
+                            <ColumnDefinition Width="128" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="時間 ↓" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+                        <TextBlock Grid.Column="1" Text="程式" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+                        <TextBlock Grid.Column="2" Text="事件" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+                        <TextBlock Grid.Column="3" Text="內容" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+                    </Grid>
+                </Border>
+                <ListBox Grid.Row="5" ItemsSource="{Binding Events}" BorderThickness="0" Background="Transparent" Focusable="False"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled" VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.VirtualizationMode="Recycling">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Focusable" Value="False" />
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="back" Height="28" Padding="16,0" Background="Transparent" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
+                                            <ContentPresenter VerticalAlignment="Center" />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Mine}" Value="True">
+                                                <Setter TargetName="back" Property="Background" Value="{DynamicResource Brand100}" />
+                                            </DataTrigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="112" />
+                                    <ColumnDefinition Width="128" />
+                                    <ColumnDefinition Width="128" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Style="{StaticResource Mono}" Text="{Binding At}" />
+                                <TextBlock Grid.Column="1" Text="{Binding Name}" TextTrimming="CharacterEllipsis" Margin="0,0,8,0" />
+                                <TextBlock x:Name="kind" Grid.Column="2" Text="{Binding Kind}" />
+                                <TextBlock Grid.Column="3" Style="{StaticResource Mono}" Text="{Binding Detail}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Detail}" />
+                            </Grid>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding Danger}" Value="True">
+                                    <Setter TargetName="kind" Property="Foreground" Value="{DynamicResource Danger}" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+
+            <!-- 右：選中那一支的明細、走勢、分頁 -->
+            <Grid Grid.Column="1" Background="{DynamicResource Surface}" DataContext="{Binding Detail}">
+                <Border BorderBrush="{DynamicResource HairLine}" BorderThickness="1,0,0,0" />
+                <Grid Margin="1,0,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Border Grid.Row="0" Height="48" Padding="16,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
+                        <TextBlock VerticalAlignment="Center" TextTrimming="CharacterEllipsis">
+                            <Run Text="{Binding Name, Mode=OneWay}" /><Run Text="  " /><Run Text="{Binding Exe, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" Foreground="{DynamicResource TextFaint}" />
+                        </TextBlock>
+                    </Border>
+
+                    <Border Grid.Row="1" Padding="16,12" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="88" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="20" />
+                                <RowDefinition Height="20" />
+                                <RowDefinition Height="20" />
+                                <RowDefinition Height="20" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="路徑" Foreground="{DynamicResource TextMuted}" />
+                            <TextBlock Grid.Row="1" Text="簽章者" Foreground="{DynamicResource TextMuted}" />
+                            <TextBlock Grid.Row="2" Text="版本" Foreground="{DynamicResource TextMuted}" />
+                            <TextBlock Grid.Row="3" Text="這一次啟動" Foreground="{DynamicResource TextMuted}" />
+                            <TextBlock Grid.Row="4" Text="開機自動執行" Foreground="{DynamicResource TextMuted}" />
+                            <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource Mono}" Text="{Binding Path}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Path}" />
+                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Signer}" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource Mono}" Text="{Binding Version}" />
+                            <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource Mono}" Text="{Binding Started}" />
+                            <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding Autorun}" TextWrapping="Wrap" />
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="2" Padding="16,12" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="64" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="104" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="24" />
+                                <RowDefinition Height="36" />
+                                <RowDefinition Height="36" />
+                                <RowDefinition Height="36" />
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.ColumnSpan="3" Text="近 10 分鐘" Foreground="{DynamicResource TextMuted}" />
+                            <TextBlock Grid.Row="1" Text="CPU" Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Row="2" Text="記憶體" Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center" />
+                            <TextBlock Grid.Row="3" Text="網路" Foreground="{DynamicResource TextMuted}" VerticalAlignment="Center" />
+                            <Canvas x:Name="Chart" Grid.Row="1" Grid.Column="1" Height="28" ClipToBounds="True" SizeChanged="ChartSized">
+                                <Polyline Points="{Binding CpuPoints}" Stroke="{DynamicResource Accent}" StrokeThickness="1.5" StrokeLineJoin="Round" />
+                            </Canvas>
+                            <Canvas Grid.Row="2" Grid.Column="1" Height="28" ClipToBounds="True">
+                                <Polyline Points="{Binding MemPoints}" Stroke="{DynamicResource Accent}" StrokeThickness="1.5" StrokeLineJoin="Round" />
+                            </Canvas>
+                            <Canvas Grid.Row="3" Grid.Column="1" Height="28" ClipToBounds="True">
+                                <Polyline Points="{Binding NetPoints}" Stroke="{DynamicResource Accent}" StrokeThickness="1.5" StrokeLineJoin="Round" />
+                            </Canvas>
+                            <TextBlock Grid.Row="1" Grid.Column="2" Style="{StaticResource Mono}" Text="{Binding CpuNow}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                            <TextBlock Grid.Row="2" Grid.Column="2" Style="{StaticResource Mono}" Text="{Binding MemNow}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                            <TextBlock Grid.Row="3" Grid.Column="2" Style="{StaticResource Mono}" Text="{Binding NetNow}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- 分頁：連線、開的埠、事件、載入的模組 -->
+                    <ListBox x:Name="Tabs" Grid.Row="3" Style="{StaticResource TabList}" ItemContainerStyle="{StaticResource TabItem}" Margin="4,8,4,0" SelectionChanged="PickTab">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBoxItem Tag="conn">
+                            <TextBlock><Run Text="連線 " /><Run Text="{Binding Connections.Count, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" Foreground="{DynamicResource TextFaint}" /></TextBlock>
+                        </ListBoxItem>
+                        <ListBoxItem Tag="port">
+                            <TextBlock><Run Text="開的埠 " /><Run Text="{Binding Ports.Count, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" Foreground="{DynamicResource TextFaint}" /></TextBlock>
+                        </ListBoxItem>
+                        <ListBoxItem Tag="event">
+                            <TextBlock><Run Text="事件 " /><Run Text="{Binding Events.Count, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" Foreground="{DynamicResource TextFaint}" /></TextBlock>
+                        </ListBoxItem>
+                        <ListBoxItem Tag="module">
+                            <TextBlock><Run Text="載入的模組 " /><Run Text="{Binding Modules.Count, Mode=OneWay}" FontFamily="{StaticResource MonoFont}" Foreground="{DynamicResource TextFaint}" /></TextBlock>
+                        </ListBoxItem>
+                    </ListBox>
+
+                    <Border Grid.Row="4" Height="1" Background="{DynamicResource HairLine}" />
+
+                    <Grid Grid.Row="5">
+                        <!-- 連線 -->
+                        <Grid x:Name="ConnPage" Visibility="Collapsed">
+                            <Grid.RowDefinitions><RowDefinition Height="32" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                            <Border Padding="16,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
+                                <Grid TextElement.Foreground="{DynamicResource TextMuted}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="88" /><ColumnDefinition Width="88" /></Grid.ColumnDefinitions>
+                                    <TextBlock Text="遠端位址" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+                                    <TextBlock Grid.Column="1" Text="下載" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+                                    <TextBlock Grid.Column="2" Text="上傳" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+                                </Grid>
+                            </Border>
+                            <ItemsControl Grid.Row="1" ItemsSource="{Binding Connections}">
+                                <ItemsControl.Template>
+                                    <ControlTemplate TargetType="ItemsControl"><ScrollViewer VerticalScrollBarVisibility="Auto"><ItemsPresenter /></ScrollViewer></ControlTemplate>
+                                </ItemsControl.Template>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Height="28" Padding="16,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="88" /><ColumnDefinition Width="88" /></Grid.ColumnDefinitions>
+                                                <TextBlock Style="{StaticResource Mono}" Text="{Binding A}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Grid.Column="1" Style="{StaticResource Mono}" Text="{Binding B}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="2" Style="{StaticResource Mono}" Text="{Binding C}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+
+                        <!-- 開的埠 -->
+                        <Grid x:Name="PortPage" Visibility="Collapsed">
+                            <Grid.RowDefinitions><RowDefinition Height="32" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                            <Border Padding="16,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="56" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                    <TextBlock Text="位址" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+                                    <TextBlock Grid.Column="1" Text="協定" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+                                    <TextBlock Grid.Column="2" Text="從什麼時候" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+                                </Grid>
+                            </Border>
+                            <ItemsControl Grid.Row="1" ItemsSource="{Binding Ports}">
+                                <ItemsControl.Template>
+                                    <ControlTemplate TargetType="ItemsControl"><ScrollViewer VerticalScrollBarVisibility="Auto"><ItemsPresenter /></ScrollViewer></ControlTemplate>
+                                </ItemsControl.Template>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Height="28" Padding="16,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="56" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                                <TextBlock Style="{StaticResource Mono}" Text="{Binding A}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Grid.Column="1" Style="{StaticResource Mono}" Text="{Binding B}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="2" Text="{Binding C}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+
+                        <!-- 這一支的事件 -->
+                        <Grid x:Name="EventPage" Visibility="Collapsed">
+                            <Grid.RowDefinitions><RowDefinition Height="32" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                            <Border Padding="16,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="112" /><ColumnDefinition Width="104" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                    <TextBlock Text="時間" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+                                    <TextBlock Grid.Column="1" Text="事件" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+                                    <TextBlock Grid.Column="2" Text="內容" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+                                </Grid>
+                            </Border>
+                            <ItemsControl Grid.Row="1" ItemsSource="{Binding Events}">
+                                <ItemsControl.Template>
+                                    <ControlTemplate TargetType="ItemsControl"><ScrollViewer VerticalScrollBarVisibility="Auto"><ItemsPresenter /></ScrollViewer></ControlTemplate>
+                                </ItemsControl.Template>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Height="28" Padding="16,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="112" /><ColumnDefinition Width="104" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                                <TextBlock Style="{StaticResource Mono}" Text="{Binding A}" VerticalAlignment="Center" />
+                                                <TextBlock x:Name="kind" Grid.Column="1" Text="{Binding B}" VerticalAlignment="Center" />
+                                                <TextBlock Grid.Column="2" Style="{StaticResource Mono}" Text="{Binding C}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip="{Binding C}" />
+                                            </Grid>
+                                        </Border>
+                                        <DataTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding Danger}" Value="True">
+                                                <Setter TargetName="kind" Property="Foreground" Value="{DynamicResource Danger}" />
+                                            </DataTrigger>
+                                        </DataTemplate.Triggers>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+
+                        <!-- 載入的模組 -->
+                        <Grid x:Name="ModulePage" Visibility="Collapsed">
+                            <Grid.RowDefinitions><RowDefinition Height="32" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                            <Border Padding="16,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="160" /></Grid.ColumnDefinitions>
+                                    <TextBlock Text="模組" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+                                    <TextBlock Grid.Column="1" Text="版本" VerticalAlignment="Center" Foreground="{DynamicResource TextMuted}" />
+                                </Grid>
+                            </Border>
+                            <ItemsControl Grid.Row="1" ItemsSource="{Binding Modules}" VirtualizingPanel.IsVirtualizing="True">
+                                <ItemsControl.Template>
+                                    <ControlTemplate TargetType="ItemsControl"><ScrollViewer VerticalScrollBarVisibility="Auto" CanContentScroll="True"><ItemsPresenter /></ScrollViewer></ControlTemplate>
+                                </ItemsControl.Template>
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Height="28" Padding="16,0" BorderBrush="{DynamicResource HairLine}" BorderThickness="0,0,0,1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="160" /></Grid.ColumnDefinitions>
+                                                <TextBlock Style="{StaticResource Mono}" Text="{Binding A}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Grid.Column="1" Style="{StaticResource Mono}" Text="{Binding B}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip="{Binding B}" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

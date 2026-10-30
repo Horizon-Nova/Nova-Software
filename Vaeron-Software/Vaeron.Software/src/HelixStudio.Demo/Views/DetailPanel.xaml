@@ -63,13 +63,32 @@
                             <RowDefinition Height="20" />
                             <RowDefinition Height="20" />
                             <RowDefinition Height="20" />
+                            <RowDefinition Height="20" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="0" Text="版本" Foreground="{DynamicResource TextMuted}" />
                         <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Tool.version_text}" Style="{StaticResource Mono}" />
                         <TextBlock Grid.Row="1" Text="匯入日期" Foreground="{DynamicResource TextMuted}" />
-                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Tool.updated_text}" Style="{StaticResource Mono}" />
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding Tool.imported_text}" Style="{StaticResource Mono}" />
                         <TextBlock Grid.Row="2" Text="大小" Foreground="{DynamicResource TextMuted}" />
-                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Tool.size}" Style="{StaticResource Mono}" />
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Tool.size_text}" Style="{StaticResource Mono}" />
+                        <TextBlock Grid.Row="3" Text="自動啟動" Foreground="{DynamicResource TextMuted}" />
+                        <CheckBox Grid.Row="3" Grid.Column="1" Style="{StaticResource SettingSwitch}" HorizontalAlignment="Left" MinHeight="0" Height="20"
+                                  IsChecked="{Binding Tool.autostart, Mode=OneWay}" Click="FlipAutostart"
+                                  AutomationProperties.Name="隨 HelixStudio Demo 自動啟動"
+                                  ToolTip="HelixStudio Demo 啟動時一併啟動，在背景執行；執行期間佔用這台電腦的記憶體">
+                            <TextBlock FontSize="{DynamicResource Text}" Foreground="{DynamicResource TextSecondary}">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="關" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Tool.autostart}" Value="True">
+                                                <Setter Property="Text" Value="開" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </CheckBox>
                     </Grid>
                 </StackPanel>
 

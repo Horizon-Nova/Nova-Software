@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <!-- 功能之間往來的契約與資料形狀。功能只認這裡，彼此不直接引用。 -->
-  <PropertyGroup>
-    <TargetFramework>net10.0-windows</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Shared\Vaeron.Kernel\Vaeron.Kernel.csproj" />
-  </ItemGroup>
-</Project>

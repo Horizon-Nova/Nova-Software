@@ -1,6 +1,7 @@
 <UserControl x:Class="InSpecTool.Setup"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              FontFamily="{DynamicResource UiFont}" FontSize="{DynamicResource Text}" Foreground="{DynamicResource TextPrimary}"
              Loaded="Ready">
 
@@ -31,9 +32,6 @@
                             <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center" Focusable="False" />
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="frame" Property="Background" Value="{DynamicResource ContentBack}" />
-                            </Trigger>
                             <Trigger Property="IsKeyboardFocused" Value="True">
                                 <Setter TargetName="frame" Property="Background" Value="{DynamicResource Surface}" />
                                 <Setter TargetName="frame" Property="BorderBrush" Value="{DynamicResource Accent}" />
@@ -83,7 +81,7 @@
             </Grid.ColumnDefinitions>
             <TextBlock Text="搜尋資料夾" Style="{StaticResource RowLabel}" />
             <Border Grid.Column="1" Style="{StaticResource SearchFrame}" Height="{DynamicResource ControlHeight}">
-                <TextBox x:Name="SearchFolder" Tag="searchFolder" Style="{StaticResource SearchBox}" LostFocus="PathChanged" />
+                <TextBox x:Name="SearchFolder" Tag="searchFolder" Style="{StaticResource SearchBox}" MaxLength="32767" LostFocus="PathChanged" />
             </Border>
             <Button Grid.Column="2" Content="瀏覽" Tag="searchFolder" Style="{StaticResource FillButton}" Height="{DynamicResource ControlHeight}"
                     Margin="12,0,0,0" Click="Browse" />
@@ -96,7 +94,7 @@
             </Grid.ColumnDefinitions>
             <TextBlock Text="系統紀錄資料夾" Style="{StaticResource RowLabel}" />
             <Border Grid.Column="1" Style="{StaticResource SearchFrame}" Height="{DynamicResource ControlHeight}">
-                <TextBox x:Name="LogFolder" Tag="logFolder" Style="{StaticResource SearchBox}" LostFocus="PathChanged" />
+                <TextBox x:Name="LogFolder" Tag="logFolder" Style="{StaticResource SearchBox}" MaxLength="32767" LostFocus="PathChanged" />
             </Border>
             <Button Grid.Column="2" Content="瀏覽" Tag="logFolder" Style="{StaticResource FillButton}" Height="{DynamicResource ControlHeight}"
                     Margin="12,0,0,0" Click="Browse" />
@@ -109,7 +107,7 @@
             </Grid.ColumnDefinitions>
             <TextBlock Text="備份輸出路徑" Style="{StaticResource RowLabel}" ToolTip="系統紀錄資料夾寫不進去時改寫到這裡" />
             <Border Grid.Column="1" Style="{StaticResource SearchFrame}" Height="{DynamicResource ControlHeight}">
-                <TextBox x:Name="BackupFolder" Tag="backupFolder" Style="{StaticResource SearchBox}" LostFocus="PathChanged" />
+                <TextBox x:Name="BackupFolder" Tag="backupFolder" Style="{StaticResource SearchBox}" MaxLength="32767" LostFocus="PathChanged" />
             </Border>
             <Button Grid.Column="2" Content="瀏覽" Tag="backupFolder" Style="{StaticResource FillButton}" Height="{DynamicResource ControlHeight}"
                     Margin="12,0,0,0" Click="Browse" />
@@ -125,8 +123,16 @@
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <TextBlock Text="條碼解析間隔" Style="{StaticResource RowLabel}" ToolTip="停止輸入後等這麼久才解析，單位毫秒" />
+            <!-- 選項是設計圖上固定的字；Tag 是寫進 number 的毫秒 -->
             <ComboBox x:Name="Interval" Grid.Column="1" Style="{StaticResource SettingChoice}" Width="200"
-                      HorizontalAlignment="Left" SelectionChanged="IntervalChanged" />
+                      HorizontalAlignment="Left" SelectedValuePath="Tag" SelectionChanged="IntervalChanged">
+                <ComboBoxItem Content="80"><ComboBoxItem.Tag><sys:Int32>80</sys:Int32></ComboBoxItem.Tag></ComboBoxItem>
+                <ComboBoxItem Content="120"><ComboBoxItem.Tag><sys:Int32>120</sys:Int32></ComboBoxItem.Tag></ComboBoxItem>
+                <ComboBoxItem Content="160"><ComboBoxItem.Tag><sys:Int32>160</sys:Int32></ComboBoxItem.Tag></ComboBoxItem>
+                <ComboBoxItem Content="200"><ComboBoxItem.Tag><sys:Int32>200</sys:Int32></ComboBoxItem.Tag></ComboBoxItem>
+                <ComboBoxItem Content="300"><ComboBoxItem.Tag><sys:Int32>300</sys:Int32></ComboBoxItem.Tag></ComboBoxItem>
+                <ComboBoxItem Content="500"><ComboBoxItem.Tag><sys:Int32>500</sys:Int32></ComboBoxItem.Tag></ComboBoxItem>
+            </ComboBox>
         </Grid>
         <Grid Margin="16,8,0,8">
             <Grid.ColumnDefinitions>
@@ -181,13 +187,13 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="{Binding Order}" FontFamily="{DynamicResource MonoFont}" FontSize="{DynamicResource Text}"
                                        Foreground="{DynamicResource TextFaint}" VerticalAlignment="Center" ToolTip="條碼的第幾段" />
-                            <TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource InlineBox}" LostFocus="Save" />
+                            <TextBox Grid.Column="1" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource InlineBox}" MaxLength="50" LostFocus="Save" />
                             <TextBox Grid.Column="2" Text="{Binding Prompt, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource InlineBox}" Margin="12,0,0,0"
-                                     FontFamily="{DynamicResource MonoFont}" FontSize="{DynamicResource Text}" LostFocus="Save" />
-                            <ComboBox Grid.Column="3" Style="{StaticResource SettingChoice}" Margin="12,0,0,0" SelectedIndex="{Binding Mode}"
+                                     MaxLength="255" FontFamily="{DynamicResource MonoFont}" FontSize="{DynamicResource Text}" LostFocus="Save" />
+                            <ComboBox Grid.Column="3" Style="{StaticResource SettingChoice}" Margin="12,0,0,0" SelectedValuePath="Tag" SelectedValue="{Binding Mode}"
                                       SelectionChanged="ModeChanged">
-                                <ComboBoxItem Content="直接填" />
-                                <ComboBoxItem Content="先確認再填" />
+                                <ComboBoxItem Content="直接填" Tag="fill" />
+                                <ComboBoxItem Content="先確認再填" Tag="confirm" />
                             </ComboBox>
                             <CheckBox Grid.Column="4" IsChecked="{Binding Editable}" Style="{StaticResource Switch}" Margin="12,0,0,0"
                                       HorizontalAlignment="Left" VerticalAlignment="Center" Click="Save" />

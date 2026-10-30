@@ -35,49 +35,91 @@ public partial class HelixStudioDbContext : DbContext
         {
             entity.HasKey(e => e.id).HasName("inspec_pkey");
 
-            entity.ToTable("inspec", "dbo", tb => tb.HasComment("InSpecTool：設定、欄位、每一次執行，一列是什麼由 type 決定"));
+            entity.ToTable("inspec", "dbo", tb => tb.HasComment("InSpecTool：setting 一項設定、field 一個欄位（移除寫 removed_at）、run 一次執行，一列是什麼由 type 決定"));
+
+            entity.HasIndex(e => e.setting_key, "inspec_setting")
+                .IsUnique()
+                .HasFilter("((type)::text = 'setting'::text)");
 
             entity.Property(e => e.id).HasComment("流水號");
-            entity.Property(e => e.archive).HasComment("[run] 實際寫入的歸檔檔路徑");
+            entity.Property(e => e.archive).HasComment("[run] 實際寫入的歸檔檔路徑；沒歸檔是空的");
             entity.Property(e => e.created_at)
                 .HasDefaultValueSql("now()")
                 .HasComment("這一列建立的時刻");
             entity.Property(e => e.editable).HasComment("[field] 主頁上可否改");
+            entity.Property(e => e.enabled).HasComment("[setting] 開關類（showResult）");
             entity.Property(e => e.exit_code).HasComment("[run] iscmd 回傳代碼");
-            entity.Property(e => e.export).HasComment("[run] InSpec 寫出的內容");
+            entity.Property(e => e.export).HasComment("[run] 這次匯出檔的內容");
             entity.Property(e => e.fields)
                 .HasDefaultValueSql("'{}'::jsonb")
-                .HasComment("[run] 這次執行的欄位值");
-            entity.Property(e => e.finished_at).HasComment("[run] iscmd 回來的時刻，也就是 InSpec 跑完");
-            entity.Property(e => e.mode).HasComment("[field] fill 直接填／confirm 先確認再填");
-            entity.Property(e => e.name).HasComment("[field] 欄位名稱");
+                .HasComment("[run] 這次執行的欄位值：欄位名稱 → 值");
+            entity.Property(e => e.finished_at).HasComment("[run] iscmd 回來的時刻（InSpec 跑完）");
+            entity.Property(e => e.mode).HasComment("[field] fill＝直接填；confirm＝先確認再填");
+            entity.Property(e => e.name).HasComment("[field] 欄位名稱；設定頁的輸入框 MaxLength 也是 50");
             entity.Property(e => e.note).HasComment("[run] 沒歸檔或出錯時的原因");
-            entity.Property(e => e.options)
-                .HasDefaultValueSql("'[]'::jsonb")
-                .HasComment("[setting] 可選的值");
-            entity.Property(e => e.program).HasComment("[run] 執行的量測程式完整路徑");
-            entity.Property(e => e.prompt).HasComment("[field] 對應的 InSpec 提示文字，完全相同（不分大小寫）才填");
+            entity.Property(e => e.number).HasComment("[setting] 數字類：scanInterval 毫秒、leftWidth px（沒拖過是空的）");
+            entity.Property(e => e.path).HasComment("[setting] 路徑類（searchFolder、logFolder、backupFolder）；還沒選是空的");
+            entity.Property(e => e.program).HasComment("[run] 執行的 .iwp 原檔完整路徑");
+            entity.Property(e => e.prompt).HasComment("[field] 對應的 InSpec 提示文字，完全相同（不分大小寫）才填；設定頁的輸入框 MaxLength 也是 255");
             entity.Property(e => e.prompts)
                 .HasDefaultValueSql("'[]'::jsonb")
                 .HasComment("[run] 每個提示怎麼處理：prompt、value、at");
-            entity.Property(e => e.setting_key).HasComment("[setting] 哪一項：searchFolder、logFolder、backupFolder、scanInterval、showResult、leftWidth（量測頁左欄拖到多寬，px；空的就照版面比例）");
+            entity.Property(e => e.removed_at).HasComment("[field] 移除的時刻；移除是狀態，列不真的刪");
+            entity.Property(e => e.setting_key).HasComment("[setting] searchFolder 搜尋資料夾、logFolder 紀錄資料夾、backupFolder 備份路徑、scanInterval 條碼解析間隔、showResult 跑完顯示結果、leftWidth 左欄寬；最長 12 個字");
             entity.Property(e => e.sort).HasComment("[field] 欄位順序，也是條碼分段的順序");
-            entity.Property(e => e.started_at).HasComment("[run] 按下執行的時刻；InSpec 自己寫入的是寫入的時刻");
-            entity.Property(e => e.type).HasComment("setting 一項設定／field 一個欄位／run 一次執行");
+            entity.Property(e => e.started_at).HasComment("[run] 按下執行的時刻");
+            entity.Property(e => e.type).HasComment("setting＝一項設定；field＝一個欄位；run＝一次執行");
             entity.Property(e => e.updated_at)
                 .HasDefaultValueSql("now()")
                 .HasComment("這一列最後修改的時刻");
-            entity.Property(e => e.value).HasComment("[setting] 設定值");
         });
 
         modelBuilder.Entity<vw_inspec_measure>(entity =>
         {
             entity.ToView("vw_inspec_measure", "dbo");
+
+            entity.Property(e => e.archive).HasComment("[run] 歸檔檔路徑；沒歸檔是空的");
+            entity.Property(e => e.editable).HasComment("[field] 主頁上可否改");
+            entity.Property(e => e.enabled).HasComment("[setting] 開關類的值（showResult）");
+            entity.Property(e => e.exit_code).HasComment("[run] iscmd 回傳代碼");
+            entity.Property(e => e.export).HasComment("[run] 這次匯出檔的內容");
+            entity.Property(e => e.field_values).HasComment("[run] 這次的欄位值，照現在的欄位順序");
+            entity.Property(e => e.fields).HasComment("[run] 這次執行的欄位值：欄位名稱 → 值（寫回去整列帶過來）");
+            entity.Property(e => e.finished_at).HasComment("[run] iscmd 回來的時刻（InSpec 跑完）；還沒跑完是空的");
+            entity.Property(e => e.id).HasComment("inspec 那一列的流水號（寫回去照它換整列）");
+            entity.Property(e => e.mode).HasComment("[field] fill＝直接填；confirm＝先確認再填");
+            entity.Property(e => e.name).HasComment("[field] 欄位名稱");
+            entity.Property(e => e.note).HasComment("[run] 沒歸檔或出錯時的原因");
+            entity.Property(e => e.number).HasComment("[setting] 數字類的值：scanInterval 毫秒、leftWidth px（沒拖過是空的）");
+            entity.Property(e => e.path).HasComment("[setting] 路徑類的值；還沒選是空的");
+            entity.Property(e => e.program).HasComment("[run] 執行的 .iwp 原檔完整路徑（寫回去整列帶過來）");
+            entity.Property(e => e.program_name).HasComment("[run] 程式的檔名（路徑最後一段）");
+            entity.Property(e => e.prompt).HasComment("[field] 對應的 InSpec 提示文字");
+            entity.Property(e => e.prompts).HasComment("[run] 每個提示怎麼處理：prompt、value、at（寫回去整列帶過來）");
+            entity.Property(e => e.run_text).HasComment("[run] 按下執行的時刻 MM-DD HH24:MI");
+            entity.Property(e => e.seconds).HasComment("[run] 從按下執行到 InSpec 跑完幾秒，一位小數；還沒跑完是空的");
+            entity.Property(e => e.setting_key).HasComment("[setting] 哪一項（見 inspec.setting_key）");
+            entity.Property(e => e.sort).HasComment("[field] 欄位順序；[run] 新的在前");
+            entity.Property(e => e.started_at).HasComment("[run] 按下執行的時刻（寫回去整列帶過來）");
+            entity.Property(e => e.started_text).HasComment("[run] 按下執行的時刻 YYYY-MM-DD HH24:MI:SS");
+            entity.Property(e => e.type).HasComment("setting＝一項設定；field＝一個欄位；run＝一次執行");
         });
 
         modelBuilder.Entity<vw_inspec_setup>(entity =>
         {
             entity.ToView("vw_inspec_setup", "dbo");
+
+            entity.Property(e => e.editable).HasComment("[field] 主頁上可否改");
+            entity.Property(e => e.enabled).HasComment("[setting] 開關類的值（showResult）");
+            entity.Property(e => e.id).HasComment("inspec 那一列的流水號（寫回去照它換整列）");
+            entity.Property(e => e.mode).HasComment("[field] fill＝直接填；confirm＝先確認再填");
+            entity.Property(e => e.name).HasComment("[field] 欄位名稱");
+            entity.Property(e => e.number).HasComment("[setting] 數字類的值：scanInterval 毫秒");
+            entity.Property(e => e.path).HasComment("[setting] 路徑類的值；還沒選是空的");
+            entity.Property(e => e.prompt).HasComment("[field] 對應的 InSpec 提示文字");
+            entity.Property(e => e.setting_key).HasComment("[setting] 哪一項（見 inspec.setting_key）");
+            entity.Property(e => e.sort).HasComment("[field] 欄位順序");
+            entity.Property(e => e.type).HasComment("setting＝一項設定；field＝一個欄位");
         });
 
         OnModelCreatingPartial(modelBuilder);

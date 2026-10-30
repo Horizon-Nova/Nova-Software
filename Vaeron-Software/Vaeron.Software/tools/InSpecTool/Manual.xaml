@@ -46,7 +46,7 @@
                            VerticalAlignment="Center" Margin="0,0,12,0" />
                 <Border Grid.Column="1" Style="{StaticResource SearchFrame}" Height="{DynamicResource ControlHeight}" CornerRadius="4">
                     <TextBox x:Name="Where" Style="{StaticResource SearchBox}" FontFamily="{DynamicResource MonoFont}"
-                             FontSize="{DynamicResource Text}" TextChanged="WhereTyped" />
+                             FontSize="{DynamicResource Text}" MaxLength="32767" TextChanged="WhereTyped" />
                 </Border>
                 <Button Grid.Column="2" Width="{DynamicResource ControlHeight}" Height="{DynamicResource ControlHeight}" Margin="4,0,0,0" Padding="0" Style="{StaticResource FillButton}"
                         ToolTip="選擇路徑" Click="Browse">

@@ -38,6 +38,65 @@ public static class ShellLogic
 
     #endregion
 
+    #region 開一支工具
+
+    /// <summary>開一支工具：授權准不准、工具金鑰配不配得上；准了又配得上才開，金鑰不行就請操作員貼一把（啟用）</summary>
+    /// <param name="toolNo">這一支工具的代碼</param>
+    /// <param name="row">vw_shell 這一支工具那一列；沒裝是 null</param>
+    /// <param name="allowed">這台電腦的授權准裝的每一支；授權不算數是 null</param>
+    /// <param name="keyFault">存著的工具金鑰配不上的原因；配得上（或授權就不准）是空字串</param>
+    /// <param name="ask">這台電腦的申請碼</param>
+    public static OpenView Opened(string toolNo, vw_shell? row, List<string>? allowed, string keyFault, string ask)
+    {
+        var granted = allowed?.Contains(toolNo) == true;
+        var name = row?.name ?? toolNo;
+
+        return new OpenView
+        {
+            Name = name,
+
+            // 授權不算數、或沒有包含這一支：說出來，停在工具資訊那一頁
+            Warnings = new[]
+                {
+                    (allowed is null, "這台電腦沒有有效的授權，工具開不起來。"),
+                    (allowed is not null && !granted, $"這台電腦的授權沒有包含 {toolNo}。跟供應商加購這一支，換一把新的授權。"),
+                }
+                .Where(one => one.Item1)
+                .Select(one => one.Item2)
+                .ToList(),
+
+            // 准了但工具金鑰沒有或配不上：請操作員貼一把
+            Activations = [.. new[] { name }.Where(_ => granted && keyFault.Length > 0).Select(one => new ActivationItem
+            {
+                Title = $"啟用 {one}",
+                Ask = ask,
+                Fault = $"{row?.code}".Length > 0 ? $"存著的工具金鑰不能用了：{keyFault}" : string.Empty,
+            })],
+
+            Open = granted && keyFault.Length == 0,
+        };
+    }
+
+    /// <summary>啟用一支工具：驗過的那一把工具金鑰記成一列 key，到期日是金鑰上那一天的最後一刻（當天仍可用）</summary>
+    /// <param name="toolNo">這一支工具的代碼</param>
+    /// <param name="code">驗過的那一串</param>
+    /// <param name="paper">那一串攤開的內容</param>
+    /// <param name="now">這一次的時刻</param>
+    public static tool Key(string toolNo, string code, Store.LicenceStore.LicenceItem? paper, DateTime now) =>
+        new()
+        {
+            type = "key",
+            tool_no = toolNo,
+            capabilities = [],
+            permissions = [],
+            code = code,
+            expires_at = DateOnly.TryParse(paper?.Expires, out var until) ? until.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Local).ToUniversalTime() : null,
+            created_at = now,
+            updated_at = now,
+        };
+
+    #endregion
+
     #region 跳出一則通知
 
     /// <summary>跳出一則通知：說什麼、左邊那條色條什麼顏色、停多久</summary>
@@ -105,7 +164,6 @@ public static class ShellLogic
         ["Danger"] = "#a4262c",
         ["DangerBack"] = "#fdf3f2",
         ["DangerLine"] = "#66a4262c",
-        ["CloseHover"] = "#c42b1c",
         ["Badge"] = "#c42b1c",
         ["Scrim"] = "#40000000",
         ["ShineDim"] = "#ededed",
@@ -201,8 +259,6 @@ public static class ShellLogic
         /// <summary>停幾秒</summary>
         public int Seconds { get; set; }
 
-        /// <summary>滑鼠停在上面時計時跟著停</summary>
-        public bool Held { get; set; }
     }
 
     /// <summary>出了狀況時橫幅上的那一段</summary>
@@ -228,6 +284,35 @@ public static class ShellLogic
 
         /// <summary>框線色</summary>
         public string Line { get; set; } = string.Empty;
+    }
+
+    /// <summary>開一支工具的結果</summary>
+    public class OpenView
+    {
+        /// <summary>工具名稱</summary>
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>開不起來時要說的話；開得起來是零筆</summary>
+        public List<string> Warnings { get; set; } = [];
+
+        /// <summary>要請操作員貼工具金鑰時的那一份；不用是零筆</summary>
+        public List<ActivationItem> Activations { get; set; } = [];
+
+        /// <summary>開得起來：授權准、工具金鑰配得上</summary>
+        public bool Open { get; set; }
+    }
+
+    /// <summary>啟用那一層要擺的字</summary>
+    public class ActivationItem
+    {
+        /// <summary>標題：啟用 工具名稱</summary>
+        public string Title { get; set; } = string.Empty;
+
+        /// <summary>這台電腦的申請碼</summary>
+        public string Ask { get; set; } = string.Empty;
+
+        /// <summary>存著的那一把不能用的原因；沒存過是空字串</summary>
+        public string Fault { get; set; } = string.Empty;
     }
 
     /// <summary>側邊導覽列上的一顆按鈕</summary>

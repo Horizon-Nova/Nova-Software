@@ -28,10 +28,6 @@
                             <Border x:Name="line" Width="1" Background="{DynamicResource HairLine}" />
                         </Grid>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="line" Property="Width" Value="2" />
-                                <Setter TargetName="line" Property="Background" Value="{DynamicResource Accent}" />
-                            </Trigger>
                             <Trigger Property="IsDragging" Value="True">
                                 <Setter TargetName="line" Property="Width" Value="2" />
                                 <Setter TargetName="line" Property="Background" Value="{DynamicResource Accent}" />
@@ -54,9 +50,6 @@
                             <ContentPresenter />
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="row" Property="Background" Value="{DynamicResource HoverBack}" />
-                            </Trigger>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter TargetName="row" Property="Background" Value="{DynamicResource Brand100}" />
                                 <Setter Property="Foreground" Value="{DynamicResource Brand700}" />
@@ -245,9 +238,9 @@
                                 <ColumnDefinition Width="5*" />
                                 <ColumnDefinition Width="40" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" Text="{Binding run_text}" FontFamily="{DynamicResource MonoFont}" />
-                            <TextBlock Grid.Column="1" Text="{Binding program_name}" Margin="0,0,8,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding program_name}" />
-                            <ItemsControl Grid.Column="2" ItemsSource="{Binding field_values}" Focusable="False">
+                            <TextBlock Grid.Column="0" Text="{Binding Time}" FontFamily="{DynamicResource MonoFont}" />
+                            <TextBlock Grid.Column="1" Text="{Binding Program}" Margin="0,0,8,0" TextTrimming="CharacterEllipsis" ToolTip="{Binding Program}" />
+                            <ItemsControl Grid.Column="2" ItemsSource="{Binding Values}" Focusable="False">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
                                         <UniformGrid Rows="1" />
@@ -259,7 +252,7 @@
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <TextBlock Grid.Column="3" Text="{Binding seconds_text, TargetNullValue=—}" FontFamily="{DynamicResource MonoFont}" TextAlignment="Right" />
+                            <TextBlock Grid.Column="3" Text="{Binding Seconds, TargetNullValue=—}" FontFamily="{DynamicResource MonoFont}" TextAlignment="Right" />
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>

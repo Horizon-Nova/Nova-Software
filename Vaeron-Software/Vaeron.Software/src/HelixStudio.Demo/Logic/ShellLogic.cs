@@ -38,6 +38,20 @@ public static class ShellLogic
 
     #endregion
 
+    #region 開一支工具
+
+    /// <summary>開一支工具：Demo 版不驗授權、不用工具金鑰，直接開</summary>
+    /// <param name="toolNo">這一支工具的代碼</param>
+    /// <param name="row">vw_shell 這一支工具那一列；沒裝是 null</param>
+    public static OpenView Opened(string toolNo, vw_shell? row) =>
+        new()
+        {
+            Name = row?.name ?? toolNo,
+            Open = true,
+        };
+
+    #endregion
+
     #region 跳出一則通知
 
     /// <summary>跳出一則通知：說什麼、左邊那條色條什麼顏色、停多久</summary>
@@ -105,7 +119,6 @@ public static class ShellLogic
         ["Danger"] = "#a4262c",
         ["DangerBack"] = "#fdf3f2",
         ["DangerLine"] = "#66a4262c",
-        ["CloseHover"] = "#c42b1c",
         ["Badge"] = "#c42b1c",
         ["Scrim"] = "#40000000",
         ["ShineDim"] = "#ededed",
@@ -201,8 +214,6 @@ public static class ShellLogic
         /// <summary>停幾秒</summary>
         public int Seconds { get; set; }
 
-        /// <summary>滑鼠停在上面時計時跟著停</summary>
-        public bool Held { get; set; }
     }
 
     /// <summary>出了狀況時橫幅上的那一段</summary>
@@ -228,6 +239,16 @@ public static class ShellLogic
 
         /// <summary>框線色</summary>
         public string Line { get; set; } = string.Empty;
+    }
+
+    /// <summary>開一支工具的結果</summary>
+    public class OpenView
+    {
+        /// <summary>工具名稱</summary>
+        public string Name { get; set; } = string.Empty;
+
+        /// <summary>開得起來：Demo 版不驗授權與工具金鑰，一律開</summary>
+        public bool Open { get; set; }
     }
 
     /// <summary>側邊導覽列上的一顆按鈕</summary>

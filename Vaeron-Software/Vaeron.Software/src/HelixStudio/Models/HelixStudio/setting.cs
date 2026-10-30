@@ -18,72 +18,36 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Models.HelixStudio;
 
-/// <summary>平台設定：一列一項，種類寫在 kind，選項放 jsonb</summary>
+/// <summary>平台設定的值：value 現在的值、fallback 資訊部建議的值；每一項是開關、數字或路徑其中一種，只填那一欄</summary>
 [Table("setting", Schema = "dbo")]
+[Index("type", "setting_key", Name = "setting_key", IsUnique = true)]
 public partial class setting
 {
     /// <summary>流水號</summary>
     [Key]
     public int id { get; set; }
 
-    /// <summary>setting</summary>
+    /// <summary>value＝現在的值；fallback＝資訊部建議的值</summary>
+    [StringLength(8)]
     public string type { get; set; } = null!;
 
-    /// <summary>左邊樹的分類代碼</summary>
-    public string area_key { get; set; } = null!;
+    /// <summary>launchOnBoot 開機時自動啟動、source 套件庫資料夾、notifySound 通知音效、bigTargets 大按鈕模式、textScale 文字大小、screenAwake 使用中保持螢幕不休眠、highContrast 高對比顯示、toolKeyMinutes 工具設定解鎖多久；最長的 toolKeyMinutes 是 14 個字</summary>
+    [StringLength(14)]
+    public string setting_key { get; set; } = null!;
 
-    /// <summary>左邊樹的分類名稱</summary>
-    public string area_label { get; set; } = null!;
+    /// <summary>開關類（launchOnBoot、notifySound、bigTargets、screenAwake、highContrast）：開或關</summary>
+    public bool? enabled { get; set; }
 
-    /// <summary>分類底下那一節的代碼</summary>
-    public string section_key { get; set; } = null!;
+    /// <summary>數字類：textScale 是百分比（100、115、130），toolKeyMinutes 是分鐘</summary>
+    public int? number { get; set; }
 
-    /// <summary>那一節的名稱</summary>
-    public string section_label { get; set; } = null!;
+    /// <summary>路徑類（source）；還沒有值時平台啟動時照這台電腦這個帳號的位置填上</summary>
+    [StringLength(32767)]
+    public string? path { get; set; }
 
-    /// <summary>那一節標題下的說明；沒有就是 NULL</summary>
-    public string? section_note { get; set; }
-
-    /// <summary>節裡的小標</summary>
-    public string group_label { get; set; } = null!;
-
-    /// <summary>這一項的代碼，程式照它讀值；按鈕與資訊列沒有</summary>
-    public string? setting_key { get; set; }
-
-    /// <summary>toggle（開關）／choice（下拉）／info（資訊）／action（按鈕）</summary>
-    public string kind { get; set; } = null!;
-
-    /// <summary>這一項的名稱</summary>
-    public string label { get; set; } = null!;
-
-    /// <summary>開關右邊那一句</summary>
-    public string? inline { get; set; }
-
-    /// <summary>名稱下面的說明</summary>
-    public string? note { get; set; }
-
-    /// <summary>現在的值</summary>
-    public string? value { get; set; }
-
-    /// <summary>回復預設時寫回的值</summary>
-    public string? fallback { get; set; }
-
-    /// <summary>下拉的每一個選項，字串陣列</summary>
-    [Column(TypeName = "jsonb")]
-    public string options { get; set; } = null!;
-
-    /// <summary>按鈕是不是破壞性的（紅色）</summary>
-    public bool danger { get; set; }
-
-    /// <summary>按鈕上的字</summary>
-    public string? button { get; set; }
-
-    /// <summary>排列順序</summary>
-    public int sort { get; set; }
-
-    /// <summary>建立時刻</summary>
+    /// <summary>這一列建立的時刻</summary>
     public DateTime created_at { get; set; }
 
-    /// <summary>最後修改時刻</summary>
+    /// <summary>最後一次改這個值的時刻</summary>
     public DateTime updated_at { get; set; }
 }

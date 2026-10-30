@@ -35,6 +35,7 @@ public static class CatalogLogic
                 LastOpen = row.last_open_text,
                 Opens = row.opens ?? 0,
                 Expires = row.expires_text,
+                Autostart = row.autostart == true,
             })
             .ToList();
 
@@ -133,8 +134,11 @@ public static class CatalogLogic
         /// <summary>開過幾次</summary>
         public int Opens { get; set; }
 
-        /// <summary>工具金鑰到期；沒有金鑰是 null</summary>
+        /// <summary>工具金鑰到期日；沒有到期日或沒啟用過是 null</summary>
         public string? Expires { get; set; }
+
+        /// <summary>隨 HelixStudio 自動啟動</summary>
+        public bool Autostart { get; set; }
     }
 
     /// <summary>一支都不符合時顯示的那一段</summary>

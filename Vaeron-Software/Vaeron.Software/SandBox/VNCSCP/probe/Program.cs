@@ -1,4 +1,4 @@
-// 用反射叫出 VNCSCP 既有的 RfbFileTransferClient，對真的 UltraVNC 伺服器送一個檔案或一個資料夾，印出成敗與逐步診斷。
+// 用反射叫出 VNCSCP 既有的 RfbFileTransferClient，對真的 UltraVNC 伺服器送一個檔案或一個資料夾，印出成敗與逐步診斷。舊版 VNCSCP 已刪（git 的 b76deee 還有），這支已不能跑。
 // 用法：VncscpProbe <ip> <port> <本機來源路徑> <遠端目的目錄> <密碼>
 using System.Reflection;
 using System.Text;

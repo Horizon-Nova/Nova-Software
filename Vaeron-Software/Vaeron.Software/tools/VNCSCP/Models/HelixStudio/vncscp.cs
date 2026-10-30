@@ -18,7 +18,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Models.HelixStudio;
 
-/// <summary>VNCSCP：設定、機台、每一次送出與測試，一列是什麼由 type 決定；VNC 密碼不在這裡，鎖在平台保險箱</summary>
+/// <summary>VNCSCP：setting 一項設定、machine 一台機台（移除寫 removed_at）、send 送一台的一次、test 測一台的一次；VNC 密碼不在這裡，鎖在平台保險箱</summary>
 [Table("vncscp", Schema = "dbo")]
 public partial class vncscp
 {
@@ -26,25 +26,31 @@ public partial class vncscp
     [Key]
     public int id { get; set; }
 
-    /// <summary>setting 一項設定／machine 一台機台／send 送一台的一次／test 測一台的一次</summary>
+    /// <summary>setting＝一項設定；machine＝一台機台；send＝送一台的一次；test＝測一台的一次</summary>
+    [StringLength(7)]
     public string type { get; set; } = null!;
 
-    /// <summary>[setting] 哪一項：source（上次選的來源資料夾）</summary>
+    /// <summary>[setting] source（上次選的來源資料夾）</summary>
+    [StringLength(6)]
     public string? setting_key { get; set; }
 
-    /// <summary>[setting] 設定值</summary>
-    public string? value { get; set; }
+    /// <summary>[setting] 路徑類的值；還沒選是空的</summary>
+    [StringLength(32767)]
+    public string? path { get; set; }
 
-    /// <summary>[machine] 機台名稱，可以空著</summary>
+    /// <summary>[machine] 機台名稱，可以空著；新增機台的輸入框 MaxLength 也是 50</summary>
+    [StringLength(50)]
     public string? name { get; set; }
 
-    /// <summary>[machine] IP</summary>
+    /// <summary>[machine] IP；IPv6 文字最長 45</summary>
+    [StringLength(45)]
     public string? ip { get; set; }
 
     /// <summary>[machine] UltraVNC 的 Port</summary>
     public int? port { get; set; }
 
     /// <summary>[machine] 送到機台上的哪個資料夾；[send] 這一次送到哪裡</summary>
+    [StringLength(32767)]
     public string? remote_path { get; set; }
 
     /// <summary>[send][test] 哪一台（machine 那一列的 id）</summary>
@@ -68,7 +74,7 @@ public partial class vncscp
     /// <summary>[send][test] 開始連線的時刻</summary>
     public DateTime? started_at { get; set; }
 
-    /// <summary>[send][test] 從開始到登入成功花了幾毫秒；沒登入成功是 null</summary>
+    /// <summary>[send][test] 從開始到登入成功花了幾毫秒；沒登入成功是空的</summary>
     public int? connected_ms { get; set; }
 
     /// <summary>[send][test] 結束的時刻：送完、測完、失敗、取消都是</summary>
@@ -77,8 +83,11 @@ public partial class vncscp
     /// <summary>[send][test] 使用者按取消的時刻</summary>
     public DateTime? cancelled_at { get; set; }
 
-    /// <summary>[send][test] 沒成功的原因，照實寫；成功是 null</summary>
+    /// <summary>[send][test] 沒成功的原因，照實寫；成功是空的</summary>
     public string? note { get; set; }
+
+    /// <summary>[machine] 移除的時刻；移除是狀態，列不真的刪</summary>
+    public DateTime? removed_at { get; set; }
 
     /// <summary>這一列建立的時刻</summary>
     public DateTime created_at { get; set; }

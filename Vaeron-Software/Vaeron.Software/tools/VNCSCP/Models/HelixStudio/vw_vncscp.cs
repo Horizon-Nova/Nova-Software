@@ -21,53 +21,96 @@ namespace Models.HelixStudio;
 [Keyless]
 public partial class vw_vncscp
 {
+    /// <summary>setting＝設定；machine＝一台機台；event＝一次送出或測試</summary>
+    [Column(TypeName = "character varying")]
     public string? type { get; set; }
 
+    /// <summary>[setting] 那一項設定的流水號；[machine] 機台的流水號；[event] send／test 那一列的流水號（寫回去照它換整列）</summary>
     public int? id { get; set; }
 
+    /// <summary>[setting] 上次選的來源資料夾（setting_key 是 source 的那一列）；還沒選是空的</summary>
+    [Column(TypeName = "character varying")]
     public string? source { get; set; }
 
+    /// <summary>[machine] 名稱，空的是空值；[event] 機台名稱，空的寫 IP:Port</summary>
+    [StringLength(51)]
     public string? name { get; set; }
 
+    /// <summary>[machine] IP</summary>
+    [Column(TypeName = "character varying")]
     public string? ip { get; set; }
 
+    /// <summary>[machine] UltraVNC 的 Port</summary>
     public int? port { get; set; }
 
+    /// <summary>[machine][event] IP:Port</summary>
+    [StringLength(51)]
     public string? address { get; set; }
 
+    /// <summary>[machine] 現在的遠端路徑；[event] 這一次送到的路徑</summary>
+    [Column(TypeName = "character varying")]
     public string? remote_path { get; set; }
 
+    /// <summary>[machine] 送到現在這個遠端路徑的最後一次成功，送的檔裡最新的修改時間；換過路徑就是空的</summary>
     public DateTime? recv_mtime { get; set; }
 
+    /// <summary>[machine] recv_mtime：今年寫 MM-DD HH24:MI、不是今年寫 YYYY-MM-DD；空的是破折號</summary>
+    [Column(TypeName = "character varying")]
     public string? recv_text { get; set; }
 
+    /// <summary>[machine] 那一次成功送完的時刻</summary>
     public DateTime? sent_at { get; set; }
 
+    /// <summary>[machine] sent_at，寫法同 recv_text</summary>
+    [Column(TypeName = "character varying")]
     public string? sent_text { get; set; }
 
+    /// <summary>[machine] 最後一次登入成功（送或測）花了幾毫秒</summary>
     public int? ping_ms { get; set; }
 
+    /// <summary>[machine] 那一次開始的時刻</summary>
     public DateTime? ping_at { get; set; }
 
+    /// <summary>[machine] 最後一次送或測沒成功的原因；之後成功過就是空的</summary>
     public string? fail_text { get; set; }
 
+    /// <summary>[machine] 那一次結束的時刻</summary>
     public DateTime? fail_at { get; set; }
 
-    public bool? fail_error { get; set; }
+    /// <summary>[machine] 那一次是使用者按了取消</summary>
+    public bool? fail_cancelled { get; set; }
 
+    /// <summary>[machine] 最後一批送出裡有沒有這一台</summary>
     public bool? in_last { get; set; }
 
+    /// <summary>[event] send＝送出；test＝測試連線</summary>
+    [Column(TypeName = "character varying")]
+    public string? event_type { get; set; }
+
+    /// <summary>[event] 開始的時刻 MM-DD HH24:MI:SS</summary>
+    [Column(TypeName = "character varying")]
     public string? at_text { get; set; }
 
-    public string? action { get; set; }
+    /// <summary>[event] 送幾個檔（測試是空的）</summary>
+    public int? file_count { get; set; }
 
-    public string? what { get; set; }
+    /// <summary>[event] 要送的總大小 KB，一位小數、千分位</summary>
+    [Column(TypeName = "character varying")]
+    public string? kb_text { get; set; }
 
+    /// <summary>[event] 從開始到結束幾毫秒</summary>
+    public long? took_ms { get; set; }
+
+    /// <summary>[event] took_ms：1 秒內寫 N ms，其餘 N.N 秒；空的是破折號</summary>
+    [Column(TypeName = "character varying")]
     public string? took_text { get; set; }
 
+    /// <summary>[event] 沒成功的原因；成功是空的</summary>
     public string? note { get; set; }
 
-    public bool? danger { get; set; }
+    /// <summary>[event] 這一次是使用者按了取消</summary>
+    public bool? cancelled { get; set; }
 
+    /// <summary>[machine] 照名稱排；[event] 新的在前</summary>
     public long? sort { get; set; }
 }

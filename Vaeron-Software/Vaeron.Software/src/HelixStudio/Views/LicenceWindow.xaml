@@ -25,12 +25,6 @@
                                 CornerRadius="{StaticResource RadiusSm}" Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="back" Property="Background"
-                                        Value="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>

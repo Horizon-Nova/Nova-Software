@@ -1,14 +1,15 @@
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Win32;
 using HelixStudio.Contract;
-using Models.HelixStudio;
+using InSpecTool.Logic;
+using InSpecTool.Service;
+using InSpecTool.Store;
 
 namespace InSpecTool;
 
 /// <summary>InSpecTool 的設定：掛在平台設定的「工具 › InSpecTool」那一節</summary>
+/// <remarks>標籤、說明與解析間隔的選項寫在 XAML；這裡把值擺上去、把操作交給 InspecService。</remarks>
 public partial class Setup : UserControl, ITool, IData
 {
     /// <summary>平台載入後塞進來的保險箱；這支工具用不到，只為符合合約</summary>
@@ -17,14 +18,16 @@ public partial class Setup : UserControl, ITool, IData
     /// <summary>平台載入後塞進來的資料庫連線</summary>
     public string Connection { get; set; } = string.Empty;
 
-    private readonly List<RowItem> rows = [];
+    /// <summary>這支工具的串接；掛上來時照平台塞進來的連線建立</summary>
+    private InspecService service = null!;
+
+    /// <summary>欄位結構的每一列，照畫面上的先後</summary>
+    private List<InspecLogic.RowItem> rows = [];
 
     /// <summary>備好這一節</summary>
     public Setup()
     {
         InitializeComponent();
-
-        FieldRows.ItemsSource = rows;
 
         // 平台的核取方塊與下拉要的圖示，加上新增、更多動作（lucide）
         DataContext = new
@@ -41,33 +44,22 @@ public partial class Setup : UserControl, ITool, IData
         };
     }
 
-    /// <summary>掛上來：從 vw_inspec_setup 讀設定與欄位結構</summary>
+    /// <summary>掛上來：讀設定與欄位結構</summary>
     /// <param name="sender">這一節</param>
     /// <param name="e">掛上來這一次</param>
     private void Ready(object sender, RoutedEventArgs e)
     {
-        using var db = Data();
-        var all = db.vw_inspec_setups.AsNoTracking().ToList();
-        var setup = all.Single(one => one.type == "setting");
+        service = new InspecService(new InspecStore(Connection));
+        var view = service.LoadSetup();
 
-        SearchFolder.Text = $"{setup.search_folder}";
-        LogFolder.Text = $"{setup.log_folder}";
-        BackupFolder.Text = $"{setup.backup_folder}";
-        ShowResult.IsChecked = setup.show_result;
+        SearchFolder.Text = view.SearchFolder;
+        LogFolder.Text = view.LogFolder;
+        BackupFolder.Text = view.BackupFolder;
+        ShowResult.IsChecked = view.ShowResult;
+        Interval.SelectedValue = view.ScanInterval;
 
-        Interval.ItemsSource = setup.scan_options;
-        Interval.SelectedItem = $"{setup.scan_interval}";
-
-        rows.Clear();
-        rows.AddRange(all.Where(one => one.type == "field").Select((one, at) => new RowItem
-        {
-            Order = at + 1,
-            Name = $"{one.name}",
-            Prompt = $"{one.prompt}",
-            Mode = one.confirm == true ? 1 : 0,
-            Editable = one.editable == true,
-        }));
-        FieldRows.Items.Refresh();
+        rows = view.Rows;
+        FieldRows.ItemsSource = rows;
     }
 
     /// <summary>選一個資料夾</summary>
@@ -82,7 +74,7 @@ public partial class Setup : UserControl, ITool, IData
         if (pick.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
 
         box.Text = pick.SelectedPath;
-        Keep(key, box.Text.Trim());
+        service.LoadChanged(key, null, null, box.Text.Trim());
     }
 
     /// <summary>路徑框離開時存起來</summary>
@@ -92,32 +84,32 @@ public partial class Setup : UserControl, ITool, IData
     {
         var box = (TextBox)sender;
 
-        Keep($"{box.Tag}", box.Text.Trim());
+        service.LoadChanged($"{box.Tag}", null, null, box.Text.Trim());
     }
 
-    /// <summary>條碼解析間隔改了</summary>
+    /// <summary>條碼解析間隔改了（選項的 Tag 是毫秒）</summary>
     /// <param name="sender">下拉</param>
     /// <param name="e">這一次選取</param>
     private void IntervalChanged(object sender, SelectionChangedEventArgs e)
     {
         // 掛上來時放進去的那一次不算改
-        if (Interval.SelectedItem is not string chosen || e.RemovedItems.Count == 0) return;
+        if (Interval.SelectedValue is not int chosen || e.RemovedItems.Count == 0) return;
 
-        Keep("scanInterval", chosen);
+        service.LoadChanged("scanInterval", null, chosen, null);
     }
 
     /// <summary>跑完要不要顯示結果</summary>
     /// <param name="sender">勾選框</param>
     /// <param name="e">這一次點擊</param>
     private void ShowResultChanged(object sender, RoutedEventArgs e) =>
-        Keep("showResult", ShowResult.IsChecked == true ? "true" : "false");
+        service.LoadChanged("showResult", ShowResult.IsChecked == true, null, null);
 
     /// <summary>新增一個欄位：最下面多一列，游標放在它的名稱；填了名稱離開就存</summary>
     /// <param name="sender">新增欄位</param>
     /// <param name="e">這一次點擊</param>
     private void Add(object sender, RoutedEventArgs e)
     {
-        rows.Add(new RowItem { Order = rows.Count + 1, Editable = true });
+        rows.Add(new InspecLogic.RowItem { Order = rows.Count + 1, Editable = true });
         FieldRows.Items.Refresh();
         FieldRows.UpdateLayout();
 
@@ -142,7 +134,7 @@ public partial class Setup : UserControl, ITool, IData
     /// <param name="e">這一次點擊</param>
     private void Move(object sender, RoutedEventArgs e)
     {
-        var row = (RowItem)((FrameworkElement)sender).DataContext;
+        var row = (InspecLogic.RowItem)((FrameworkElement)sender).DataContext;
         var to = Math.Clamp(rows.IndexOf(row) + int.Parse($"{((FrameworkElement)sender).Tag}"), 0, rows.Count - 1);
 
         rows.Remove(row);
@@ -158,7 +150,7 @@ public partial class Setup : UserControl, ITool, IData
     /// <param name="e">這一次點擊</param>
     private void Remove(object sender, RoutedEventArgs e)
     {
-        rows.Remove((RowItem)((FrameworkElement)sender).DataContext);
+        rows.Remove((InspecLogic.RowItem)((FrameworkElement)sender).DataContext);
         rows.Select((one, at) => (one, at)).ToList().ForEach(each => each.one.Order = each.at + 1);
         FieldRows.Items.Refresh();
 
@@ -175,30 +167,14 @@ public partial class Setup : UserControl, ITool, IData
         Save(sender, e);
     }
 
-    /// <summary>儲存欄位結構：整份換掉，順序就是條碼分段的順序；每改一格就存一次</summary>
+    /// <summary>儲存欄位結構：順序就是條碼分段的順序；每改一格就存一次</summary>
     /// <param name="sender">改了的那一格</param>
     /// <param name="e">這一次改動</param>
     private void Save(object sender, RoutedEventArgs e)
     {
-        // 名稱是空的那一列不存
-        var kept = rows.Where(one => one.Name.Trim().Length > 0).ToList();
+        var count = service.LoadSaved(rows);
 
-        using var db = Data();
-        db.inspecs.RemoveRange(db.inspecs.Where(one => one.type == "field"));
-        db.inspecs.AddRange(kept.Select((one, at) => new inspec
-        {
-            type = "field",
-            name = one.Name.Trim(),
-            prompt = one.Prompt.Trim(),
-            mode = one.Mode == 1 ? "confirm" : "fill",
-            editable = one.Editable,
-            sort = at + 1,
-            created_at = DateTime.UtcNow,
-            updated_at = DateTime.UtcNow,
-        }));
-        db.SaveChanges();
-
-        SaveText.Text = $"已儲存 {kept.Count} 個欄位 · {DateTime.Now:HH:mm:ss}";
+        SaveText.Text = $"已儲存 {count} 個欄位 · {DateTime.Now:HH:mm:ss}";
     }
 
     #region 對照
@@ -210,43 +186,6 @@ public partial class Setup : UserControl, ITool, IData
             .Select(at => System.Windows.Media.VisualTreeHelper.GetChild(root, at))
             .Select(one => one as T ?? FindName<T>(one))
             .FirstOrDefault(one => one is not null);
-
-    /// <summary>平台的資料庫</summary>
-    private HelixStudioDbContext Data() =>
-        new(new DbContextOptionsBuilder<HelixStudioDbContext>().UseNpgsql(Connection).Options);
-
-    /// <summary>存一項設定</summary>
-    /// <param name="key">哪一項</param>
-    /// <param name="value">新的值</param>
-    private void Keep(string key, string value)
-    {
-        using var db = Data();
-        db.inspecs.Where(one => one.type == "setting" && one.setting_key == key)
-            .ExecuteUpdate(set => set.SetProperty(one => one.value, value).SetProperty(one => one.updated_at, DateTime.UtcNow));
-    }
-
-    #endregion
-
-    #region 模型
-
-    /// <summary>欄位結構的一列</summary>
-    public class RowItem
-    {
-        /// <summary>第幾欄，也是條碼的第幾段</summary>
-        public int Order { get; set; }
-
-        /// <summary>欄位名稱</summary>
-        public string Name { get; set; } = string.Empty;
-
-        /// <summary>對應的 InSpec 提示文字</summary>
-        public string Prompt { get; set; } = string.Empty;
-
-        /// <summary>0 直接填、1 先確認再填（下拉的位置）</summary>
-        public int Mode { get; set; }
-
-        /// <summary>主頁上可否改</summary>
-        public bool Editable { get; set; }
-    }
 
     #endregion
 }

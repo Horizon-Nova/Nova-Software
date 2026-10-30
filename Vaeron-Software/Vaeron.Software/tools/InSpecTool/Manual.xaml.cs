@@ -1,58 +1,46 @@
 using System.IO;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Microsoft.EntityFrameworkCore;
+using InSpecTool.Logic;
+using InSpecTool.Service;
 using Microsoft.Win32;
-using Models.HelixStudio;
 
 namespace InSpecTool;
 
 /// <summary>InSpec 自己寫入了一筆結果：操作員沒透過 InSpecTool 跑時，在這裡確認路徑與料號再歸檔</summary>
 public partial class Manual : Window
 {
-    private readonly string connection;
+    /// <summary>量測頁的串接</summary>
+    private readonly InspecService service;
 
-    private readonly vw_inspec_measure setup;
+    /// <summary>量測頁打開時讀的設定：系統紀錄資料夾與備份輸出路徑</summary>
+    private readonly InspecLogic.MeasureView setup;
 
-    private readonly string input;
-
-    private readonly string program;
-
-    private string folder = string.Empty;
-
-    private readonly List<PendingItem> queue = [];
-
+    private readonly List<InspecLogic.PendingItem> queue = [];
 
     private bool auto = true;
 
     private bool filling;
 
     /// <summary>備好這個視窗</summary>
-    /// <param name="connection">平台資料庫的連線</param>
-    /// <param name="setup">vw_inspec_measure 的 setting 那一列：InSpecTool 的設定</param>
-    /// <param name="input">InSpec 寫入的那個檔</param>
-    /// <param name="program">InSpec 開著的量測程式（找得到就是完整路徑，找不到就是檔名）</param>
-    public Manual(string connection, vw_inspec_measure setup, string input, string program)
+    /// <param name="service">量測頁的串接</param>
+    /// <param name="setup">量測頁打開時讀的設定</param>
+    public Manual(InspecService service, InspecLogic.MeasureView setup)
     {
         InitializeComponent();
 
-        this.connection = connection;
+        this.service = service;
         this.setup = setup;
-        this.input = input;
-        this.program = program;
     }
 
     /// <summary>又有幾筆 InSpec 寫入的結果要歸檔：接在後面；沒有正在處理的就從第一筆開始</summary>
     /// <param name="items">寫入的當下已經記成 inspec 的那幾列，一次一筆</param>
-    /// <param name="folder">系統紀錄資料夾</param>
-    public void Add(List<PendingItem> items, string folder)
+    public void Add(List<InspecLogic.PendingItem> items)
     {
         var idle = queue.Count == 0;
 
-        this.folder = folder;
         queue.AddRange(items);
 
         if (idle) Next();
@@ -72,7 +60,7 @@ public partial class Manual : Window
         // 料號一改，路徑跟著換；操作員自己改過路徑就不再跟
         filling = true;
         Part.Text = item.Part;
-        Where.Text = Target(item.Part);
+        Where.Text = service.LoadTarget(item, item.Part, setup.LogFolder);
         filling = false;
         auto = true;
 
@@ -92,21 +80,8 @@ public partial class Manual : Window
         if (filling || !auto) return;
 
         filling = true;
-        Where.Text = Target(Part.Text);
+        Where.Text = service.LoadTarget(queue[0], Part.Text, setup.LogFolder);
         filling = false;
-    }
-
-    /// <summary>要存的那個檔：系統紀錄資料夾\資料夾\{料號}_{批號}.txt</summary>
-    /// <remarks>資料夾照歸檔規則用料號與分析出來的壓合算；壓合分析不出來，用量測程式所在的資料夾對到系統紀錄資料夾。沒有料號就是空字串。</remarks>
-    /// <param name="part">料號</param>
-    private string Target(string part)
-    {
-        var item = queue[0];
-        var safe = global::InSpecTool.Measure.Safe(part);
-        var analyzed = global::InSpecTool.Measure.Folder(part, item.Press);
-        var name = global::InSpecTool.Measure.Safe(item.Lot.Length > 0 ? $"{safe}_{item.Lot}.txt" : $"{safe}.txt");
-
-        return safe.Length > 0 ? Path.Combine(folder, analyzed.Length > 0 ? analyzed : item.ProgramFolder, name) : string.Empty;
     }
 
     /// <summary>操作員自己改了路徑：之後改料號不再動它</summary>
@@ -146,50 +121,22 @@ public partial class Manual : Window
         auto = false;
     }
 
-    /// <summary>歸檔到路徑：附加到歸檔檔、記一列，清空 InSpec 寫入的檔</summary>
+    /// <summary>歸檔到路徑：附加到歸檔檔、補上那一列；寫不成就把原因寫在下面</summary>
     /// <param name="sender">匯出圖示</param>
     /// <param name="e">這一次點擊</param>
     private void Export(object sender, RoutedEventArgs e)
     {
         ExportButton.IsEnabled = false;
 
-        // 寫進路徑；路徑所在的磁碟或網路資料夾找不到，就改寫到備份路徑（同樣的相對路徑）
-        var target = Where.Text.Trim();
-        var root = $"{setup.log_folder}".Trim();
-        var backup = $"{setup.backup_folder}".Trim();
-        var relative = target.Length > 0 && root.Length > 0 && Path.GetFullPath(target).StartsWith(Path.GetFullPath(root), StringComparison.OrdinalIgnoreCase)
-            ? Path.GetRelativePath(root, target)
-            : Path.GetFileName(target);
-        var candidates = new[] { target, backup.Length > 0 && relative.Length > 0 ? Path.Combine(backup, relative) : string.Empty }
-            .Where(one => one.Length > 0)
-            .Select(Path.GetFullPath)
-            .ToList();
-        var overlong = candidates.Where(one => one.Split(Path.DirectorySeparatorChar).Any(part => part.Length > global::InSpecTool.Measure.NameLimit)).ToList();
-        var archived = candidates.Except(overlong).FirstOrDefault(one => Directory.Exists(Path.GetPathRoot(one)));
+        var fault = service.LoadExported(setup, queue[0], Where.Text.Trim(), Part.Text.Trim(), Body.Text);
 
-        if (archived is null)
+        if (fault.Length > 0)
         {
-            Fault.Text = candidates.Count == 0 ? "路徑是空的：填上料號，或在路徑直接打要存的檔。"
-                : overlong.Count == candidates.Count ? $"路徑裡有一層超過 Windows 的 {(global::InSpecTool.Measure.NameLimit)} 字上限，沒有歸檔。"
-                : $"找不到 {string.Join("、", candidates)} 所在的磁碟或網路資料夾，沒有歸檔。";
+            Fault.Text = fault;
             Fault.Visibility = Visibility.Visible;
             ExportButton.IsEnabled = true;
             return;
         }
-
-        global::InSpecTool.Measure.Append(archived, Body.Text);
-
-        // 寫入時記下的那一列：補上歸檔到哪裡，料號、批號、壓合照這裡確認過的值
-        using var db = new HelixStudioDbContext(new DbContextOptionsBuilder<HelixStudioDbContext>().UseNpgsql(connection).Options);
-        var row = db.inspecs.Single(one => one.id == queue[0].Id);
-        var values = JsonSerializer.Deserialize<Dictionary<string, string>>(row.fields) ?? [];
-
-        values["料號"] = Part.Text.Trim();
-        row.fields = JsonSerializer.Serialize(values);
-        row.archive = archived;
-        row.note = string.Join(" ", new[] { "InSpec 自己寫入，操作員在歸檔視窗歸檔。", archived != candidates.First() ? $"路徑找不到，改寫到備份路徑：{candidates.First()}" : null }.Where(one => one is not null));
-        row.updated_at = DateTime.UtcNow;
-        db.SaveChanges();
 
         // 這一筆歸檔了；還有就換下一筆，沒有就關
         queue.RemoveAt(0);
@@ -239,36 +186,4 @@ public partial class Manual : Window
         if (e.Key == Key.Escape) Close();
         if (e.Key == Key.Enter && ExportButton.IsEnabled) Export(sender, e);
     }
-
-    #region 模型
-
-    /// <summary>一筆等著歸檔的結果：InSpec 寫入的當下已經記成 inspec 的一列</summary>
-    public class PendingItem
-    {
-        /// <summary>記在 inspec 的哪一列</summary>
-        public int Id { get; set; }
-
-        /// <summary>InSpec 寫出的這一筆內容</summary>
-        public string Content { get; set; } = string.Empty;
-
-        /// <summary>料號：內容裡對得上的回答，沒有就是左邊欄位填的值</summary>
-        public string Part { get; set; } = string.Empty;
-
-        /// <summary>批號</summary>
-        public string Lot { get; set; } = string.Empty;
-
-        /// <summary>壓合</summary>
-        public string Press { get; set; } = string.Empty;
-
-        /// <summary>InSpec 寫入的時刻</summary>
-        public DateTime Time { get; set; }
-
-        /// <summary>寫入當下 InSpec 開著的量測程式名稱</summary>
-        public string Program { get; set; } = string.Empty;
-
-        /// <summary>那支量測程式在搜尋資料夾裡的哪一層；找不到是空字串</summary>
-        public string ProgramFolder { get; set; } = string.Empty;
-    }
-
-    #endregion
 }

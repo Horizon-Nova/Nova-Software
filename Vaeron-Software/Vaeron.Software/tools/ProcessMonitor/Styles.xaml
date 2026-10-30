@@ -1,0 +1,230 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime"
+                    xmlns:local="clr-namespace:ProcessMonitor">
+
+    <!-- 監控台、限制對話框、沒有回應的小視窗共用的樣式 -->
+
+    <!-- 這一頁用到的圖示（lucide） -->
+    <x:Array x:Key="IconSearch" Type="sys:String"><sys:String>m21 21-4.34-4.34</sys:String><sys:String>M 3,11 A 8,8 0 1 0 19,11 A 8,8 0 1 0 3,11 Z</sys:String></x:Array>
+    <x:Array x:Key="IconColumns" Type="sys:String"><sys:String>M 5,3 L 19,3 A 2,2 0 0 1 21,5 L 21,19 A 2,2 0 0 1 19,21 L 5,21 A 2,2 0 0 1 3,19 L 3,5 A 2,2 0 0 1 5,3 Z</sys:String><sys:String>M9 3v18</sys:String><sys:String>M15 3v18</sys:String></x:Array>
+    <x:Array x:Key="IconDown" Type="sys:String"><sys:String>m6 9 6 6 6-6</sys:String></x:Array>
+    <x:Array x:Key="IconCheck" Type="sys:String"><sys:String>M20 6 9 17l-5-5</sys:String></x:Array>
+    <x:Array x:Key="IconX" Type="sys:String"><sys:String>M18 6 6 18</sys:String><sys:String>m6 6 12 12</sys:String></x:Array>
+
+    <!-- 次要按鈕：白底細框、一般字重 -->
+    <Style x:Key="Plain" TargetType="Button" BasedOn="{StaticResource FillButton}">
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Track}" />
+    </Style>
+
+    <!-- 主要按鈕：主色底、白字、SemiBold -->
+    <Style x:Key="Primary" TargetType="Button" BasedOn="{StaticResource FillButton}">
+        <Setter Property="Background" Value="{DynamicResource Accent}" />
+        <Setter Property="Foreground" Value="{DynamicResource OnAccent}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <!-- 按住 1 秒的按鈕（結束、緊急關閉）：紅框紅字，按著時紅色淡底由左往右填 -->
+    <Style x:Key="Hold" TargetType="local:HoldButton">
+        <Setter Property="Height" Value="{DynamicResource ControlHeight}" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="FontWeight" Value="Normal" />
+        <Setter Property="Foreground" Value="{DynamicResource Danger}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:HoldButton">
+                    <Grid>
+                        <Border x:Name="back" CornerRadius="{StaticResource RadiusSm}" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource DangerLine}" BorderThickness="1" />
+                        <Border CornerRadius="{StaticResource RadiusSm}" Background="{DynamicResource DangerBack}" HorizontalAlignment="Stretch" RenderTransformOrigin="0,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform ScaleX="{Binding Progress, RelativeSource={RelativeSource TemplatedParent}}" />
+                            </Border.RenderTransform>
+                        </Border>
+                        <Border x:Name="veil" CornerRadius="{StaticResource RadiusSm}" Background="Transparent" />
+                        <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+                            <Setter TargetName="back" Property="BorderBrush" Value="{DynamicResource HairLine}" />
+                            <Setter Property="Cursor" Value="No" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 選單裡的「結束」：紅字，按著時紅色淡底由左往右填 -->
+    <Style x:Key="HoldRow" TargetType="local:HoldButton">
+        <Setter Property="Foreground" Value="{DynamicResource Danger}" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="local:HoldButton">
+                    <Grid Background="Transparent">
+                        <Border CornerRadius="{StaticResource RadiusSm}" Background="{DynamicResource DangerBack}" RenderTransformOrigin="0,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform ScaleX="{Binding Progress, RelativeSource={RelativeSource TemplatedParent}}" />
+                            </Border.RenderTransform>
+                        </Border>
+                        <ContentPresenter VerticalAlignment="Center" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 欄名：可點排序；排序中的那一欄深色字 -->
+    <Style x:Key="Head" TargetType="Button">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="Transparent">
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="Tag" Value="on">
+                <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- 核取方塊 16 -->
+    <Style x:Key="Box" TargetType="CheckBox">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <Border x:Name="row" Background="Transparent" Height="28" Padding="8,0" CornerRadius="{StaticResource RadiusSm}">
+                        <StackPanel Orientation="Horizontal">
+                            <Border x:Name="box" Width="16" Height="16" CornerRadius="{StaticResource RadiusSm}" BorderThickness="1"
+                                    Background="{DynamicResource Surface}" BorderBrush="{DynamicResource CheckLine}" VerticalAlignment="Center">
+                                <ContentControl x:Name="tick" Content="{StaticResource IconCheck}" ContentTemplate="{StaticResource LucideIcon}"
+                                                Foreground="{DynamicResource OnAccent}" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ContentPresenter Margin="8,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="box" Property="Background" Value="{DynamicResource Accent}" />
+                            <Setter TargetName="box" Property="BorderBrush" Value="Transparent" />
+                            <Setter TargetName="tick" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 浮在頁面上的一層（選單、欄位清單）：白底細框、圓角、陰影 -->
+    <Style x:Key="Float" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource Surface}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource HairLine}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMd}" />
+        <Setter Property="Padding" Value="4" />
+        <Setter Property="Margin" Value="0,0,8,8" />
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="16" ShadowDepth="2" Direction="270" Opacity="0.14" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="Menu" TargetType="ContextMenu">
+        <Setter Property="FontFamily" Value="{StaticResource UiFont}" />
+        <Setter Property="FontSize" Value="{DynamicResource Text}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+        <Setter Property="HasDropShadow" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContextMenu">
+                    <Border Style="{StaticResource Float}" MinWidth="200">
+                        <ItemsPresenter />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 選單的一項：高 28；勾選的前面一個勾；有子選單的右邊寫現在的值與箭頭 -->
+    <Style TargetType="MenuItem">
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Grid>
+                        <Border x:Name="back" Height="28" Padding="8,0,12,0" CornerRadius="{StaticResource RadiusSm}" Background="Transparent">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="20" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <ContentControl x:Name="tick" Content="{StaticResource IconCheck}" ContentTemplate="{StaticResource LucideIcon}"
+                                                Foreground="{DynamicResource Accent}" Visibility="Hidden" VerticalAlignment="Center" HorizontalAlignment="Left" />
+                                <ContentPresenter Grid.Column="1" ContentSource="Header" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="2" Text="{TemplateBinding InputGestureText}" Foreground="{DynamicResource TextFaint}" Margin="16,0,0,0" VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+                        <Popup x:Name="PART_Popup" Placement="Right" HorizontalOffset="4" IsOpen="{TemplateBinding IsSubmenuOpen}" AllowsTransparency="True" Focusable="False">
+                            <Border Style="{StaticResource Float}" MinWidth="140">
+                                <ItemsPresenter />
+                            </Border>
+                        </Popup>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="back" Property="Background" Value="{DynamicResource HoverBack}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="tick" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="Separator">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Separator">
+                    <Border Height="1" Margin="0,4" Background="{DynamicResource HairLine}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <BooleanToVisibilityConverter x:Key="Shown" />
+
+    <!-- 只有圖示的小鈕（關閉） -->
+    <Style x:Key="Glyph" TargetType="Button">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="back" CornerRadius="{StaticResource RadiusSm}" Background="Transparent">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

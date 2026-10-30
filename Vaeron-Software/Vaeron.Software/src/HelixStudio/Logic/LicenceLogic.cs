@@ -6,6 +6,19 @@ namespace HelixStudio.Logic;
 /// <remarks>不碰資料庫也不碰畫面，給什麼算什麼；沒有狀態，所以是靜態的。畫面照設計檔 DesktopShell.dc.html 的「啟用這台電腦」。</remarks>
 public static class LicenceLogic
 {
+    #region 這把授權算不算數
+
+    /// <summary>這把授權這一刻算不算數：簽章要過，兩邊都有的機器識別要全部對得上，還沒過到期日（當天仍可用）；算數就是它准裝的每一支工具（清單空的就是一支都不准），不算數是 null</summary>
+    /// <param name="paper">讀出來的授權與量到的機器識別</param>
+    /// <param name="today">今天</param>
+    public static List<string>? Allowed(LicenceStore.LicenceView paper, DateOnly today) =>
+        paper.Sealed > 0 && paper.Both > 0 && paper.Same == paper.Both
+            && paper.Papers.All(one => one.Expires.Length == 0 || (DateOnly.TryParse(one.Expires, out var until) && until >= today))
+            ? [.. paper.Papers.Take(paper.Sealed).SelectMany(one => one.Tools)]
+            : null;
+
+    #endregion
+
     #region 啟用這台電腦
 
     /// <summary>把這台電腦的申請碼、露出來的機器識別與這一刻的操作攤成畫面上的每一格</summary>

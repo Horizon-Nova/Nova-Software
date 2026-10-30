@@ -47,9 +47,6 @@
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="back" Property="Background" Value="{DynamicResource HoverBack}" />
-                            </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="back" Property="Background" Value="{DynamicResource PressBack}" />
                             </Trigger>
@@ -71,9 +68,6 @@
                             <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="back" Property="Background" Value="{DynamicResource HoverBack}" />
-                            </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
                                 <Setter Property="Cursor" Value="No" />
@@ -102,9 +96,6 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="Tag" Value="on">
-                    <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
-                </Trigger>
-                <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
                 </Trigger>
             </Style.Triggers>
@@ -191,10 +182,6 @@
                             <Trigger Property="Text" Value="">
                                 <Setter TargetName="hint" Property="Visibility" Value="Visible" />
                             </Trigger>
-                            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
-                                <Setter TargetName="frame" Property="BorderBrush" Value="{DynamicResource Divider}" />
-                                <Setter TargetName="frame" Property="Background" Value="{DynamicResource Surface}" />
-                            </DataTrigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="frame" Property="BorderBrush" Value="Transparent" />
                                 <Setter TargetName="frame" Property="Background" Value="Transparent" />
@@ -335,9 +322,6 @@
                                                 <Setter Property="Background" Value="Transparent" />
                                                 <Setter Property="TextElement.Foreground" Value="{DynamicResource TextPrimary}" />
                                                 <Style.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter Property="Background" Value="{DynamicResource HoverBack}" />
-                                                    </Trigger>
                                                     <DataTrigger Binding="{Binding Checked}" Value="True">
                                                         <Setter Property="Background" Value="{DynamicResource Brand100}" />
                                                         <Setter Property="TextElement.Foreground" Value="{DynamicResource Brand700}" />
@@ -376,8 +360,27 @@
                                             </Grid>
                                             <TextBlock Grid.Column="4" Text="{Binding Diff}" Style="{StaticResource Cut}" Margin="0,0,8,0" TextAlignment="Right" ToolTip="{Binding DiffTitle}"
                                                        Visibility="{Binding Idle, Converter={StaticResource Shown}}" />
-                                            <TextBlock Grid.Column="5" Text="{Binding Reply}" Style="{StaticResource Cut}" TextAlignment="{Binding ReplyAlign}" ToolTip="{Binding ReplyTitle}"
-                                                       Foreground="{Binding ReplyInk}" Visibility="{Binding Idle, Converter={StaticResource Shown}}" />
+                                            <!-- 上次回應：毫秒靠右、跟著這一列的字色；沒成功的原因靠左，失敗紅、取消灰 -->
+                                            <TextBlock Grid.Column="5" Text="{Binding Reply}" ToolTip="{Binding ReplyTitle}" Visibility="{Binding Idle, Converter={StaticResource Shown}}">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock" BasedOn="{StaticResource Cut}">
+                                                        <Setter Property="TextAlignment" Value="Right" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Failed}" Value="True">
+                                                                <Setter Property="TextAlignment" Value="Left" />
+                                                                <Setter Property="Foreground" Value="{DynamicResource Danger}" />
+                                                            </DataTrigger>
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding Failed}" Value="True" />
+                                                                    <Condition Binding="{Binding Cancelled}" Value="True" />
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+                                                            </MultiDataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -402,11 +405,11 @@
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <TextBlock Text="名稱" Style="{StaticResource Label}" />
                                         <Border x:Name="NameFrame" Style="{StaticResource Field}" Width="112" Margin="8,0,0,0">
-                                            <TextBox x:Name="NewName" Style="{StaticResource SearchBox}" AutomationProperties.Name="名稱" />
+                                            <TextBox x:Name="NewName" Style="{StaticResource SearchBox}" MaxLength="50" AutomationProperties.Name="名稱" />
                                         </Border>
                                         <TextBlock Text="IP" Style="{StaticResource Label}" Margin="16,0,0,0" />
                                         <Border x:Name="IpFrame" Style="{StaticResource Field}" Width="128" Margin="8,0,0,0">
-                                            <TextBox x:Name="NewIp" Style="{StaticResource SearchBox}" FontFamily="{StaticResource MonoFont}" AutomationProperties.Name="IP" TextChanged="Unfault" />
+                                            <TextBox x:Name="NewIp" Style="{StaticResource SearchBox}" FontFamily="{StaticResource MonoFont}" MaxLength="45" AutomationProperties.Name="IP" TextChanged="Unfault" />
                                         </Border>
                                         <TextBlock Text="Port" Style="{StaticResource Label}" Margin="16,0,0,0" />
                                         <Border x:Name="PortFrame" Style="{StaticResource Field}" Width="64" Margin="8,0,0,0">
@@ -494,10 +497,67 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="{Binding At}" Style="{StaticResource MonoCut}" />
                                     <TextBlock Grid.Column="1" Text="{Binding Machine}" Style="{StaticResource Cut}" Margin="0,0,8,0" ToolTip="{Binding Machine}" />
-                                    <TextBlock Grid.Column="2" Text="{Binding Action}" Style="{StaticResource Cut}" />
-                                    <TextBlock Grid.Column="3" Text="{Binding What}" Style="{StaticResource Cut}" Margin="0,0,8,0" ToolTip="{Binding What}" />
+                                    <!-- 動作：照 event_type 寫 -->
+                                    <TextBlock Grid.Column="2">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource Cut}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding EventType}" Value="send">
+                                                        <Setter Property="Text" Value="送出" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding EventType}" Value="test">
+                                                        <Setter Property="Text" Value="測試連線" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                    <!-- 內容：送出寫 N 個檔 · X KB → 路徑；測試寫 IP:Port -->
+                                    <TextBlock Grid.Column="3" Margin="0,0,8,0">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource Cut}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding EventType}" Value="send">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                        <TextBlock.ToolTip>
+                                            <TextBlock><Run Text="{Binding FileCount, Mode=OneWay}" /><Run Text=" 個檔 · " /><Run Text="{Binding KbText, Mode=OneWay}" /><Run Text=" KB → " /><Run Text="{Binding RemotePath, Mode=OneWay}" /></TextBlock>
+                                        </TextBlock.ToolTip>
+                                        <Run Text="{Binding FileCount, Mode=OneWay}" /><Run Text=" 個檔 · " /><Run Text="{Binding KbText, Mode=OneWay}" /><Run Text=" KB → " /><Run Text="{Binding RemotePath, Mode=OneWay}" />
+                                    </TextBlock>
+                                    <TextBlock Grid.Column="3" Text="{Binding Address}" Margin="0,0,8,0" ToolTip="{Binding Address}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource MonoCut}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding EventType}" Value="test">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                     <TextBlock Grid.Column="4" Text="{Binding Took}" Style="{StaticResource MonoCut}" TextAlignment="Right" Margin="0,0,8,0" />
-                                    <TextBlock Grid.Column="5" Text="{Binding Note}" Style="{StaticResource Cut}" Foreground="{Binding NoteInk}" ToolTip="{Binding Note}" />
+                                    <!-- 錯誤：沒有淡灰 —；取消灰；失敗（note 有值、不是取消）紅 -->
+                                    <TextBlock Grid.Column="5" Text="{Binding Note}" ToolTip="{Binding Note}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource Cut}">
+                                                <Setter Property="Foreground" Value="{DynamicResource TextFaint}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Noted}" Value="True">
+                                                        <Setter Property="Foreground" Value="{DynamicResource TextMuted}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Error}" Value="True">
+                                                        <Setter Property="Foreground" Value="{DynamicResource Danger}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
@@ -623,7 +683,7 @@
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
                     <Border Margin="0,8,0,0" CornerRadius="{StaticResource RadiusMd}" Background="{DynamicResource Surface}" BorderBrush="{DynamicResource Divider}" BorderThickness="1"
-                            Tag="{Binding}" MouseEnter="HoldNote" MouseLeave="ResumeNote">
+                            Tag="{Binding}">
                         <Border.Effect>
                             <DropShadowEffect BlurRadius="32" ShadowDepth="6" Direction="270" Opacity="0.16" />
                         </Border.Effect>

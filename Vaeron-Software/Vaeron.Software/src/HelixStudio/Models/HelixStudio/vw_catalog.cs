@@ -21,51 +21,93 @@ namespace Models.HelixStudio;
 [Keyless]
 public partial class vw_catalog
 {
+    /// <summary>total＝總數；tool＝一支工具；change＝一則更新日誌；step＝操作說明的一步；search＝一個搜尋過的字</summary>
+    [Column(TypeName = "character varying")]
     public string? type { get; set; }
 
-    public string? cat { get; set; }
+    /// <summary>[tool] 裝著的那一次匯入的流水號</summary>
+    public int? id { get; set; }
 
+    /// <summary>[total] 還裝著的工具支數</summary>
     public int? tool_count { get; set; }
 
+    /// <summary>[tool][change][step] 工具代碼</summary>
+    [Column(TypeName = "character varying")]
     public string? tool_no { get; set; }
 
+    /// <summary>[tool] 工具名稱</summary>
+    [Column(TypeName = "character varying")]
     public string? name { get; set; }
 
+    /// <summary>[tool] lucide 的圖示名稱</summary>
+    [Column(TypeName = "character varying")]
     public string? icon { get; set; }
 
+    /// <summary>[tool] 維護團隊</summary>
+    [Column(TypeName = "character varying")]
     public string? vendor { get; set; }
 
+    /// <summary>[tool] 說明</summary>
+    [Column(TypeName = "character varying")]
     public string? description { get; set; }
 
+    /// <summary>[tool] 版本，前面加 v</summary>
+    [Column(TypeName = "character varying")]
     public string? version_text { get; set; }
 
-    public string? size { get; set; }
+    /// <summary>[tool] 套件大小：B、KB、MB，一位小數</summary>
+    [Column(TypeName = "character varying")]
+    public string? size_text { get; set; }
 
-    public string? updated_text { get; set; }
+    /// <summary>[tool] 匯入這一版的日期 YYYY/MM/DD</summary>
+    [Column(TypeName = "character varying")]
+    public string? imported_text { get; set; }
 
+    /// <summary>[tool] 這支工具會做的事</summary>
+    [Column(TypeName = "character varying[]")]
     public List<string>? capabilities { get; set; }
 
+    /// <summary>[tool] 會用到的權限</summary>
+    [Column(TypeName = "character varying[]")]
     public List<string>? permissions { get; set; }
 
+    /// <summary>[tool] 工具的檔案裝在哪一個資料夾</summary>
+    [Column(TypeName = "character varying")]
     public string? home { get; set; }
 
+    /// <summary>[tool] 最後一次開啟 YYYY-MM-DD HH24:MI；沒開過是空的</summary>
+    [Column(TypeName = "character varying")]
     public string? last_open_text { get; set; }
 
+    /// <summary>[tool] 開過幾次</summary>
     public int? opens { get; set; }
 
+    /// <summary>[tool] 工具金鑰到期日 YYYY-MM-DD；沒有到期日或沒啟用過是空的</summary>
+    [Column(TypeName = "character varying")]
     public string? expires_text { get; set; }
 
+    /// <summary>[tool] 離金鑰到期還有幾天；過了是負的，照樣列出；沒有到期日是空的</summary>
+    public int? remaining_days { get; set; }
+
+    /// <summary>[tool] 自動啟動：最新那一次切的值；沒切過是 false</summary>
+    public bool? autostart { get; set; }
+
+    /// <summary>[change] 版本</summary>
     public string? ver { get; set; }
 
+    /// <summary>[change] 日期</summary>
     public string? date { get; set; }
 
+    /// <summary>[change] 更新說明；[step] 這一步做什麼</summary>
     public string? note { get; set; }
 
-    public bool? latest { get; set; }
-
+    /// <summary>[search] 搜尋過的字</summary>
+    [Column(TypeName = "character varying")]
     public string? term { get; set; }
 
+    /// <summary>[step] 截圖的完整路徑；沒有圖是空的</summary>
     public string? image { get; set; }
 
+    /// <summary>[tool] 最近開過的在前；[change] 新到舊；[step] 步驟順序；[search] 最近用到的在前</summary>
     public long? sort { get; set; }
 }

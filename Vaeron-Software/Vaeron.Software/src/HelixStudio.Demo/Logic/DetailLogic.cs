@@ -11,10 +11,9 @@ public static class DetailLogic
     /// <summary>看一支工具的資訊</summary>
     /// <param name="rows">vw_catalog 裡這一支工具的 tool 那一列與每一則 change</param>
     /// <param name="icons">圖示名稱對到的每一段路徑</param>
-    /// <param name="asking">現在有沒有在問「真的要移除嗎」</param>
     /// <param name="selected">看的是第幾個分頁：0 總覽、1 操作說明、2 更新日誌</param>
     /// <param name="zoom">放大看的那一張截圖的完整路徑；沒有放大就是空字串</param>
-    public static DetailView Detail(IReadOnlyList<vw_catalog> rows, Dictionary<string, List<string>> icons, bool asking, int selected, string zoom) =>
+    public static DetailView Detail(IReadOnlyList<vw_catalog> rows, Dictionary<string, List<string>> icons, int selected, string zoom) =>
         new()
         {
             Tool = rows.First(row => row.type == "tool"),
@@ -23,7 +22,6 @@ public static class DetailLogic
             Selected = selected,
             Zooms = new[] { zoom }.Where(one => one.Length > 0).ToList(),
             Paths = icons[$"{rows.First(row => row.type == "tool").icon}"],
-            Asking = asking,
         };
 
     #endregion
@@ -50,9 +48,6 @@ public static class DetailLogic
 
         /// <summary>工具圖示的每一段路徑</summary>
         public List<string> Paths { get; set; } = [];
-
-        /// <summary>現在有沒有在問「真的要移除嗎」</summary>
-        public bool Asking { get; set; }
     }
 
     #endregion

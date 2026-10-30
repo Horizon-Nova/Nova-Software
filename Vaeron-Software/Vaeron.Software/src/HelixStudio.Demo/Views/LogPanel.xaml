@@ -1,11 +1,20 @@
 <UserControl x:Class="HelixStudio.Views.LogPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=System.Runtime"
              FontFamily="{StaticResource UiFont}" FontSize="{DynamicResource Text}"
              Foreground="{DynamicResource TextPrimary}">
 
     <UserControl.Resources>
         <BooleanToVisibilityConverter x:Key="Shown" />
+
+        <!-- 事件名：event_log.type 對到畫面上的字（設計圖上固定的字） -->
+        <ResourceDictionary x:Key="EventNames">
+            <sys:String x:Key="activate">啟用工具</sys:String>
+            <sys:String x:Key="open">開啟工具</sys:String>
+            <sys:String x:Key="unlock">解鎖設定</sys:String>
+            <sys:String x:Key="error">錯誤</sys:String>
+        </ResourceDictionary>
 
         <!-- 可點的欄名：只有字，滑鼠移上去字變深 -->
         <Style x:Key="HeadButton" TargetType="Button">
@@ -18,11 +27,6 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <ContentPresenter VerticalAlignment="Center" />
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>

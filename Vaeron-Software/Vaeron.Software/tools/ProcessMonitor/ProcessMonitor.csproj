@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- 只做 Win10～11（2026-10-15 使用者定）：CPU 上限、GPU 量測、Kernel-Network 都是 Win8 以後才有 -->
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>ProcessMonitor</RootNamespace>
+    <AssemblyName>ProcessMonitor</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+  </ItemGroup>
+
+  <!-- 平台已經載入這些組件；工具執行時用平台那一份，套件裡只放 ProcessMonitor.dll -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\HelixStudio.Contract\HelixStudio.Contract.csproj" Private="false" />
+  </ItemGroup>
+
+</Project>

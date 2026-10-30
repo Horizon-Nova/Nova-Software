@@ -3,7 +3,7 @@ using Models.HelixStudio;
 namespace HelixStudio.Logic;
 
 /// <summary>日誌這一頁：把 view 的欄位擺到畫面上</summary>
-/// <remarks>過濾、計數、排序、時間的字都在 view 與查詢裡做完；這裡只把欄位搬到畫面要的格子，算「幾分前」。</remarks>
+/// <remarks>過濾、計數、預設的先後、時間的字都在 view 與查詢裡做完；這裡把欄位搬到畫面要的格子，照操作員點的那一欄重排，算「幾分前」。事件名是設計圖上固定的字，由日誌頁的 XAML 給。</remarks>
 public static class LogLogic
 {
     #region 打開日誌
@@ -11,21 +11,35 @@ public static class LogLogic
     /// <summary>打開日誌：頁首的筆數、欄名的排序箭頭、擺出來的那幾列、選中那一件的明細、空的時候那一段</summary>
     /// <param name="rows">vw_event_log：每一種事件幾筆，與照搜尋字查出、照欄排好的每一件</param>
     /// <param name="icons">圖示名稱對到的每一段路徑</param>
+    /// <param name="names">事件代碼對到的事件名（日誌頁 XAML 裡的字）</param>
     /// <param name="query">搜尋框打的字</param>
     /// <param name="sort">照哪一欄排：at、type、tool、who</param>
     /// <param name="descending">由大到小</param>
     /// <param name="picked">選中那一件的流水號；還沒選過是 0</param>
     /// <param name="copied">選中那一件剛被複製，按鈕換成勾號</param>
     /// <param name="now">現在的時刻（UTC），算「幾分前」用</param>
-    public static LogView Log(IReadOnlyList<vw_event_log> rows, Dictionary<string, List<string>> icons, string query, string sort, bool descending,
+    public static LogView Log(IReadOnlyList<vw_event_log> rows, Dictionary<string, List<string>> icons, IReadOnlyDictionary<string, string> names, string query, string sort, bool descending,
         int picked, bool copied, DateTime now)
     {
         // 每一種事件幾筆，view 已經照筆數排好；全部幾筆是它們加起來
         var counts = rows.Where(row => row.type == "count").ToList();
         var total = counts.Sum(row => row.event_count ?? 0);
 
-        // 照搜尋字查出來的每一件，全部列出
-        var events = rows.Where(row => row.type == "event").ToList();
+        // 事件名：照代碼取日誌頁上的字，沒對到的照代碼寫
+        string Name(string? type) => names.GetValueOrDefault($"{type}", $"{type}");
+
+        // 照搜尋字查出來的每一件，全部列出；照操作員點的那一欄排，同一個值時照 view 的先後（新的在前）
+        var keyed = new Dictionary<string, Func<vw_event_log, string>>
+        {
+            ["at"] = row => row.created_at?.ToString("o") ?? string.Empty,
+            ["type"] = row => Name(row.event_type),
+            ["tool"] = row => row.tool_name ?? string.Empty,
+            ["who"] = row => row.account ?? string.Empty,
+        }[sort];
+        var found = rows.Where(row => row.type == "event");
+        var events = (descending ? found.OrderByDescending(keyed, StringComparer.Ordinal) : found.OrderBy(keyed, StringComparer.Ordinal))
+            .ThenBy(row => row.sort)
+            .ToList();
 
         // 選中的那一件：選過的還在就留著，不在了就落到第一件
         var chosen = events.Where(row => row.id == picked).DefaultIfEmpty(events.FirstOrDefault()).First();
@@ -34,7 +48,7 @@ public static class LogLogic
         {
             Counts = total == 0
                 ? "共 0 筆"
-                : $"共 {total} 筆：{string.Join(" · ", counts.Select(row => $"{row.event_name} {row.event_count}"))}",
+                : $"共 {total} 筆：{string.Join(" · ", counts.Select(row => $"{Name(row.event_type)} {row.event_count}"))}",
             Total = total,
             Matched = events.Count,
             Matcheds = Enumerable.Repeat(events.Count, 1).Where(_ => query.Trim().Length > 0).ToList(),
@@ -53,7 +67,7 @@ public static class LogLogic
                     Id = row.id ?? 0,
                     At = $"{row.created_text}",
                     Ago = Ago(row.created_at, now),
-                    Event = $"{row.event_name}",
+                    Event = Name(row.event_type),
                     EventInk = EventInk(row.event_type),
                     Tool = row.tool_name ?? Blank,
                     Who = row.account ?? Blank,
@@ -74,7 +88,7 @@ public static class LogLogic
                 .Where(row => row is not null)
                 .Select(row => new PickView
                 {
-                    Event = $"{row!.event_name}",
+                    Event = Name(row!.event_type),
                     EventInk = EventInk(row.event_type),
                     At = $"{row.created_text} · {Ago(row.created_at, now)}",
                     Tool = row.tool_name ?? Blank,
@@ -87,7 +101,7 @@ public static class LogLogic
                     CopyPaths = icons[copied ? "check" : "copy"],
 
                     // 複製的字：時間、事件、工具、帳號、方法、訊息、呼叫堆疊，空的不放
-                    CopyText = string.Join("\n", new[] { row.created_text, row.event_name, row.tool_name, row.account, row.function_name, row.message, row.stack_trace }
+                    CopyText = string.Join("\n", new[] { row.created_text, Name(row.event_type), row.tool_name, row.account, row.function_name, row.message, row.stack_trace }
                         .Where(one => !string.IsNullOrEmpty(one))),
                 })
                 .ToList(),

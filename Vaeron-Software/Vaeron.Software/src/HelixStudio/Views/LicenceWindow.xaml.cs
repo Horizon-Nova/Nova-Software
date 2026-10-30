@@ -1,20 +1,17 @@
 using System.Windows;
 using System.Windows.Controls;
 using HelixStudio.Logic;
-using HelixStudio.Store;
+using HelixStudio.Service;
 
 namespace HelixStudio.Views;
 
 /// <summary>授權這一頁：這台電腦還沒有授權時才出現</summary>
 public partial class LicenceWindow : Window
 {
-    private readonly Dictionary<string, List<string>> icons = new ShellStore().QueryIconList();
+    private readonly LicenceService service = new();
 
     private readonly LicenceLogic.MomentItem moment = new();
 
-    private readonly LicenceStore.LicenceView view = new LicenceStore().Licence();
-
-    private readonly IReadOnlyList<DeviceStore.MarkItem> shown = new DeviceStore().Shown();
 
     /// <summary>備好這一頁</summary>
     public LicenceWindow()
@@ -62,20 +59,12 @@ public partial class LicenceWindow : Window
     /// <param name="e">這一次點擊</param>
     private void Apply(object sender, RoutedEventArgs e)
     {
-        // 存起來，這一刻再讀一次：簽章要過，兩邊都有的機器識別要全部對得上，還沒過到期日（當天仍可用）
-        new LicenceStore().Take(Paste.Text);
-
-        var paper = new LicenceStore().Licence();
-        var today = DateOnly.FromDateTime(DateTime.Today);
-        var pass = new[] { paper.Sealed }
-            .Where(_ => paper.Both > 0 && paper.Same == paper.Both)
-            .Where(_ => paper.Papers.All(one => one.Expires.Length == 0 || (DateOnly.TryParse(one.Expires, out var until) && until >= today)))
-            .DefaultIfEmpty(0)
-            .First();
+        // 存起來，這一刻再讀一次驗過
+        var pass = service.LoadApplied(Paste.Text);
 
         // 驗不過就在欄位下說原因，貼上的字留著讓人對照
         moment.PasteError = new[] { "授權碼驗證失敗，請確認完整貼上，或向供應商重新索取一次。" }
-            .Where(_ => pass == 0)
+            .Where(_ => !pass)
             .DefaultIfEmpty(string.Empty)
             .First();
 
@@ -84,7 +73,7 @@ public partial class LicenceWindow : Window
         // 驗過就進平台
         Enumerable
             .Repeat(0, 1)
-            .Where(_ => pass > 0)
+            .Where(_ => pass)
             .ToList()
             .ForEach(_ =>
             {
@@ -102,7 +91,7 @@ public partial class LicenceWindow : Window
 
     /// <summary>把這一頁重畫一次</summary>
     private new void Show() =>
-        DataContext = LicenceLogic.Activate(view, shown, moment, icons);
+        DataContext = service.LoadActivate(moment);
 
     #region 對照
 

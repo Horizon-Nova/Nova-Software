@@ -21,19 +21,33 @@ namespace Models.HelixStudio;
 [Keyless]
 public partial class vw_palette
 {
+    /// <summary>tool＝一支工具；search＝一個搜尋過的字</summary>
+    [Column(TypeName = "character varying")]
     public string? type { get; set; }
 
+    /// <summary>[tool] 工具代碼</summary>
+    [Column(TypeName = "character varying")]
     public string? tool_no { get; set; }
 
+    /// <summary>[tool] 工具名稱</summary>
+    [Column(TypeName = "character varying")]
     public string? name { get; set; }
 
+    /// <summary>[tool] lucide 的圖示名稱</summary>
+    [Column(TypeName = "character varying")]
     public string? icon { get; set; }
 
+    /// <summary>[tool] 維護團隊</summary>
+    [Column(TypeName = "character varying")]
     public string? vendor { get; set; }
 
+    /// <summary>[search] 搜尋過的字</summary>
+    [StringLength(100)]
     public string? term { get; set; }
 
+    /// <summary>還裝著的工具支數（每一列都帶）</summary>
     public int? tool_count { get; set; }
 
+    /// <summary>[tool] 第一次匯入的先後；[search] 最近用到的在前</summary>
     public long? sort { get; set; }
 }

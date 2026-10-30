@@ -21,27 +21,42 @@ namespace Models.HelixStudio;
 [Keyless]
 public partial class vw_inspec_setup
 {
+    /// <summary>setting＝一項設定；field＝一個欄位</summary>
+    [Column(TypeName = "character varying")]
     public string? type { get; set; }
 
-    public string? search_folder { get; set; }
+    /// <summary>inspec 那一列的流水號（寫回去照它換整列）</summary>
+    public int? id { get; set; }
 
-    public string? log_folder { get; set; }
+    /// <summary>[setting] 哪一項（見 inspec.setting_key）</summary>
+    [Column(TypeName = "character varying")]
+    public string? setting_key { get; set; }
 
-    public string? backup_folder { get; set; }
+    /// <summary>[setting] 開關類的值（showResult）</summary>
+    public bool? enabled { get; set; }
 
-    public int? scan_interval { get; set; }
+    /// <summary>[setting] 數字類的值：scanInterval 毫秒</summary>
+    public decimal? number { get; set; }
 
-    public List<string>? scan_options { get; set; }
+    /// <summary>[setting] 路徑類的值；還沒選是空的</summary>
+    [Column(TypeName = "character varying")]
+    public string? path { get; set; }
 
-    public bool? show_result { get; set; }
-
+    /// <summary>[field] 欄位名稱</summary>
+    [StringLength(50)]
     public string? name { get; set; }
 
+    /// <summary>[field] 對應的 InSpec 提示文字</summary>
+    [StringLength(255)]
     public string? prompt { get; set; }
 
-    public bool? confirm { get; set; }
+    /// <summary>[field] fill＝直接填；confirm＝先確認再填</summary>
+    [StringLength(7)]
+    public string? mode { get; set; }
 
+    /// <summary>[field] 主頁上可否改</summary>
     public bool? editable { get; set; }
 
-    public int? sort { get; set; }
+    /// <summary>[field] 欄位順序</summary>
+    public long? sort { get; set; }
 }

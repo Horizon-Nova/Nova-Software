@@ -14,8 +14,9 @@
 ;   Redists        這一版要一併安裝的 VC++ 執行元件所在的資料夾，裡面每一個都會裝
 ;   NeedKb         Windows 7 要先有的系統更新（Win7 上的 .NET 6 要 KB3063858）；沒有就是空的
 ;   Tools          跟安裝檔一起來的工具套件所在的資料夾；沒有就是空的
-;   AfterSql       資料表建好或更新後再執行的一段 SQL；沒有就是空的
-;   Database       資料表腳本的資料夾（init、migrate\helix_studio）
+;   AfterSql       資料表建好後再執行的一段 SQL；沒有就是空的
+;   DatabaseVersion 資料庫結構是哪一版定的；這台電腦記下的跟它不一樣，就刪掉舊的資料庫照 init 重建
+;   Database       資料表腳本的資料夾（init：討論好的結構，安裝時照它建表）
 ; 安裝前先顯示使用者授權合約，按「我同意」才能繼續
 
 #define Exe AddBackslash(Dist) + "HelixStudio.exe"
@@ -51,7 +52,6 @@ Name: "{commonappdata}\{#DataFolder}"; Permissions: users-modify
 Source: "{#Dist}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 Source: "{#Pg}\*"; DestDir: "{app}\pgsql"; Flags: ignoreversion recursesubdirs
 Source: "{#Database}\init\*.sql"; DestDir: "{app}\database\init"; Flags: ignoreversion
-Source: "{#Database}\migrate\helix_studio\*.sql"; DestDir: "{app}\database\migrate"; Flags: ignoreversion
 Source: "{#Redists}\*.exe"; DestDir: "{tmp}\redist"; Flags: deleteafterinstall
 #if Tools != ""
 Source: "{#Tools}\*.stpkg"; DestDir: "{app}\tools"; Flags: ignoreversion
@@ -77,8 +77,9 @@ const
   NeedKb = '{#NeedKb}';
   PgBuild = '{#PgBuild}';
   AfterSql = '{#StringChange(AfterSql, "'", "''")}';
+  DatabaseVersion = '{#DatabaseVersion}';
 
-{ 這個 PostgreSQL 版本的資料、密碼、套過的變更檔：只給系統管理員與 SYSTEM；移除平台時留著，重裝接著用 }
+{ 這個 PostgreSQL 版本的資料、密碼、資料庫結構版本：只給系統管理員與 SYSTEM；移除平台時留著，重裝接著用 }
 function DbDir: String;
 begin
   Result := ExpandConstant('{commonappdata}\') + DataFolder + '\db\' + PgBuild;
@@ -94,9 +95,10 @@ begin
   Result := DbDir + '\db.key';
 end;
 
-function AppliedFile: String;
+{ 這台電腦的資料表是照哪一版的結構建的 }
+function SchemaFile: String;
 begin
-  Result := DbDir + '\migrated.txt';
+  Result := DbDir + '\database.txt';
 end;
 
 function Bin(Name: String): String;
@@ -220,7 +222,7 @@ end;
 { 檔案換好之後依序：VC++ 執行元件、資料庫、資料庫服務、資料表、平台的連線設定 }
 procedure CurStepChanged(CurStep: TSetupStep);
 var
-  Password, Applied: String;
+  Password: String;
   I: Integer;
   Fresh: Boolean;
   Files: TArrayOfString;
@@ -272,11 +274,16 @@ begin
     Exit;
   end;
 
-  { 資料表：新建的庫跑 init（已經是最新的樣子，變更檔全部記成套過）；已有的庫只補還沒套過的變更檔 }
-  Applied := ReadText(AppliedFile) + #13#10;
-  if Fresh then
+  { 資料表：這台電腦記下的資料庫結構版本跟這一版不一樣（新建的庫、2.0.0 沒記過、這一版改了結構），刪掉舊的資料庫照 init 重建；一樣就照原樣留著 }
+  if ReadText(SchemaFile) <> DatabaseVersion then
   begin
     WizardForm.StatusLabel.Caption := '建立資料表…';
+    Psql(Password, 'postgres', '-c "select pg_terminate_backend(pid) from pg_stat_activity where datname = ''helix_studio''"');
+    if Psql(Password, 'postgres', '-c "drop database if exists helix_studio"') <> 0 then
+    begin
+      Fail('刪除舊的資料庫 helix_studio 失敗。');
+      Exit;
+    end;
     if Psql(Password, 'postgres', '-c "create database helix_studio"') <> 0 then
     begin
       Fail('建立資料庫 helix_studio 失敗。');
@@ -289,28 +296,10 @@ begin
         Fail('建立資料表失敗：' + Files[I] + '。');
         Exit;
       end;
-    Files := FilesIn(ExpandConstant('{app}\database\migrate'), '*.sql');
-    for I := 0 to GetArrayLength(Files) - 1 do
-      Applied := Applied + Files[I] + #13#10;
-  end else
-  begin
-    WizardForm.StatusLabel.Caption := '更新資料表…';
-    Files := FilesIn(ExpandConstant('{app}\database\migrate'), '*.sql');
-    for I := 0 to GetArrayLength(Files) - 1 do
-      if Pos(#10 + Files[I] + #13, #10 + Applied) = 0 then
-      begin
-        if Psql(Password, 'helix_studio', '-f "' + ExpandConstant('{app}\database\migrate\') + Files[I] + '"') <> 0 then
-        begin
-          SaveStringToFile(AppliedFile, Applied, False);
-          Fail('更新資料表失敗：' + Files[I] + '。');
-          Exit;
-        end;
-        Applied := Applied + Files[I] + #13#10;
-      end;
+    SaveStringToFile(SchemaFile, DatabaseVersion, False);
   end;
-  SaveStringToFile(AppliedFile, Applied, False);
 
-  { 這個產品自己要的那一段 SQL（例如 Demo 拿掉它沒有的設定）；變更檔補回來也一樣在這裡再執行一次 }
+  { 這個產品自己要的那一段 SQL（例如 Demo 拿掉它沒有的設定） }
   if AfterSql <> '' then
     if Psql(Password, 'helix_studio', '-c "' + AfterSql + '"') <> 0 then
     begin

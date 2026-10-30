@@ -21,31 +21,49 @@ namespace Models.HelixStudio;
 [Keyless]
 public partial class vw_event_log
 {
+    /// <summary>count＝一種事件的筆數；event＝一件事</summary>
+    [Column(TypeName = "character varying")]
     public string? type { get; set; }
 
+    /// <summary>[event] event_log 的流水號</summary>
     public int? id { get; set; }
 
+    /// <summary>activate、open、unlock、error（見 event_log.type）</summary>
+    [StringLength(8)]
     public string? event_type { get; set; }
 
-    public string? event_name { get; set; }
-
+    /// <summary>[count] 這種事件幾筆</summary>
     public int? event_count { get; set; }
 
+    /// <summary>[event] 哪一支工具</summary>
+    [StringLength(255)]
     public string? tool_no { get; set; }
 
+    /// <summary>[event] 工具最後一次匯入時的名稱；沒匯入過是代碼</summary>
+    [StringLength(255)]
     public string? tool_name { get; set; }
 
+    /// <summary>[event] 當時登入 Windows 的帳號</summary>
+    [StringLength(20)]
     public string? account { get; set; }
 
+    /// <summary>[event] 系統由哪一支方法處理</summary>
+    [StringLength(2047)]
     public string? function_name { get; set; }
 
+    /// <summary>[event] 處理的結果；錯誤時是錯誤訊息</summary>
     public string? message { get; set; }
 
+    /// <summary>[event] 錯誤時的呼叫堆疊</summary>
     public string? stack_trace { get; set; }
 
+    /// <summary>[event] 發生的時刻（照時間排序用）</summary>
     public DateTime? created_at { get; set; }
 
+    /// <summary>[event] 發生的時刻 YYYY-MM-DD HH24:MI:SS</summary>
+    [StringLength(19)]
     public string? created_text { get; set; }
 
-    public int? sort { get; set; }
+    /// <summary>[count] 多的在前；[event] 新的在前</summary>
+    public long? sort { get; set; }
 }

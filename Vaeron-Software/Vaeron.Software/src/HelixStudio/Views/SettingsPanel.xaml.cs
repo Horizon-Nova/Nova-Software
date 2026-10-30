@@ -6,25 +6,24 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using HelixStudio.Contract;
 using HelixStudio.Logic;
+using HelixStudio.Service;
 using HelixStudio.Store;
 
 namespace HelixStudio.Views;
 
 /// <summary>設定這一頁</summary>
+/// <remarks>區段、標籤、說明、選項的字寫在 XAML；這裡把值擺上去、照搜尋字收起不符合的列、把操作交給 SettingsService。</remarks>
 public partial class SettingsPanel : UserControl
 {
-    private readonly ShellStore store = new();
+    private readonly SettingsService service = new();
 
     private readonly SecretStore secrets = new();
 
-    private readonly Dictionary<string, List<string>> icons;
-
-    private readonly List<string> opened = ["top", "device", "work", SettingsLogic.Tools, "support"];
-
-    /// <summary>選中的那一節；空字串就是第一節</summary>
+    /// <summary>選中的那一節；空字串是還沒選</summary>
     private string section = string.Empty;
 
-    private string query = string.Empty;
+    /// <summary>這一次攤出來的這一頁</summary>
+    private SettingsLogic.SettingsView view = new();
 
     /// <summary>輸入工具金鑰解開的工具，各自到什麼時刻鎖回；只在記憶體裡，金鑰不留在這台電腦</summary>
     private readonly Dictionary<string, DateTime> until = [];
@@ -40,7 +39,6 @@ public partial class SettingsPanel : UserControl
     {
         InitializeComponent();
 
-        icons = store.QueryIconList();
         tick.Tick += (_, _) => Show();
     }
 
@@ -72,33 +70,28 @@ public partial class SettingsPanel : UserControl
             });
 
     /// <summary>搜尋設定</summary>
-    private void Find(object sender, TextChangedEventArgs e)
-    {
-        query = Search.Text;
-
+    private void Find(object sender, TextChangedEventArgs e) =>
         Show();
-    }
 
     /// <summary>清除搜尋</summary>
     private void Clear(object sender, RoutedEventArgs e) =>
         Search.Text = string.Empty;
 
-    /// <summary>展開或收起一個分類</summary>
+    /// <summary>展開或收起一個分類：分類鈕的 Uid 對到它底下那一疊</summary>
     private void Twist(object sender, RoutedEventArgs e)
     {
-        var key = ((SettingsLogic.NavItem)((Button)sender).DataContext).Key;
+        var area = (Button)sender;
+        var open = $"{area.Tag}" != "open";
 
-        // 本來展開的就收起來，本來收起來的就展開
-        opened.Where(one => one == key).ToList().ForEach(one => opened.Remove(one));
-        opened.AddRange(new[] { key }.Where(_ => !opened.Contains(key)));
-
-        Show();
+        area.Tag = open ? "open" : "shut";
+        Nav.Children.OfType<StackPanel>().Where(one => one.Uid == area.Uid).ToList()
+            .ForEach(one => one.Visibility = open ? Visibility.Visible : Visibility.Collapsed);
     }
 
-    /// <summary>點左邊的一節：工具的那一節就把那支工具自己的設定畫面掛上來</summary>
+    /// <summary>點左邊的一節：工具的那一節把那支工具自己的設定畫面掛上來；其他節整頁捲到它那一段</summary>
     private void PickSection(object sender, RoutedEventArgs e)
     {
-        section = ((SettingsLogic.NavItem)((Button)sender).DataContext).Key;
+        section = $"{((Button)sender).Tag}";
 
         // 換節先把上一支工具的設定畫面拿掉
         ToolPane.Content = null;
@@ -106,13 +99,13 @@ public partial class SettingsPanel : UserControl
         // 工具的那一節：載入它的組件，建立它宣告的設定畫面，交給它保險箱與資料庫連線
         new[] { section }
             .Where(one => one.StartsWith($"{SettingsLogic.Tools}:"))
-            .Select(one => store.QuerySettingItem(one[(SettingsLogic.Tools.Length + 1)..]) ?? new())
-            .Where(row => File.Exists(Path.Combine($"{row.home}", $"{row.entry}")))
+            .Select(one => service.LoadToolSettings(one[(SettingsLogic.Tools.Length + 1)..]))
+            .Where(row => row is not null && File.Exists(Path.Combine($"{row.home}", $"{row.entry}")))
             .ToList()
             .ForEach(row =>
             {
                 // 同一個檔已經載過（開過這支工具）就用那一份；同名組件載兩份，WPF 找畫面資源會找錯份
-                var entry = Path.Combine($"{row.home}", $"{row.entry}");
+                var entry = Path.Combine($"{row!.home}", $"{row.entry}");
                 var assembly = AssemblyLoadContext.All
                     .SelectMany(context => context.Assemblies)
                     .Where(loaded => !loaded.IsDynamic)
@@ -129,37 +122,29 @@ public partial class SettingsPanel : UserControl
         Show();
 
         // 不是工具的那一節：整頁捲到它那一段的標題
-        var at = ((SettingsLogic.SettingsView)DataContext).Sections.FindIndex(one => one.Key == section);
-
         Page.UpdateLayout();
-        Page.ScrollToVerticalOffset(new[] { at }
-            .Where(one => one >= 0)
-            .Select(one => SectionList.ItemContainerGenerator.ContainerFromIndex(one) as FrameworkElement)
-            .Where(one => one is not null)
-            .Select(one => one!.TranslatePoint(new Point(0, 0), SectionList).Y)
+        Page.ScrollToVerticalOffset(Sections.Children
+            .OfType<FrameworkElement>()
+            .Where(one => $"{one.Tag}" == section && one.Visibility == Visibility.Visible)
+            .Select(one => one.TranslatePoint(new Point(0, 0), Sections).Y)
             .DefaultIfEmpty(0)
             .First());
     }
 
-    /// <summary>輸入工具金鑰：配得上這支工具就解開它的設定，照設定的分鐘數倒數，記一筆解鎖</summary>
+    /// <summary>輸入工具金鑰：配得上這支工具就解開它的設定，照設定的分鐘數倒數</summary>
     /// <param name="sender">解鎖（Tag 是金鑰框）</param>
     /// <param name="e">這一次點擊</param>
     private void Unlock(object sender, RoutedEventArgs e)
     {
         var code = (PasswordBox)((FrameworkElement)sender).Tag;
         var toolNo = section[(SettingsLogic.Tools.Length + 1)..];
-        var fault = new LicenceStore().Fits(code.Password, toolNo);
+        var (fault, minutes) = service.LoadUnlocked(toolNo, code.Password);
 
         // 配不上：原因寫在框下面
         ((TextBlock)code.Tag).Text = fault;
         code.Clear();
-        if (fault.Length > 0) return;
 
-        // 配得上：解開幾分鐘照 vw_settings 的 unlock_minutes
-        var item = store.QuerySettingItem(toolNo);
-
-        until[toolNo] = DateTime.Now.AddMinutes(item?.unlock_minutes ?? 0);
-        store.InsertEventLog("unlock", toolNo, $"{nameof(SettingsPanel)}.{nameof(Unlock)}", $"用工具金鑰解開 {item?.name} 的設定 {item?.unlock_minutes} 分鐘", null);
+        new[] { fault }.Where(one => one.Length == 0).ToList().ForEach(_ => until[toolNo] = DateTime.Now.AddMinutes(minutes));
 
         Show();
     }
@@ -193,89 +178,101 @@ public partial class SettingsPanel : UserControl
         Show();
     }
 
-    /// <summary>切一個開關：畫面上的值和資料裡的值不同才寫回去，重畫時不會又彈回來</summary>
-    private void Flip(object sender, RoutedEventArgs e) =>
-        new[] { ((CheckBox)sender).IsChecked == true }
-            .Where(one => one != ((SettingsLogic.ToggleItem)((CheckBox)sender).DataContext).On)
-            .ToList()
-            .ForEach(one =>
-            {
-                store.UpdateSetting(((SettingsLogic.ToggleItem)((CheckBox)sender).DataContext).Key, Truth[one]);
-
-                Applied();
-            });
-
-    /// <summary>選一個選項</summary>
-    private void Choose(object sender, SelectionChangedEventArgs e) =>
-        e.AddedItems
-            .OfType<string>()
-            .Where(one => one != ((SettingsLogic.ChoiceItem)((ComboBox)sender).DataContext).Value)
-            .ToList()
-            .ForEach(one =>
-            {
-                store.UpdateSetting(((SettingsLogic.ChoiceItem)((ComboBox)sender).DataContext).Key, one);
-
-                Applied();
-            });
-
-    /// <summary>把一項設定改回資訊部建議的值</summary>
-    private void Reset(object sender, RoutedEventArgs e)
+    /// <summary>切一個開關（Tag 是設定代碼）：寫回去，當場照新的值套用</summary>
+    private void Flip(object sender, RoutedEventArgs e)
     {
-        var back = (SettingsLogic.ResetItem)((Button)sender).DataContext;
+        var box = (CheckBox)sender;
 
-        store.UpdateSetting(back.Key, back.Fallback);
+        service.LoadChanged($"{box.Tag}", box.IsChecked == true, null);
 
-        Applied();
-    }
-
-    /// <summary>按一顆設定裡的按鈕</summary>
-    private void Act(object sender, RoutedEventArgs e)
-    {
-        var act = (SettingsLogic.ActionItem)((Button)sender).DataContext;
-
-        // 回復成資訊部建議設定：每一項都寫回建議值，這一頁跟著重畫
-        new[] { act.Label }.Where(one => one == Revert).ToList()
-            .ForEach(_ =>
-            {
-                store.UpdateSettingList();
-
-                Applied();
-            });
-
-        ((MainWindow)Window.GetWindow(this)!).Note(act.Said, "info");
-    }
-
-    /// <summary>設定改過了：當場照新的值套用一次，再把這一頁重畫</summary>
-    private void Applied()
-    {
         ((App)Application.Current).Apply();
-
         Show();
     }
 
-    /// <summary>把這一頁重畫一次：工具設定照鎖著或解開決定能不能改；有工具解開就每秒再畫一次</summary>
+    /// <summary>選一個選項（Tag 是設定代碼，選項的 Tag 是值）：跟現在的值不同才寫回去，重畫時不會又彈回來</summary>
+    private void Choose(object sender, SelectionChangedEventArgs e)
+    {
+        var box = (ComboBox)sender;
+        var key = $"{box.Tag}";
+
+        new[] { box.SelectedValue }
+            .OfType<int>()
+            .Where(one => view.Values.TryGetValue(key, out var now) && now.Number != one)
+            .ToList()
+            .ForEach(one =>
+            {
+                service.LoadChanged(key, null, one);
+
+                ((App)Application.Current).Apply();
+                Show();
+            });
+    }
+
+    /// <summary>把一項設定改回資訊部建議的值（Tag 是設定代碼）</summary>
+    private void Reset(object sender, RoutedEventArgs e)
+    {
+        service.LoadReverted([$"{((Button)sender).Tag}"]);
+
+        ((App)Application.Current).Apply();
+        Show();
+    }
+
+    /// <summary>回復成資訊部建議設定：每一項都寫回建議值，這一頁跟著重畫</summary>
+    private void Revert(object sender, RoutedEventArgs e)
+    {
+        service.LoadReverted([]);
+
+        ((App)Application.Current).Apply();
+        Show();
+
+        ((MainWindow)Window.GetWindow(this)!).Note("「回復成資訊部建議設定」已送出", "info");
+    }
+
+    /// <summary>把這一頁重畫一次：值擺上去；照搜尋字收起不符合的列、節與左邊的節；工具設定照鎖著或解開決定能不能改；有工具解開就每秒再畫一次</summary>
     private void Show()
     {
         var now = DateTime.Now;
-        var view = SettingsLogic.Settings(store.QuerySettingList(), icons, section, opened, query, until, now);
+        var query = Search.Text.Trim();
 
+        view = service.LoadSettings(section, until);
         DataContext = view;
-        section = view.Section;
+
+        // 看的是一支工具：只出那支工具的設定畫面；其餘節收起
+        Sections.Visibility = view.Here ? Visibility.Collapsed : Visibility.Visible;
         ToolPane.IsEnabled = view.Opens.Count > 0;
         tick.IsEnabled = until.Values.Any(one => one > now);
+
+        // 每一列（Uid 是 row）：搜尋比對的字（Tag）裡有打的字才出現；一節裡一列都沒有就收起那一節
+        var shown = 0;
+        foreach (var block in Sections.Children.OfType<StackPanel>())
+        {
+            var rows = LogicalTreeHelper.GetChildren(block).OfType<FrameworkElement>().Where(one => one.Uid == "row").ToList();
+
+            rows.ForEach(one => one.Visibility = $"{one.Tag}".Contains(query) ? Visibility.Visible : Visibility.Collapsed);
+            block.Visibility = rows.Any(one => one.Visibility == Visibility.Visible) ? Visibility.Visible : Visibility.Collapsed;
+            shown += rows.Count(one => one.Visibility == Visibility.Visible);
+        }
+
+        // 左邊：節跟著右邊那一段出現與否；選中的那一節（Uid 是 on）有淺底；分類底下一節都沒有就收起分類
+        var visible = Sections.Children.OfType<StackPanel>().Where(one => one.Visibility == Visibility.Visible).Select(one => $"{one.Tag}").ToList();
+
+        foreach (var stack in Nav.Children.OfType<StackPanel>().Where(one => one.Uid != "tools"))
+        {
+            stack.Children.OfType<Button>().ToList().ForEach(one =>
+            {
+                one.Visibility = visible.Contains($"{one.Tag}") ? Visibility.Visible : Visibility.Collapsed;
+                one.Uid = $"{one.Tag}" == section ? "on" : string.Empty;
+            });
+
+            Nav.Children.OfType<Button>().Where(one => one.Uid == stack.Uid).ToList()
+                .ForEach(one => one.Visibility = stack.Children.OfType<Button>().Any(two => two.Visibility == Visibility.Visible) ? Visibility.Visible : Visibility.Collapsed);
+        }
+
+        // 「工具」底下：名稱有打的字的那幾支；一支都沒有就收起「工具」
+        ToolNav.ItemsSource = view.Tools.Where(one => one.Text.Contains(query)).ToList();
+        ToolsArea.Visibility = view.Tools.Any(one => one.Text.Contains(query)) ? Visibility.Visible : Visibility.Collapsed;
+
+        ClearButton.Visibility = query.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        Count.Text = $"{shown} 項設定";
     }
-
-    #region 對照
-
-    /// <summary>開關寫回去的時候是哪兩個字</summary>
-    private static IReadOnlyDictionary<bool, string> Truth { get; } = new Dictionary<bool, string>
-    {
-        [true] = "true",
-        [false] = "false",
-    };
-
-    /// <summary>回復預設那顆按鈕上的字</summary>
-    private const string Revert = "回復預設";
-
-    #endregion
 }

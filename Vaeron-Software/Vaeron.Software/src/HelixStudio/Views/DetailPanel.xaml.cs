@@ -1,19 +1,15 @@
-using System.IO;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using HelixStudio.Logic;
-using HelixStudio.Store;
+using HelixStudio.Service;
 
 namespace HelixStudio.Views;
 
 /// <summary>工具目錄右邊那一欄：選中那一支工具的資訊、開啟、移除</summary>
 public partial class DetailPanel : UserControl
 {
-    private readonly ShellStore store = new();
-
-    private readonly Dictionary<string, List<string>> icons;
+    private readonly CatalogService service = new();
 
     private string key = string.Empty;
 
@@ -26,6 +22,9 @@ public partial class DetailPanel : UserControl
     /// <summary>這一支工具移除了</summary>
     public event EventHandler? Removed;
 
+    /// <summary>切了自動啟動：帶的是工具代碼、切成什麼與回給操作員的那一句；主視窗照它在背景開起這支工具並說出來</summary>
+    public event EventHandler<(string ToolNo, bool On, string Said)>? Autostarted;
+
     /// <summary>有人按了移除工具：主視窗蓋上遮罩問一次，帶的是工具名稱</summary>
     public event EventHandler<string>? Asking;
 
@@ -36,8 +35,6 @@ public partial class DetailPanel : UserControl
     public DetailPanel()
     {
         InitializeComponent();
-
-        icons = store.QueryIconList();
     }
 
     /// <summary>看一支工具的資訊；同一支就只重讀</summary>
@@ -120,37 +117,31 @@ public partial class DetailPanel : UserControl
         ZoomOut(sender, e);
     }
 
-    /// <summary>名稱打對了：這支工具的資料列拿掉，檔案從這台電腦刪掉</summary>
+    /// <summary>名稱打對了：記一次移除、刪掉檔案，工具目錄、側欄、狀態列跟著換</summary>
     public void Remove()
     {
-        var tool = ((DetailLogic.DetailView)DataContext).Tool;
         var window = (MainWindow)Window.GetWindow(this)!;
-
-        // 資料列：拿掉之後工具目錄、側欄、狀態列都不再有它
-        store.DeleteTool(key);
-
-        // 檔案：這一次開過的工具組件還映射在平台這個行程裡，Windows 鎖著它的檔，就先留著並說出在哪裡；沒映射就整個刪掉
-        var home = Path.GetDirectoryName($"{tool.home}")!;
-        var loaded = Process.GetCurrentProcess().Modules
-            .OfType<ProcessModule>()
-            .Any(one => one.FileName.StartsWith(home, StringComparison.OrdinalIgnoreCase));
-
-        new[] { home }.Where(_ => !loaded).Where(Directory.Exists).ToList().ForEach(one => Directory.Delete(one, true));
-
-        var left = loaded ? home : string.Empty;
+        var said = service.LoadRemoved(key);
 
         key = string.Empty;
-
         Removed?.Invoke(this, EventArgs.Empty);
         window.Reread();
-        window.Note(left.Length == 0 ? $"已移除「{tool.name}」" : $"已移除「{tool.name}」；檔案還在使用中，關掉平台後可以手動刪掉 {left}", "info");
+        window.Note(said, "info");
+    }
+
+    /// <summary>切自動啟動：記一次切換，主視窗接著在背景開起它（切成開時）並說一句</summary>
+    private void FlipAutostart(object sender, RoutedEventArgs e)
+    {
+        var on = ((CheckBox)sender).IsChecked == true;
+        var said = service.LoadAutostart(key, on);
+
+        Show();
+        Autostarted?.Invoke(this, (key, on, said));
     }
 
     /// <summary>把這一欄重畫一次；這一支已經不在就什麼都不畫</summary>
     private void Show()
     {
-        var rows = store.QueryCatalogItem(key);
-
-        DataContext = rows.Any(row => row.type == "tool") ? DetailLogic.Detail(rows, icons, selected, zoom) : null;
+        DataContext = service.LoadDetail(key, selected, zoom);
     }
 }

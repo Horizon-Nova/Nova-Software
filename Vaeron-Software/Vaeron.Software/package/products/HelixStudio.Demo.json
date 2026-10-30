@@ -12,6 +12,7 @@
   "tools": ["tools/InSpecTool.Demo/InSpecTool.Demo.csproj", "tools/ChecksumTool/ChecksumTool.csproj", "tools/VNCSCP/VNCSCP.csproj"],
   "toolsInInstaller": true,
   "afterInstallSql": "delete from dbo.setting where setting_key in ('source', 'toolKeyMinutes')",
+  "databaseVersion": "2.1.0",
   "editions": [
     { "label": "Win10-11-x64", "fw": "net10.0-windows", "rid": "win-x64", "arch": "x64", "minOs": "10.0", "pg": "pg16-x64", "redists": ["vc2022_redist.x64.exe"], "needKb": "" },
     { "label": "Win10-11-x32", "fw": "net10.0-windows", "rid": "win-x86", "arch": "x86", "minOs": "10.0", "pg": "pg10-x86", "redists": ["vc2013_redist.x86.exe"], "needKb": "" }

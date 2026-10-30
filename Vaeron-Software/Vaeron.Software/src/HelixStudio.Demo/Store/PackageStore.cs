@@ -171,11 +171,10 @@ public class PackageStore
         row.cat = $"{manifest.cat}";
         row.vendor = $"{manifest.vendor}";
         row.version = $"{manifest.version}";
-        row.size = Size(item.Bytes);
-        row.updated = DateOnly.FromDateTime(DateTime.Now);
+        row.bytes = item.Bytes;
         row.description = $"{manifest.description}";
-        row.capabilities = JsonSerializer.Serialize(manifest.capabilities);
-        row.permissions = JsonSerializer.Serialize(manifest.permissions);
+        row.capabilities = [.. manifest.capabilities];
+        row.permissions = [.. manifest.permissions];
         row.changelog = JsonSerializer.Serialize(manifest.changelog);
         row.guide = JsonSerializer.Serialize(manifest.guide);
         row.entry = $"{manifest.entry}";
@@ -183,9 +182,21 @@ public class PackageStore
         row.settings = manifest.settings;
         row.home = home;
         row.source = source;
+        row.created_at = DateTime.UtcNow;
+        row.updated_at = DateTime.UtcNow;
 
         return row;
     }
+
+    #endregion
+
+    #region 一支工具的檔案在不在
+
+    /// <summary>一支工具要載入的組件檔在不在這台電腦上</summary>
+    /// <param name="home">裝著的那一版的資料夾</param>
+    /// <param name="entry">組件檔名</param>
+    public bool QueryPresent(string home, string entry) =>
+        File.Exists(Path.Combine(home, entry));
 
     #endregion
 
@@ -233,24 +244,6 @@ public class PackageStore
 
     /// <summary>名字與內容之間的分隔</summary>
     private static readonly byte[] Separator = [0];
-
-    /// <summary>幾位元組起算哪一個單位</summary>
-    private static IReadOnlyList<KeyValuePair<long, string>> Units { get; } =
-    [
-        new(1, "B"),
-        new(1024, "KB"),
-        new(1024 * 1024, "MB"),
-        new(1024L * 1024 * 1024, "GB"),
-    ];
-
-    /// <summary>幾位元組寫成人看得懂的大小</summary>
-    /// <param name="bytes">幾位元組</param>
-    public static string Size(long bytes)
-    {
-        var unit = Units.Last(one => bytes >= one.Key);
-
-        return $"{bytes / (double)unit.Key:0.#} {unit.Value}";
-    }
 
     /// <summary>把套件裡的一筆整個讀進記憶體</summary>
     /// <param name="entry">那一筆</param>

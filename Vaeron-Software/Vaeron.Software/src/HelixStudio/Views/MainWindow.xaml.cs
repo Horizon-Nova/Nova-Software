@@ -8,6 +8,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using HelixStudio.Logic;
+using HelixStudio.Service;
 using HelixStudio.Store;
 using Microsoft.Win32;
 
@@ -16,9 +17,7 @@ namespace HelixStudio.Views;
 /// <summary>平台的視窗</summary>
 public partial class MainWindow : Window
 {
-    private readonly ShellStore store = new();
-
-    private readonly PackageStore packages = new();
+    private readonly ShellService service = new();
 
     /// <summary>正在問要不要移除的那一支工具的名稱</summary>
     private string removing = string.Empty;
@@ -79,7 +78,7 @@ public partial class MainWindow : Window
         Catalog.Info.Asking += (_, name) => AskRemove(name);
 
 
-        shell = ShellLogic.Shell(store.QueryShellList(), store.QueryIconList());
+        shell = service.LoadShell();
         DataContext = shell;
 
         shell.Rail.ForEach(one => rail.Add(one));
@@ -88,6 +87,25 @@ public partial class MainWindow : Window
 
         // 開起來停在工具目錄，側欄的落點也在那一格
         Look(string.Empty);
+
+        // 在背景跑的工具：要把自己叫到前面時，主視窗還原、叫到前面、開它
+        Host.Show = toolNo =>
+        {
+            WindowState = WindowState == WindowState.Minimized ? WindowState.Normal : WindowState;
+            Activate();
+            Run(toolNo);
+        };
+
+        // 設成自動啟動的工具：授權准裝、工具金鑰配得上、組件檔在的，現在就把畫面建好在背景跑（不掛上）；之後點進去掛的是同一份
+        service.LoadAutostarts().ForEach(Host.Start);
+
+        // 工具目錄右邊切了自動啟動：切成開就現在在背景跑起來；說一句，清單跟著換
+        Catalog.Info.Autostarted += (_, one) =>
+        {
+            new[] { one.ToolNo }.Where(_ => one.On).ToList().ForEach(Host.Start);
+            Note(one.Said, "info");
+            Catalog.Refresh();
+        };
 
         // 開多大由設計稿與這台螢幕的工作區一起決定：放得下就照設計稿，放不下就是工作區；位置擺在工作區正中間
         var work = SystemParameters.WorkArea;
@@ -171,26 +189,20 @@ public partial class MainWindow : Window
         Enumerable.Repeat(true, 1).Where(_ => ShellLogic.Setup.Sound).ToList()
             .ForEach(_ => System.Media.SystemSounds.Asterisk.Play());
 
-        // 一格一格走完它該停的時間；滑鼠停在上面那幾格不算
+        // 一格一格走完它該停的時間
         var left = note.Seconds * Second;
 
         while (left > 0 && notes.Contains(note))
         {
             await Task.Delay(Grain);
 
-            left -= Grain * Counting[note.Held];
+            left -= Grain;
         }
 
         notes.Remove(note);
     }
 
-    /// <summary>滑鼠停在一則通知上：計時跟著停</summary>
-    private void HoldNote(object sender, MouseEventArgs e) =>
-        ((ShellLogic.NoteItem)((FrameworkElement)sender).DataContext).Held = true;
 
-    /// <summary>滑鼠離開一則通知：計時接著走</summary>
-    private void ResumeNote(object sender, MouseEventArgs e) =>
-        ((ShellLogic.NoteItem)((FrameworkElement)sender).DataContext).Held = false;
 
     /// <summary>把一則通知關掉</summary>
     private void DropNote(object sender, RoutedEventArgs e) =>
@@ -229,7 +241,7 @@ public partial class MainWindow : Window
             .First();
 
         // 重讀一份：側欄、徽章、狀態列的數字都在裡面
-        shell = ShellLogic.Shell(store.QueryShellList(), store.QueryIconList());
+        shell = service.LoadShell();
 
         DataContext = shell;
 
@@ -272,67 +284,35 @@ public partial class MainWindow : Window
             });
     }
 
-    /// <summary>開起一支工具：把它自己的畫面掛在內容區</summary>
+    /// <summary>開起一支工具：授權、工具金鑰都過了才把它自己的畫面掛在內容區；金鑰不行就請操作員貼一把</summary>
     /// <param name="toolNo">這一支工具的代碼</param>
     private void Run(string toolNo)
     {
-        // 這一刻自己重驗一次授權，不看別處算過的結果：簽章要過，兩邊都有的機器識別要全部對得上，還沒過到期日（當天仍可用）
-        var paper = new LicenceStore().Licence();
-        var today = DateOnly.FromDateTime(DateTime.Today);
-        var held = new[] { paper.Sealed }
-            .Where(_ => paper.Both > 0 && paper.Same == paper.Both)
-            .Where(_ => paper.Papers.All(one => one.Expires.Length == 0 || (DateOnly.TryParse(one.Expires, out var until) && until >= today)))
-            .DefaultIfEmpty(0)
-            .First();
+        var view = service.LoadOpened(toolNo);
 
-        // 這把授權准裝哪幾支：只有清單裡的開得起來；清單空的就是一支都不准
-        var allowed = paper.Papers.Take(held).SelectMany(one => one.Tools).ToList();
-        var open = new[] { held }.Where(one => one > 0).Where(_ => allowed.Contains(toolNo)).DefaultIfEmpty(0).First();
+        // 授權不准：說出來，停在工具資訊那一頁
+        view.Warnings.ForEach(one => Note(one, "warn"));
+        Enumerable.Repeat(toolNo, 1).Where(_ => view.Warnings.Count > 0).ToList().ForEach(Look);
 
-        Enumerable
-            .Repeat("這台電腦沒有有效的授權，工具開不起來。", 1)
-            .Where(_ => held == 0)
-            .ToList()
-            .ForEach(one => Note(one, "warn"));
+        // 工具金鑰沒有或配不上：請操作員貼一把（啟用），這一次先不開
+        view.Activations.ForEach(one =>
+        {
+            pending = toolNo;
+            ActivationTitle.Text = one.Title;
+            ActivationAsk.Text = one.Ask;
+            ActivationKey.Clear();
+            ActivationFault.Text = one.Fault;
+            Activation.Visibility = Visibility.Visible;
+            ActivationKey.Focus();
+        });
 
-        Enumerable
-            .Repeat($"這台電腦的授權沒有包含 {toolNo}。跟供應商加購這一支，換一把新的授權。", 1)
-            .Where(_ => held > 0 && open == 0)
-            .ToList()
-            .ForEach(one => Note(one, "warn"));
-
-        // 開不起來就停在工具資訊那一頁
-        Enumerable.Repeat(toolNo, 1).Where(_ => open == 0).ToList().ForEach(Look);
-
-        // 工具金鑰：存著的那一把這一刻重驗一次；沒有或配不上，就請操作員貼一把（啟用），這一次先不開
-        var stored = $"{store.QueryShellItem(toolNo)?.code}";
-        var keyFault = new[] { open }.Where(one => one > 0).Select(_ => new LicenceStore().Fits(stored, toolNo)).DefaultIfEmpty(string.Empty).First();
-
+        // 開得起來：把它的畫面備好、換過去
         Enumerable
             .Repeat(toolNo, 1)
-            .Where(_ => open > 0 && keyFault.Length > 0)
+            .Where(_ => view.Open)
             .ToList()
             .ForEach(one =>
             {
-                pending = one;
-                ActivationTitle.Text = $"啟用 {rail.Concat(shell.Rail).Where(two => two.Key == one).Select(two => two.Name).DefaultIfEmpty(one).First()}";
-                ActivationAsk.Text = paper.Ask;
-                ActivationKey.Clear();
-                ActivationFault.Text = stored.Length > 0 ? $"存著的工具金鑰不能用了：{keyFault}" : string.Empty;
-                Activation.Visibility = Visibility.Visible;
-                ActivationKey.Focus();
-            });
-
-        // 開得起來、工具金鑰也配得上，才把它的畫面備好、換過去，記一筆開啟
-        Enumerable
-            .Repeat(toolNo, 1)
-            .Where(_ => open > 0 && keyFault.Length == 0)
-            .ToList()
-            .ForEach(one =>
-            {
-                var name = rail.Concat(shell.Rail).Where(two => two.Key == one).Select(two => two.Name).DefaultIfEmpty(one).First();
-
-                store.InsertEventLog("open", one, $"{nameof(MainWindow)}.{nameof(Run)}", $"開啟 {name}", null);
                 Activation.Visibility = Visibility.Collapsed;
 
                 Host.Open(one);
@@ -341,7 +321,7 @@ public partial class MainWindow : Window
                 Catalog.Visibility = Visibility.Collapsed;
                 Log.Visibility = Visibility.Collapsed;
 
-                CrumbText.Text = $"— {name}";
+                CrumbText.Text = $"— {view.Name}";
 
                 // 側欄的落點跟著走
                 steering = true;
@@ -360,17 +340,12 @@ public partial class MainWindow : Window
     /// <param name="e">這一次點擊</param>
     private void Activate(object sender, RoutedEventArgs e)
     {
-        var code = ActivationKey.Text.Trim();
-        var fault = new LicenceStore().Fits(code, pending);
+        var (fault, name) = service.LoadActivated(pending, ActivationKey.Text.Trim());
 
         // 配不上：原因寫在框下面，金鑰留著讓操作員改
         ActivationFault.Text = fault;
         if (fault.Length > 0) return;
 
-        var name = store.QueryShellItem(pending)?.name;
-
-        store.InsertKey(pending, code);
-        store.InsertEventLog("activate", pending, $"{nameof(MainWindow)}.{nameof(Activate)}", $"貼上工具金鑰，啟用 {name}", null);
         Note($"已啟用 {name}", "info");
 
         Run(pending);
@@ -444,70 +419,13 @@ public partial class MainWindow : Window
 
         var chosen = new[] { box.ShowDialog() == true }.Where(one => one).SelectMany(_ => box.FileNames).ToList();
 
-        // 這一刻自己重驗一次授權，不看別處算過的結果：簽章要過，兩邊都有的機器識別要全部對得上，還沒過到期日（當天仍可用）
-        var paper = new LicenceStore().Licence();
-        var today = DateOnly.FromDateTime(DateTime.Today);
-        var held = new[] { paper.Sealed }
-            .Where(_ => paper.Both > 0 && paper.Same == paper.Both)
-            .Where(_ => paper.Papers.All(one => one.Expires.Length == 0 || (DateOnly.TryParse(one.Expires, out var until) && until >= today)))
-            .DefaultIfEmpty(0)
-            .First();
-
-        Enumerable
-            .Repeat("這台電腦沒有有效的授權，不能匯入工具。", 1)
-            .Where(_ => held == 0)
-            .ToList()
-            .ForEach(one => Note(one, "warn"));
-
-        // 一個一個開起來、驗簽章
-        var read = chosen.Where(_ => held > 0).Select(packages.Read).ToList();
-
-        // 這把授權准裝哪幾支：只有清單裡的匯入得了；清單空的就是一支都不准
-        var allowed = paper.Papers.Take(held).SelectMany(one => one.Tools).ToList();
-
-        read.Where(one => one.Manifests.Count > 0)
-            .Where(one => !allowed.Contains($"{one.Manifests.First().tool_no}"))
-            .ToList()
-            .ForEach(one => one.Faults.Add(
-                $"這台電腦的授權沒有包含 {one.Manifests.First().tool_no}。跟供應商加購這一支，換一把新的授權。"));
-
-        // 套件是給哪一版平台編的：跟這一版平台的 .NET 不同就載不起來，照實說要拿哪一版
-        var host = $"net{Environment.Version.Major}";
-
-        read.Where(one => one.Manifests.Count > 0)
-            .Where(one => (one.Manifests.First().runtime ?? "net10") != host)
-            .ToList()
-            .ForEach(one => one.Faults.Add(
-                $"這個套件是給 {Editions.GetValueOrDefault(one.Manifests.First().runtime ?? "net10", one.Manifests.First().runtime ?? "net10")} 版平台的，這台是 {Editions.GetValueOrDefault(host, host)} 版。跟資訊部拿 {Editions.GetValueOrDefault(host, host)} 版的套件。"));
-
-        // 同一版正在使用中：Windows 鎖著它的檔，換不掉；這台裝置不動，照實說
-        var mapped = Process.GetCurrentProcess().Modules.OfType<ProcessModule>().Select(one => one.FileName).ToList();
-
-        read.Where(one => one.Manifests.Count > 0)
-            .Where(one => mapped.Any(file => file.StartsWith(PackageStore.Home(one.Manifests.First()) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)))
-            .ToList()
-            .ForEach(one => one.Faults.Add(
-                $"{one.Manifests.First().name} {one.Manifests.First().version} 正在使用中，換不掉。關掉平台再開，再匯入一次。"));
-
-        // 驗不過的把每一項原因說出來，這台裝置不動
-        read.Where(one => one.Faults.Count > 0).ToList()
-            .ForEach(one => Note($"「{one.Name}」沒有匯入：{string.Join(" ", one.Faults)}", "warn"));
-
-        // 驗得過的解開到這台裝置
-        var known = store.QueryShellList().Where(one => one.type == "tool").Select(one => $"{one.tool_no}").ToList();
-        var done = read
-            .Where(one => one.Faults.Count == 0)
-            .Select(one => new { one.Manifests.First().name, Row = packages.Install(one, "本機套件檔", $"{store.QueryShellItem($"{one.Manifests.First().tool_no}")?.home}") })
-            .ToList();
-
-        // 登錄：第一次匯入的新增一列，匯入過的換成這一版
-        done.Where(one => !known.Contains(one.Row.tool_no)).ToList().ForEach(one => store.InsertTool(one.Row));
-        done.Where(one => known.Contains(one.Row.tool_no)).ToList().ForEach(one => store.UpdateTool(one.Row));
+        // 驗章、驗授權、解開、記一次匯入；每一句照實說
+        var said = service.LoadImported(chosen);
 
         // 側欄、狀態列、工具目錄都跟著這一次的結果換
-        Enumerable.Repeat(0, 1).Where(_ => done.Count > 0).ToList().ForEach(_ => Reread());
+        Enumerable.Repeat(0, 1).Where(_ => said.Any(one => one.Kind == "info")).ToList().ForEach(_ => Reread());
 
-        done.ForEach(one => Note($"已匯入「{one.name}」，它在工具目錄裡", "info"));
+        said.ForEach(one => Note(one.Text, one.Kind));
     }
 
     /// <summary>打開指令面板：頂部搜尋、頭像、Ctrl K 都是同一件事</summary>
@@ -526,7 +444,7 @@ public partial class MainWindow : Window
     private void Take(PaletteLogic.PaletteItem item)
     {
         // 選過的工具記起來，下次打開面板就排在最近使用
-        item.Remembers.ForEach(one => store.InsertSearch(one));
+        new CatalogService().LoadSearched(item.Remembers);
 
         // 一支工具：在工具目錄選中它
         item.Opens.ForEach(one => Look(one));
@@ -615,13 +533,6 @@ public partial class MainWindow : Window
     /// <summary>通知同時最多疊幾則</summary>
     private const int Stacked = 3;
 
-    /// <summary>平台各版用的 .NET 對到給人看的名稱</summary>
-    private static readonly Dictionary<string, string> Editions = new()
-    {
-        ["net10"] = "Win10～11",
-        ["net6"] = "Win7",
-    };
-
     /// <summary>側欄一格都沒落在上面</summary>
     private const int NoRow = -1;
 
@@ -641,12 +552,6 @@ public partial class MainWindow : Window
     /// <summary>計時一次走幾毫秒</summary>
     private const int Grain = 100;
 
-    /// <summary>停著的時候這一格不算，沒停著才算</summary>
-    private static IReadOnlyDictionary<bool, int> Counting { get; } = new Dictionary<bool, int>
-    {
-        [true] = 0,
-        [false] = 1,
-    };
 
     /// <summary>找螢幕時取離視窗最近的那一台</summary>
     private const int Nearest = 0x00000002;

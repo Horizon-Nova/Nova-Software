@@ -26,16 +26,20 @@ public partial class event_log
     [Key]
     public int id { get; set; }
 
-    /// <summary>activate 啟用工具／open 開啟工具／unlock 解鎖工具設定／error 沒被接住的錯誤</summary>
+    /// <summary>activate＝啟用工具；open＝開啟工具；unlock＝解鎖工具設定；error＝沒被接住的錯誤</summary>
+    [StringLength(8)]
     public string type { get; set; } = null!;
 
-    /// <summary>哪一支工具，對到 tool.tool_no；不是對著工具發生的是空的</summary>
+    /// <summary>哪一支工具；不是對著工具發生的是空的</summary>
+    [StringLength(255)]
     public string? tool_no { get; set; }
 
-    /// <summary>誰：當時登入 Windows 的帳號；這張表建立前搬進來的紀錄沒有記到，是空的</summary>
+    /// <summary>誰：當時登入 Windows 的帳號；Windows 帳號上限 20</summary>
+    [StringLength(20)]
     public string? account { get; set; }
 
-    /// <summary>系統由哪一支方法處理，例如 MainWindow.Run；這張表建立前搬進來的紀錄沒有記到，是空的</summary>
+    /// <summary>系統由哪一支方法處理：型別.方法；錯誤時是例外的 TargetSite。.NET 型別全名 1023 ＋ 方法名 1023</summary>
+    [StringLength(2047)]
     public string? function_name { get; set; }
 
     /// <summary>處理的結果；[error] 錯誤訊息</summary>
@@ -47,6 +51,6 @@ public partial class event_log
     /// <summary>發生的時刻</summary>
     public DateTime created_at { get; set; }
 
-    /// <summary>最後一次改動的時刻；紀錄不改寫，與發生的時刻相同</summary>
+    /// <summary>這一列最後修改的時刻</summary>
     public DateTime updated_at { get; set; }
 }

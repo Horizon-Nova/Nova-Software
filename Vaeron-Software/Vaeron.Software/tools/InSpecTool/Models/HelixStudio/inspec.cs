@@ -18,7 +18,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Models.HelixStudio;
 
-/// <summary>InSpecTool：設定、欄位、每一次執行，一列是什麼由 type 決定</summary>
+/// <summary>InSpecTool：setting 一項設定、field 一個欄位（移除寫 removed_at）、run 一次執行，一列是什麼由 type 決定</summary>
 [Table("inspec", Schema = "dbo")]
 public partial class inspec
 {
@@ -26,26 +26,34 @@ public partial class inspec
     [Key]
     public int id { get; set; }
 
-    /// <summary>setting 一項設定／field 一個欄位／run 一次執行</summary>
+    /// <summary>setting＝一項設定；field＝一個欄位；run＝一次執行</summary>
+    [StringLength(7)]
     public string type { get; set; } = null!;
 
-    /// <summary>[setting] 哪一項：searchFolder、logFolder、backupFolder、scanInterval、showResult、leftWidth（量測頁左欄拖到多寬，px；空的就照版面比例）</summary>
+    /// <summary>[setting] searchFolder 搜尋資料夾、logFolder 紀錄資料夾、backupFolder 備份路徑、scanInterval 條碼解析間隔、showResult 跑完顯示結果、leftWidth 左欄寬；最長 12 個字</summary>
+    [StringLength(12)]
     public string? setting_key { get; set; }
 
-    /// <summary>[setting] 設定值</summary>
-    public string? value { get; set; }
+    /// <summary>[setting] 開關類（showResult）</summary>
+    public bool? enabled { get; set; }
 
-    /// <summary>[setting] 可選的值</summary>
-    [Column(TypeName = "jsonb")]
-    public string options { get; set; } = null!;
+    /// <summary>[setting] 數字類：scanInterval 毫秒、leftWidth px（沒拖過是空的）</summary>
+    public decimal? number { get; set; }
 
-    /// <summary>[field] 欄位名稱</summary>
+    /// <summary>[setting] 路徑類（searchFolder、logFolder、backupFolder）；還沒選是空的</summary>
+    [StringLength(32767)]
+    public string? path { get; set; }
+
+    /// <summary>[field] 欄位名稱；設定頁的輸入框 MaxLength 也是 50</summary>
+    [StringLength(50)]
     public string? name { get; set; }
 
-    /// <summary>[field] 對應的 InSpec 提示文字，完全相同（不分大小寫）才填</summary>
+    /// <summary>[field] 對應的 InSpec 提示文字，完全相同（不分大小寫）才填；設定頁的輸入框 MaxLength 也是 255</summary>
+    [StringLength(255)]
     public string? prompt { get; set; }
 
-    /// <summary>[field] fill 直接填／confirm 先確認再填</summary>
+    /// <summary>[field] fill＝直接填；confirm＝先確認再填</summary>
+    [StringLength(7)]
     public string? mode { get; set; }
 
     /// <summary>[field] 主頁上可否改</summary>
@@ -54,10 +62,11 @@ public partial class inspec
     /// <summary>[field] 欄位順序，也是條碼分段的順序</summary>
     public int? sort { get; set; }
 
-    /// <summary>[run] 執行的量測程式完整路徑</summary>
+    /// <summary>[run] 執行的 .iwp 原檔完整路徑</summary>
+    [StringLength(32767)]
     public string? program { get; set; }
 
-    /// <summary>[run] 這次執行的欄位值</summary>
+    /// <summary>[run] 這次執行的欄位值：欄位名稱 → 值</summary>
     [Column(TypeName = "jsonb")]
     public string fields { get; set; } = null!;
 
@@ -65,23 +74,27 @@ public partial class inspec
     [Column(TypeName = "jsonb")]
     public string prompts { get; set; } = null!;
 
-    /// <summary>[run] 按下執行的時刻；InSpec 自己寫入的是寫入的時刻</summary>
+    /// <summary>[run] 按下執行的時刻</summary>
     public DateTime? started_at { get; set; }
 
-    /// <summary>[run] iscmd 回來的時刻，也就是 InSpec 跑完</summary>
+    /// <summary>[run] iscmd 回來的時刻（InSpec 跑完）</summary>
     public DateTime? finished_at { get; set; }
 
     /// <summary>[run] iscmd 回傳代碼</summary>
     public int? exit_code { get; set; }
 
-    /// <summary>[run] InSpec 寫出的內容</summary>
+    /// <summary>[run] 這次匯出檔的內容</summary>
     public string? export { get; set; }
 
-    /// <summary>[run] 實際寫入的歸檔檔路徑</summary>
+    /// <summary>[run] 實際寫入的歸檔檔路徑；沒歸檔是空的</summary>
+    [StringLength(32767)]
     public string? archive { get; set; }
 
     /// <summary>[run] 沒歸檔或出錯時的原因</summary>
     public string? note { get; set; }
+
+    /// <summary>[field] 移除的時刻；移除是狀態，列不真的刪</summary>
+    public DateTime? removed_at { get; set; }
 
     /// <summary>這一列建立的時刻</summary>
     public DateTime created_at { get; set; }

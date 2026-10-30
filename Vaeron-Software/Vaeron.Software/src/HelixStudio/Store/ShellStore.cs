@@ -1,22 +1,25 @@
 using System.IO;
-using System.Linq.Expressions;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Models.HelixStudio;
 
 namespace HelixStudio.Store;
 
-/// <summary>這個軟體唯一碰資料庫與外部檔案的型別</summary>
-/// <remarks>讀的是一個畫面一支 vw_，各有列表與單一兩種查詢；寫的是原始表的新增、異動、刪除；圖示是固定的線條，讀本機的 Seed\icons.json。</remarks>
+/// <summary>外殼這個主題唯一碰資料庫與外部檔案的型別</summary>
+/// <remarks>讀走 vw_shell 一支，寫才碰 tool；每一次呼叫現查。圖示是固定的線條，讀本機的 Seed\icons.json。</remarks>
 public class ShellStore
 {
     #region 統一的查詢來源
 
-    /// <summary>桌面用戶端讀得到的每一列</summary>
+    /// <summary>平台的資料庫</summary>
     private HelixStudioDbContext Db { get; } = new(
         new DbContextOptionsBuilder<HelixStudioDbContext>()
             .UseNpgsql(new SecretStore().Secret("HelixStudio"))
             .Options);
+
+    /// <summary>外殼讀得到的每一列：shell 那一列與每一支還裝著的工具</summary>
+    private IQueryable<vw_shell> ValidRows() =>
+        Db.vw_shells.AsNoTracking();
 
     #endregion
 
@@ -26,201 +29,44 @@ public class ShellStore
     public bool QueryReachable() =>
         $"{Db.Database.GetConnectionString()}".Length > 0 && Db.Database.CanConnect();
 
-    /// <summary>外殼：shell 那一列與每一支工具</summary>
-    public List<vw_shell> QueryShellList() =>
-        [.. Db.vw_shells.AsNoTracking()];
+    /// <summary>單一：shell 那一列與代碼完全相同的那一支工具</summary>
+    /// <param name="toolNo">那一支工具的代碼；空字串只查到 shell 那一列</param>
+    public List<vw_shell> QueryShellItem(string toolNo) =>
+        [.. ValidRows().Where(row => row.type == "shell" || row.tool_no == toolNo)];
 
-    /// <summary>外殼的一支工具：開它要的檔與存著的工具金鑰</summary>
-    /// <param name="toolNo">這一支工具的代碼</param>
-    public vw_shell? QueryShellItem(string toolNo) =>
-        Db.vw_shells.AsNoTracking().FirstOrDefault(one => one.type == "tool" && one.tool_no == toolNo);
-
-    /// <summary>工具目錄：總數、最近搜尋，加上名稱、維護團隊或說明含有搜尋字的工具</summary>
-    /// <param name="query">搜尋框打的字</param>
-    public List<vw_catalog> QueryCatalogList(string query) =>
-        [.. Db.vw_catalogs.AsNoTracking()
-            .Where(one => one.type != "tool"
-                || query == string.Empty
-                || EF.Functions.ILike(one.name!, $"%{query}%")
-                || EF.Functions.ILike(one.vendor!, $"%{query}%")
-                || EF.Functions.ILike(one.description!, $"%{query}%"))];
-
-    /// <summary>工具目錄的一支工具：右邊那一欄要的 tool 那一列與每一則更新日誌</summary>
-    /// <param name="toolNo">這一支工具的代碼</param>
-    public List<vw_catalog> QueryCatalogItem(string toolNo) =>
-        [.. Db.vw_catalogs.AsNoTracking().Where(one => one.tool_no == toolNo)];
-
-    /// <summary>指令面板：每一支工具與搜尋過的字</summary>
-    public List<vw_palette> QueryPaletteList() =>
-        [.. Db.vw_palettes.AsNoTracking()];
-
-    /// <summary>設定：每一項設定與每一支工具</summary>
-    public List<vw_setting> QuerySettingList() =>
-        [.. Db.vw_settings.AsNoTracking()];
-
-    /// <summary>設定裡的一支工具：設定畫面、解鎖分鐘數</summary>
-    /// <param name="toolNo">這一支工具的代碼</param>
-    public vw_setting? QuerySettingItem(string toolNo) =>
-        Db.vw_settings.AsNoTracking().FirstOrDefault(one => one.type == "tool" && one.tool_no == toolNo);
-
-    /// <summary>日誌：每一種事件幾筆，加上訊息、工具、方法、帳號、事件名或呼叫堆疊含有搜尋字的每一件，照點的那一欄排，同一個值時新的在前</summary>
-    /// <param name="query">搜尋框打的字</param>
-    /// <param name="sort">照哪一欄排：at、type、tool、who</param>
-    /// <param name="descending">由大到小</param>
-    public List<vw_event_log> QueryEventLogList(string query, string sort, bool descending)
-    {
-        // 每一種事件幾筆：view 已經照筆數排好
-        var counts = Db.vw_event_logs.AsNoTracking().Where(one => one.type == "count").OrderBy(one => one.sort);
-
-        // 含有搜尋字的每一件
-        var found = Db.vw_event_logs.AsNoTracking()
-            .Where(one => one.type == "event"
-                && (query == string.Empty
-                    || EF.Functions.ILike(one.message!, $"%{query}%")
-                    || EF.Functions.ILike(one.tool_name!, $"%{query}%")
-                    || EF.Functions.ILike(one.function_name!, $"%{query}%")
-                    || EF.Functions.ILike(one.account!, $"%{query}%")
-                    || EF.Functions.ILike(one.event_name!, $"%{query}%")
-                    || EF.Functions.ILike(one.stack_trace!, $"%{query}%")));
-
-        // 照點的那一欄排，同一個值時新的在前
-        var ordered = (descending ? found.OrderByDescending(EventLogSort[sort]) : found.OrderBy(EventLogSort[sort]))
-            .ThenBy(one => one.sort);
-
-        return [.. counts, .. ordered];
-    }
+    /// <summary>列表：shell 那一列與每一支還裝著的工具，側欄的先後 view 已經排好</summary>
+    public List<vw_shell> QueryShellItems() =>
+        [.. ValidRows()];
 
     /// <summary>圖示名稱對到的每一段路徑</summary>
-    public Dictionary<string, List<string>> QueryIconList() =>
+    public Dictionary<string, List<string>> QueryIconItems() =>
         JsonSerializer.Deserialize<Dictionary<string, List<string>>>(
             File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Seed", "icons.json")))!;
-
 
     #endregion
 
     #region 基本 CRUD 操作
 
-    /// <summary>新增一次搜尋：搜了什麼字；同一個字搜過幾次、最近一次由 view 算</summary>
-    /// <param name="term">搜尋的那個字</param>
-    public void InsertSearch(string term)
+    /// <summary>tool 唯一的寫入：編號指得到的列整列換成送來的值（建立時刻不動），編號是零的新增</summary>
+    /// <remarks>寫入方法照資料表開，不照功能開；匯入、移除、啟用、切自動啟動都呼叫這一支。送來的列由 Logic 從現在的樣子整列帶過來。</remarks>
+    /// <param name="rows">要寫回去的每一列</param>
+    public void InsertToolList(IReadOnlyList<tool> rows)
     {
-        Db.searches.Add(new search { type = "recent", term = term, created_at = DateTime.UtcNow, updated_at = DateTime.UtcNow });
+        var ids = rows.Select(row => row.id).ToList();
+        var held = Db.tools.Where(row => ids.Contains(row.id)).ToList();
 
-        Db.SaveChanges();
-    }
-
-    /// <summary>新增一支工具：這個代碼第一次匯入</summary>
-    /// <param name="data">照套件宣告填好的那一列</param>
-    public void InsertTool(tool data)
-    {
-        data.created_at = DateTime.UtcNow;
-        data.updated_at = DateTime.UtcNow;
-
-        Db.tools.Add(data);
-
-        Db.SaveChanges();
-    }
-
-    /// <summary>新增一把工具金鑰：啟用一支工具時驗過的那一串（tool 的 key 列）</summary>
-    /// <param name="toolNo">這一支工具的代碼</param>
-    /// <param name="code">驗過的那一串工具金鑰</param>
-    public void InsertKey(string toolNo, string code)
-    {
-        Db.tools.Add(new tool { type = "key", tool_no = toolNo, code = code, created_at = DateTime.UtcNow, updated_at = DateTime.UtcNow });
-
-        Db.SaveChanges();
-    }
-
-    /// <summary>新增一件發生過的事：什麼時候、什麼事情、系統由哪一支方法處理、誰（登入 Windows 的帳號）</summary>
-    /// <param name="type">activate、open、unlock、error</param>
-    /// <param name="toolNo">哪一支工具；不是對著工具發生的就是空的</param>
-    /// <param name="function">系統由哪一支方法處理</param>
-    /// <param name="message">處理的結果；錯誤時是錯誤訊息</param>
-    /// <param name="stack">錯誤時的呼叫堆疊</param>
-    public void InsertEventLog(string type, string? toolNo, string function, string? message, string? stack)
-    {
-        Db.event_logs.Add(new event_log
+        // 指得到的列：送來的值蓋上去，建立時刻不動
+        foreach (var pair in held.Join(rows, one => one.id, row => row.id, (one, row) => (Held: one, Sent: row)))
         {
-            type = type,
-            tool_no = toolNo,
-            account = Environment.UserName,
-            function_name = function,
-            message = message,
-            stack_trace = stack,
-            created_at = DateTime.UtcNow,
-            updated_at = DateTime.UtcNow,
-        });
+            Db.Entry(pair.Held).CurrentValues.SetValues(pair.Sent);
+            Db.Entry(pair.Held).Property(one => one.created_at).IsModified = false;
+        }
+
+        // 編號是零的是新的
+        Db.tools.AddRange(rows.Where(row => row.id == 0));
 
         Db.SaveChanges();
     }
-
-    /// <summary>異動一支工具：同一個代碼再匯入一次，換成這一版；第一次匯入的時刻留著</summary>
-    /// <param name="data">照套件宣告填好的那一列</param>
-    public void UpdateTool(tool data)
-    {
-        var kept = Db.tools.First(one => one.type == "tool" && one.tool_no == data.tool_no);
-
-        data.id = kept.id;
-        data.created_at = kept.created_at;
-        data.updated_at = DateTime.UtcNow;
-
-        Db.Entry(kept).CurrentValues.SetValues(data);
-
-        Db.SaveChanges();
-    }
-
-    /// <summary>異動一項設定：改成新的值</summary>
-    /// <param name="key">這一項的代碼</param>
-    /// <param name="value">新的值</param>
-    public void UpdateSetting(string key, string value)
-    {
-        Db.settings
-            .Where(one => one.setting_key == key)
-            .ExecuteUpdate(set => set.SetProperty(one => one.value, value).SetProperty(one => one.updated_at, DateTime.UtcNow));
-    }
-
-    /// <summary>異動一項還沒有值的設定：值、建議值、唯一的選項都填這台電腦給的那一個</summary>
-    /// <param name="key">這一項的代碼</param>
-    /// <param name="value">這台電腦給的值</param>
-    public void UpdateSettingBlank(string key, string value)
-    {
-        Db.settings
-            .Where(one => one.setting_key == key && (one.value == null || one.value == string.Empty))
-            .ExecuteUpdate(set => set
-                .SetProperty(one => one.value, value)
-                .SetProperty(one => one.fallback, value)
-                .SetProperty(one => one.options, JsonSerializer.Serialize(new[] { value }))
-                .SetProperty(one => one.updated_at, DateTime.UtcNow));
-    }
-
-    /// <summary>異動每一項設定：都改回資訊部建議的值</summary>
-    public void UpdateSettingList()
-    {
-        Db.settings
-            .ExecuteUpdate(set => set.SetProperty(one => one.value, one => one.fallback).SetProperty(one => one.updated_at, DateTime.UtcNow));
-    }
-
-    /// <summary>刪除一支工具：拿掉它那一列；工具金鑰與使用紀錄留著</summary>
-    /// <param name="toolNo">這一支工具的代碼</param>
-    public void DeleteTool(string toolNo)
-    {
-        Db.tools
-            .Where(one => one.type == "tool" && one.tool_no == toolNo)
-            .ExecuteDelete();
-    }
-
-    #endregion
-
-    #region 對照
-
-    /// <summary>日誌每一個可點的欄名照哪一個欄位排</summary>
-    private static readonly Dictionary<string, Expression<Func<vw_event_log, object?>>> EventLogSort = new()
-    {
-        ["at"] = one => one.created_at,
-        ["type"] = one => one.event_name,
-        ["tool"] = one => one.tool_name,
-        ["who"] = one => one.account,
-    };
 
     #endregion
 }

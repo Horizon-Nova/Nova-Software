@@ -3,17 +3,17 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using HelixStudio.Logic;
-using HelixStudio.Store;
-using Models.HelixStudio;
+using HelixStudio.Service;
 
 namespace HelixStudio.Views;
 
 /// <summary>日誌這一頁：左邊一件一列，右邊選中那一件的明細</summary>
 public partial class LogPanel : UserControl
 {
-    private readonly ShellStore store = new();
+    private readonly LogService service = new();
 
-    private readonly Dictionary<string, List<string>> icons;
+    /// <summary>事件代碼對到的事件名：這一頁 XAML 裡的字</summary>
+    private readonly Dictionary<string, string> names;
 
     private string query = string.Empty;
 
@@ -28,9 +28,6 @@ public partial class LogPanel : UserControl
     /// <summary>選中那一件剛被複製</summary>
     private bool copied;
 
-    /// <summary>vw_event_log 這一次讀到的每一列</summary>
-    private IReadOnlyList<vw_event_log> rows = [];
-
     /// <summary>「幾分前」跟著時間走</summary>
     private readonly DispatcherTimer clock = new() { Interval = TimeSpan.FromSeconds(Tick) };
 
@@ -39,7 +36,9 @@ public partial class LogPanel : UserControl
     {
         InitializeComponent();
 
-        icons = store.QueryIconList();
+        var words = (ResourceDictionary)Resources["EventNames"];
+
+        names = words.Keys.OfType<string>().ToDictionary(one => one, one => $"{words[one]}");
 
         // 看得到這一頁時右邊的「幾分前」每 30 秒重算一次，看不到就停
         clock.Tick += (_, _) => Show();
@@ -49,9 +48,7 @@ public partial class LogPanel : UserControl
     /// <summary>照現在的搜尋字與排序重讀一次，整頁重畫</summary>
     public void Refresh()
     {
-        rows = store.QueryEventLogList(query, sort, descending);
-
-        var view = LogLogic.Log(rows, icons, query, sort, descending, picked, copied, DateTime.UtcNow);
+        var view = service.LoadLog(query, names, sort, descending, picked, copied);
 
         picked = view.Picked;
         DataContext = view;
@@ -131,7 +128,7 @@ public partial class LogPanel : UserControl
 
     /// <summary>只重畫右邊選中那一件；清單不動，捲到哪就停在哪</summary>
     private void Show() =>
-        Detail.ItemsSource = LogLogic.Log(rows, icons, query, sort, descending, picked, copied, DateTime.UtcNow).Picks;
+        Detail.ItemsSource = service.LoadLog(query, names, sort, descending, picked, copied).Picks;
 
     #region 對照
 

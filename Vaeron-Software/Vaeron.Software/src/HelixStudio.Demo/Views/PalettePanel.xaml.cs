@@ -2,16 +2,14 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using HelixStudio.Logic;
-using HelixStudio.Store;
+using HelixStudio.Service;
 
 namespace HelixStudio.Views;
 
 /// <summary>指令面板這一頁</summary>
 public partial class PalettePanel : UserControl
 {
-    private readonly ShellStore store = new();
-
-    private readonly Dictionary<string, List<string>> icons;
+    private readonly PaletteService service = new();
 
     private string query = string.Empty;
 
@@ -25,8 +23,6 @@ public partial class PalettePanel : UserControl
     public PalettePanel()
     {
         InitializeComponent();
-
-        icons = store.QueryIconList();
     }
 
     /// <summary>打開指令面板：每次都從空的關鍵字開始</summary>
@@ -82,5 +78,5 @@ public partial class PalettePanel : UserControl
 
     /// <summary>把這一頁重畫一次</summary>
     private void Show() =>
-        DataContext = PaletteLogic.Palette(store.QueryPaletteList(), icons, query);
+        DataContext = service.LoadPalette(query);
 }

@@ -2,22 +2,19 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using HelixStudio.Logic;
-using HelixStudio.Store;
-using Models.HelixStudio;
+using HelixStudio.Service;
 
 namespace HelixStudio.Views;
 
 /// <summary>工具目錄這一頁：左邊清單，右邊選中那一支的資訊</summary>
 public partial class CatalogPanel : UserControl
 {
-    private readonly ShellStore store = new();
-
-    private readonly Dictionary<string, List<string>> icons;
+    private readonly CatalogService service = new();
 
     private string query = string.Empty;
 
-    /// <summary>vw_catalog 這一次讀到的每一列</summary>
-    private IReadOnlyList<vw_catalog> rows = [];
+    /// <summary>這一次攤出來的這一頁</summary>
+    private CatalogLogic.CatalogView view = new();
 
     /// <summary>選中的工具代碼</summary>
     private string picked = string.Empty;
@@ -34,8 +31,6 @@ public partial class CatalogPanel : UserControl
     {
         InitializeComponent();
 
-        icons = store.QueryIconList();
-
         // 右邊那一欄按開啟就開這支
         Info.Launched += (_, toolNo) => Launched?.Invoke(this, toolNo);
 
@@ -46,22 +41,21 @@ public partial class CatalogPanel : UserControl
     private async void Read()
     {
         // 先把空的畫上去，這時什麼都還沒有
-        Show();
+        Show(service.LoadCatalog(string.Empty, false, false, picked));
 
         // 在背景另開一份連線讀；讀與等這兩件事誰先到，等到了資料還沒回來，才算讀太久
-        var reading = Task.Run(() => new ShellStore().QueryCatalogList(string.Empty));
+        var reading = Task.Run(() => new CatalogService().LoadCatalog(string.Empty, true, false, picked));
 
         await Task.WhenAny(reading, Task.Delay(Patience));
 
         slow = !reading.IsCompleted;
+        new[] { slow }.Where(one => one).ToList().ForEach(_ => Show(service.LoadCatalog(string.Empty, false, true, picked)));
 
-        Show();
+        var read = await reading;
 
-        rows = await reading;
         loaded = true;
         slow = false;
-
-        Show();
+        Show(read);
     }
 
     /// <summary>選一支工具：清單落在它那一列，右邊換成它的資訊</summary>
@@ -76,9 +70,7 @@ public partial class CatalogPanel : UserControl
     /// <summary>資料在別處被改過，照現在的搜尋字重讀一次</summary>
     public void Refresh()
     {
-        rows = store.QueryCatalogList(query);
-
-        Show();
+        Show(service.LoadCatalog(query, loaded, slow, picked));
     }
 
     /// <summary>打字搜尋</summary>
@@ -92,7 +84,7 @@ public partial class CatalogPanel : UserControl
 
     /// <summary>點進搜尋框：還沒打字就把最近搜尋攤出來</summary>
     private void OpenRecent(object sender, KeyboardFocusChangedEventArgs e) =>
-        RecentPanel.IsOpen = query.Length == 0 && rows.Any(one => one.type == "search");
+        RecentPanel.IsOpen = query.Length == 0 && view.Recents.Count > 0;
 
     /// <summary>離開搜尋框：等一下下再收起來，讓點得到最近搜尋那幾列</summary>
     private async void CloseRecent(object sender, KeyboardFocusChangedEventArgs e)
@@ -116,7 +108,7 @@ public partial class CatalogPanel : UserControl
     {
         var word = $"{((Button)sender).Content}";
 
-        store.InsertSearch(word);
+        service.LoadSearched([word]);
 
         SearchText.Text = word;
         SearchText.CaretIndex = word.Length;
@@ -158,14 +150,13 @@ public partial class CatalogPanel : UserControl
         Launched?.Invoke(this, row.Key);
     }
 
-    /// <summary>把這一頁重畫一次：清單落在選中那一支，右邊跟著換；一支都沒有就收起右邊</summary>
-    private void Show()
+    /// <summary>把這一頁擺上去：清單落在選中那一支，右邊跟著換；一支都沒有就收起右邊</summary>
+    /// <param name="shown">攤好的這一頁</param>
+    private void Show(CatalogLogic.CatalogView shown)
     {
-        var view = CatalogLogic.Catalog(rows, icons, query, loaded, slow, picked);
-
+        view = shown;
         picked = view.Picked;
         DataContext = view;
-
         Info.Visibility = picked.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         Info.Open(picked);
     }

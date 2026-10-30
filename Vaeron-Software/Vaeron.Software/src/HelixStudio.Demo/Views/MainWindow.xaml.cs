@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -7,16 +6,14 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using HelixStudio.Logic;
-using HelixStudio.Store;
+using HelixStudio.Service;
 
 namespace HelixStudio.Views;
 
-/// <summary>平台的視窗（Demo 版：工具跟安裝檔一起來，不用開通、不匯入套件）</summary>
+/// <summary>平台的視窗（Demo 版：工具跟安裝檔一起來，不用開通、不匯入套件、不移除工具）</summary>
 public partial class MainWindow : Window
 {
-    private readonly ShellStore store = new();
-
-    private readonly PackageStore packages = new();
+    private readonly ShellService service = new();
 
     /// <summary>側欄現在畫出來的那幾格；從頭到尾是同一份，只補上或拿掉變動的那幾格</summary>
     private readonly ObservableCollection<ShellLogic.RailItem> rail = [];
@@ -38,26 +35,8 @@ public partial class MainWindow : Window
     /// <summary>開啟平台：先裝上跟安裝檔一起來的工具，再建立畫面、讀出資料，算出外殼要顯示的每一格</summary>
     public MainWindow()
     {
-        // 跟安裝檔一起來的工具：安裝資料夾 tools 底下的每一個套件，驗過 Demo 的簽章；這台裝的不是這一版就裝上（第一次開、安裝檔換了新版）
-        // 在建立畫面之前裝好，工具目錄一讀就讀得到
-        var bundled = Path.Combine(AppContext.BaseDirectory, "tools");
-        var read = new[] { bundled }
-            .Where(Directory.Exists)
-            .SelectMany(one => Directory.EnumerateFiles(one, $"*{PackageStore.Extension}"))
-            .Select(packages.Read)
-            .ToList();
-
-        var known = store.QueryShellList().Where(one => one.type == "tool").ToList();
-        var done = read
-            .Where(one => one.Faults.Count == 0)
-            .Where(one => known.All(two => two.tool_no != one.Manifests.First().tool_no
-                                        || !string.Equals(two.home, PackageStore.Home(one.Manifests.First()), StringComparison.OrdinalIgnoreCase)))
-            .Select(one => packages.Install(one, "Demo 安裝檔", $"{store.QueryShellItem($"{one.Manifests.First().tool_no}")?.home}"))
-            .ToList();
-
-        // 登錄：第一次裝的新增一列，裝過的換成這一版
-        done.Where(one => known.All(two => two.tool_no != one.tool_no)).ToList().ForEach(one => store.InsertTool(one));
-        done.Where(one => known.Any(two => two.tool_no == one.tool_no)).ToList().ForEach(one => store.UpdateTool(one));
+        // 跟安裝檔一起來的工具：在建立畫面之前裝好，工具目錄一讀就讀得到
+        var bundled = service.LoadBundled();
 
         InitializeComponent();
 
@@ -85,12 +64,11 @@ public partial class MainWindow : Window
         // 設定自己收起來的時候，側邊那顆按鈕要跟著彈起來
         Settings.Closed += (_, _) => SettingsToggle.IsChecked = false;
 
-        shell = ShellLogic.Shell(store.QueryShellList(), store.QueryIconList());
+        shell = service.LoadShell();
         DataContext = shell;
 
-        // 驗不過的套件（檔案壞了、不是 Demo 簽的）不裝，把每一項原因說出來
-        read.Where(one => one.Faults.Count > 0).ToList()
-            .ForEach(one => Note($"「{one.Name}」裝不上：{string.Join(" ", one.Faults)}", "warn"));
+        // 驗不過的套件（檔案壞了、不是 Demo 簽的）沒裝，把每一項原因說出來
+        bundled.ForEach(one => Note(one.Text, one.Kind));
 
         shell.Rail.ForEach(one => rail.Add(one));
 
@@ -98,6 +76,25 @@ public partial class MainWindow : Window
 
         // 開起來停在工具目錄，側欄的落點也在那一格
         Look(string.Empty);
+
+        // 在背景跑的工具：要把自己叫到前面時，主視窗還原、叫到前面、開它
+        Host.Show = toolNo =>
+        {
+            WindowState = WindowState == WindowState.Minimized ? WindowState.Normal : WindowState;
+            Activate();
+            Run(toolNo);
+        };
+
+        // 設成自動啟動的工具：組件檔在的，現在就把畫面建好在背景跑（不掛上）；之後點進去掛的是同一份
+        service.LoadAutostarts().ForEach(Host.Start);
+
+        // 工具目錄右邊切了自動啟動：切成開就現在在背景跑起來；說一句，清單跟著換
+        Catalog.Info.Autostarted += (_, one) =>
+        {
+            new[] { one.ToolNo }.Where(_ => one.On).ToList().ForEach(Host.Start);
+            Note(one.Said, "info");
+            Catalog.Refresh();
+        };
 
         // 開多大由設計稿與這台螢幕的工作區一起決定：放得下就照設計稿，放不下就是工作區；位置擺在工作區正中間
         var work = SystemParameters.WorkArea;
@@ -179,26 +176,20 @@ public partial class MainWindow : Window
         Enumerable.Repeat(true, 1).Where(_ => ShellLogic.Setup.Sound).ToList()
             .ForEach(_ => System.Media.SystemSounds.Asterisk.Play());
 
-        // 一格一格走完它該停的時間；滑鼠停在上面那幾格不算
+        // 一格一格走完它該停的時間
         var left = note.Seconds * Second;
 
         while (left > 0 && notes.Contains(note))
         {
             await Task.Delay(Grain);
 
-            left -= Grain * Counting[note.Held];
+            left -= Grain;
         }
 
         notes.Remove(note);
     }
 
-    /// <summary>滑鼠停在一則通知上：計時跟著停</summary>
-    private void HoldNote(object sender, MouseEventArgs e) =>
-        ((ShellLogic.NoteItem)((FrameworkElement)sender).DataContext).Held = true;
 
-    /// <summary>滑鼠離開一則通知：計時接著走</summary>
-    private void ResumeNote(object sender, MouseEventArgs e) =>
-        ((ShellLogic.NoteItem)((FrameworkElement)sender).DataContext).Held = false;
 
     /// <summary>把一則通知關掉</summary>
     private void DropNote(object sender, RoutedEventArgs e) =>
@@ -240,30 +231,37 @@ public partial class MainWindow : Window
             });
     }
 
-    /// <summary>開起一支工具：把它自己的畫面掛在內容區，記一筆開啟</summary>
+    /// <summary>開起一支工具：把它自己的畫面掛在內容區（Demo 版不驗授權、不用工具金鑰）</summary>
     /// <param name="toolNo">這一支工具的代碼</param>
     private void Run(string toolNo)
     {
-        var name = rail.Concat(shell.Rail).Where(two => two.Key == toolNo).Select(two => two.Name).DefaultIfEmpty(toolNo).First();
-        store.InsertEventLog("open", toolNo, $"{nameof(MainWindow)}.{nameof(Run)}", $"開啟 {name}", null);
+        var view = service.LoadOpened(toolNo);
 
-        Host.Open(toolNo);
+        // 開得起來：把它的畫面備好、換過去
+        Enumerable
+            .Repeat(toolNo, 1)
+            .Where(_ => view.Open)
+            .ToList()
+            .ForEach(one =>
+            {
+                Host.Open(one);
 
-        Host.Visibility = Visibility.Visible;
-        Catalog.Visibility = Visibility.Collapsed;
-        Log.Visibility = Visibility.Collapsed;
+                Host.Visibility = Visibility.Visible;
+                Catalog.Visibility = Visibility.Collapsed;
+                Log.Visibility = Visibility.Collapsed;
 
-        CrumbText.Text = $"— {name}";
+                CrumbText.Text = $"— {view.Name}";
 
-        // 側欄的落點跟著走
-        steering = true;
-        RailList.SelectedIndex = rail
-            .Select((two, index) => new { two.Key, index })
-            .Where(two => two.Key == toolNo)
-            .Select(two => two.index)
-            .DefaultIfEmpty(NoRow)
-            .First();
-        steering = false;
+                // 側欄的落點跟著走
+                steering = true;
+                RailList.SelectedIndex = rail
+                    .Select((two, index) => new { two.Key, index })
+                    .Where(two => two.Key == one)
+                    .Select(two => two.index)
+                    .DefaultIfEmpty(NoRow)
+                    .First();
+                steering = false;
+            });
     }
 
     /// <summary>打開指令面板：頂部搜尋、頭像、Ctrl K 都是同一件事</summary>
@@ -282,7 +280,7 @@ public partial class MainWindow : Window
     private void Take(PaletteLogic.PaletteItem item)
     {
         // 選過的工具記起來，下次打開面板就排在最近使用
-        item.Remembers.ForEach(one => store.InsertSearch(one));
+        new CatalogService().LoadSearched(item.Remembers);
 
         // 一支工具：在工具目錄選中它
         item.Opens.ForEach(one => Look(one));
@@ -390,12 +388,6 @@ public partial class MainWindow : Window
     /// <summary>計時一次走幾毫秒</summary>
     private const int Grain = 100;
 
-    /// <summary>停著的時候這一格不算，沒停著才算</summary>
-    private static IReadOnlyDictionary<bool, int> Counting { get; } = new Dictionary<bool, int>
-    {
-        [true] = 0,
-        [false] = 1,
-    };
 
     /// <summary>找螢幕時取離視窗最近的那一台</summary>
     private const int Nearest = 0x00000002;

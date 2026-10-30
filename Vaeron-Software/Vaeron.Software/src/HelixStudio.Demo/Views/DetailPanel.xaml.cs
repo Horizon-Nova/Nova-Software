@@ -2,16 +2,14 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using HelixStudio.Logic;
-using HelixStudio.Store;
+using HelixStudio.Service;
 
 namespace HelixStudio.Views;
 
-/// <summary>工具目錄右邊那一欄：選中那一支工具的資訊、開啟（Demo 版的工具跟安裝檔一起來，不在這裡移除）</summary>
+/// <summary>工具目錄右邊那一欄：選中那一支工具的資訊、開啟、切自動啟動（Demo 版的工具跟安裝檔一起來，不在這裡移除）</summary>
 public partial class DetailPanel : UserControl
 {
-    private readonly ShellStore store = new();
-
-    private readonly Dictionary<string, List<string>> icons;
+    private readonly CatalogService service = new();
 
     private string key = string.Empty;
 
@@ -21,6 +19,9 @@ public partial class DetailPanel : UserControl
     /// <summary>放大看的那一張截圖；沒有放大就是空字串</summary>
     private string zoom = string.Empty;
 
+    /// <summary>切了自動啟動：帶的是工具代碼、切成什麼與回給操作員的那一句；主視窗照它在背景開起這支工具並說出來</summary>
+    public event EventHandler<(string ToolNo, bool On, string Said)>? Autostarted;
+
     /// <summary>有人要開起某一支工具</summary>
     public event EventHandler<string>? Launched;
 
@@ -28,8 +29,6 @@ public partial class DetailPanel : UserControl
     public DetailPanel()
     {
         InitializeComponent();
-
-        icons = store.QueryIconList();
     }
 
     /// <summary>看一支工具的資訊；同一支就只重讀</summary>
@@ -99,7 +98,7 @@ public partial class DetailPanel : UserControl
     private void Primary(object sender, RoutedEventArgs e) =>
         Launched?.Invoke(this, key);
 
-    /// <summary>按 Esc：收起放大的截圖</summary>
+    /// <summary>按 Esc：收掉放大的截圖</summary>
     private void Escape(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Escape || zoom.Length == 0) return;
@@ -108,11 +107,19 @@ public partial class DetailPanel : UserControl
         ZoomOut(sender, e);
     }
 
+    /// <summary>切自動啟動：記一次切換，主視窗接著在背景開起它（切成開時）並說一句</summary>
+    private void FlipAutostart(object sender, RoutedEventArgs e)
+    {
+        var on = ((CheckBox)sender).IsChecked == true;
+        var said = service.LoadAutostart(key, on);
+
+        Show();
+        Autostarted?.Invoke(this, (key, on, said));
+    }
+
     /// <summary>把這一欄重畫一次；這一支已經不在就什麼都不畫</summary>
     private void Show()
     {
-        var rows = store.QueryCatalogItem(key);
-
-        DataContext = rows.Any(row => row.type == "tool") ? DetailLogic.Detail(rows, icons, false, selected, zoom) : null;
+        DataContext = service.LoadDetail(key, selected, zoom);
     }
 }

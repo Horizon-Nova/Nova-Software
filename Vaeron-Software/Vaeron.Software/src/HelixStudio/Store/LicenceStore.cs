@@ -121,6 +121,17 @@ public class LicenceStore
             .First();
     }
 
+    /// <summary>把一把工具金鑰攤開：看得懂就是它寫的內容（啟用時從這裡讀到期日），看不懂是 null；配不配得上由 Fits 說</summary>
+    /// <param name="code">貼進來的那一串</param>
+    public LicenceItem? Read(string code)
+    {
+        var plain = code.Trim();
+
+        return plain.Length > 0 && Convert.TryFromBase64String(plain, new byte[plain.Length], out _)
+            ? JsonSerializer.Deserialize<LicenceItem>(Encoding.UTF8.GetString(Convert.FromBase64String(plain)))
+            : null;
+    }
+
     #endregion
 
     #region 把客戶拿到的 KEY 存起來
